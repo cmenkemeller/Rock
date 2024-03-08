@@ -2923,28 +2923,21 @@ formfield, .unlabeled {
   -xf-spacing: 0;
 }
 
-.block-attributevalues .block-panel .panel-layout, .block-attributevalues .block-panel .items-layout  {
-  -xf-spacing: 0;
-}
-
 .block-personprofile .block-panel .block-panel-name-label {
   font-size: 14;
 }
 
-.block-personprofile .block-panel .items-frame,
-.block-attribute-values .block-panel .items-frame {
+.block-personprofile .block-panel .items-frame {
   background-color: white;
   border-radius: 8;
   margin: 0;
 }
 
-.block-personprofile .block-panel .item-frame,
-.block-attribute-values .block-panel .item-frame {
+.block-personprofile .block-panel .item-frame {
   padding: 0;
 }
 
-.block-personprofile .block-panel .items-frame .item-layout,
-.block-attributevalues .block-panel .items-frame .item-layout {
+.block-personprofile .block-panel .items-frame .item-layout {
   padding: 0, 8;
 }
 
