@@ -1,0 +1,28 @@
+<template>
+    <GalleryAndResult :value="text"
+                      :importCode="importCode"
+                      :exampleCode="exampleCode">
+
+        <TextBox label="Text 1" v-model="text" :maxLength="50" showCountDown />
+
+        <template #settings>
+            <p class="text-semibold font-italic">Not all settings are demonstrated in this gallery.</p>
+            <p>Additional props extend and are passed to the underlying <code>Rock Form Field</code>.</p>
+        </template>
+    </GalleryAndResult>
+</template>
+
+<script setup lang="ts">
+import { computed, ref } from "vue";
+import GalleryAndResult from "./galleryAndResult.partial.obs";
+import TextBox from "@Obsidian/Controls/textBox.obs";
+import { getSfcControlImportPath } from "./utils.partial";
+
+const text = ref("Some two-way bound text");
+
+const importCode = getSfcControlImportPath("textBox");
+const exampleCode = computed(() => {
+    const modelProp = ` v-model="text"`;
+    return `<TextBox${modelProp} />`;
+});
+</script>
