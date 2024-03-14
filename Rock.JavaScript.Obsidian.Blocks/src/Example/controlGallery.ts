@@ -4172,11 +4172,11 @@ const lavaCommandPickerGallery = defineComponent({
     },
     setup() {
         return {
-            columnCount: ref(0),
-            displayStyle: ref(PickerDisplayStyle.Auto),
+            columnCount: ref(3),
+            displayStyle: ref(PickerDisplayStyle.List),
             displayStyleItems,
             enhanceForLongLists: ref(false),
-            multiple: ref(false),
+            multiple: ref(true),
             showBlankItem: ref(false),
             value: ref({}),
             importCode: getControlImportPath("lavaCommandPicker"),
@@ -7618,7 +7618,7 @@ const noteTextEditorGallery = defineComponent({
     :exampleCode="exampleCode"
     enableReflection>
 
-    <NoteTextEditor v-model="value" :avatar="avatar" />
+    <NoteTextEditor v-model="value" :avatar="avatar" label="Leave a Note" />
 
     <template #settings>
     </template>

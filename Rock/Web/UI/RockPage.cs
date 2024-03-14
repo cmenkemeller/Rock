@@ -103,6 +103,11 @@ namespace Rock.Web.UI
         /// </summary>
         private static List<FileSystemWatcher> _obsidianFileWatchers = new List<FileSystemWatcher>();
 
+        /// <summary>
+        /// The currently running Rock version.
+        /// </summary>
+        private static string _rockVersion = "";
+
         #endregion
 
         #region Protected Variables
@@ -629,6 +634,7 @@ namespace Rock.Web.UI
         static RockPage()
         {
             InitializeObsidianFingerprint();
+            _rockVersion = "Rock v" + typeof( Rock.Web.UI.RockPage ).Assembly.GetName().Version.ToString();
         }
 
         #endregion
@@ -847,10 +853,9 @@ namespace Rock.Web.UI
 
             // Add a Rock version meta tag
             Page.Trace.Warn( "Adding Rock metatag" );
-            string version = typeof( Rock.Web.UI.RockPage ).Assembly.GetName().Version.ToString();
             HtmlMeta rockVersion = new HtmlMeta();
             rockVersion.Attributes.Add( "name", "generator" );
-            rockVersion.Attributes.Add( "content", string.Format( "Rock v{0}", version ) );
+            rockVersion.Attributes.Add( "content", _rockVersion );
             AddMetaTag( this.Page, rockVersion );
 
             if ( _showDebugTimings )
@@ -1244,6 +1249,8 @@ Rock.settings.initialize({{
                     {
                         AddGoogleAnalytics( _pageCache.Layout.Site.GoogleAnalyticsCode );
                     }
+
+                    AddJesusHook();
 
                     // Flag indicating if user has rights to administer one or more of the blocks on page
                     bool canAdministrateBlockOnPage = false;
@@ -2756,6 +2763,21 @@ $.ajax({
                 // Log any error but still let the page load.
                 LogException( ex );
             }
+        }
+
+        /// <summary>
+        /// Adds the Crafting Code For Christ script.
+        /// </summary>
+        private void AddJesusHook()
+        {
+            var script = $@"
+    <script>
+      console.info(
+        '%cCrafting Code For Christ | Col. 3:23-24',
+        'background: #ee7625; border-radius:0.5em; padding:0.2em 0.5em; color: white; font-weight: bold');
+      console.info('{_rockVersion}');
+    </script>";
+            AddScriptToHead( this.Page, script, false );
         }
 
         /// <summary>

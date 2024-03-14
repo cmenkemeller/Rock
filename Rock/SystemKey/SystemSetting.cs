@@ -30,6 +30,13 @@ namespace Rock.SystemKey
         public const string ROCK_INSTANCE_ID = "RockInstanceId";
 
         /// <summary>
+        /// The organization timezone setting, identified by Windows standard format timezone name.
+        /// This identifier format corresponds to the <see cref="TimeZoneInfo.Id"/> property and the
+        /// SQL Server table [sys].[time_zone_info].[name] column.
+        /// </summary>
+        public const string ORG_TIME_ZONE = "core_OrgTimeZone";
+
+        /// <summary>
         /// Holds the System Setting key for the sample data load date/time.
         /// </summary>
         public const string SAMPLEDATA_DATE = "com.rockrms.sampledata.datetime";
@@ -336,6 +343,13 @@ namespace Rock.SystemKey
         /// The protocol to use for sending telemetry for observability.
         /// </summary>
         public const string OBSERVABILITY_TARGETED_QUERIES = "core_ObservabilityTargetedQueries";
+
+        /// <summary>
+        /// Determines if all SQL query statements are included in database
+        /// activities. Query statements will always be included in targeted
+        /// queries.
+        /// </summary>
+        public const string OBSERVABILITY_INCLUDE_QUERY_STATEMENTS = "core_ObservabilityIncludeQueryStatements";
 
         /// <summary>
         /// The maximum number of spans that can be created for a single trace
