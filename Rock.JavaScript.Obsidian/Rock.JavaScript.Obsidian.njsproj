@@ -362,6 +362,7 @@
     <Folder Include="Framework\ViewModels\Blocks\Core\FollowingEventTypeDetail\" />
     <Folder Include="Framework\ViewModels\Blocks\Core\InteractionChannelDetail\" />
     <Folder Include="Framework\ViewModels\Blocks\Core\ScheduleDetail\" />
+    <Folder Include="Framework\ViewModels\Blocks\Core\ScheduledJobHistoryList\" />
     <Folder Include="Framework\ViewModels\Blocks\Core\ScheduleList\" />
     <Folder Include="Framework\ViewModels\Blocks\Core\SignalTypeList\" />
     <Folder Include="Framework\ViewModels\Blocks\Core\SignatureDocumentTemplateList\" />
@@ -386,6 +387,7 @@
     <Folder Include="Framework\ViewModels\Blocks\Engagement\AchievementAttemptList\" />
     <Folder Include="Framework\ViewModels\Blocks\Engagement\AchievementTypeDetail\" />
     <Folder Include="Framework\ViewModels\Blocks\Engagement\ConnectionOpportunityList\" />
+    <Folder Include="Framework\ViewModels\Blocks\Engagement\ConnectionTypeList\" />
     <Folder Include="Framework\ViewModels\Blocks\Engagement\SignUp\" />
     <Folder Include="Framework\ViewModels\Blocks\Engagement\SignUp\SignUpAttendanceDetail\" />
     <Folder Include="Framework\ViewModels\Blocks\Engagement\SignUp\SignUpDetail\" />
@@ -398,6 +400,7 @@
     <Folder Include="Framework\ViewModels\Blocks\Engagement\StreakDetail\" />
     <Folder Include="Framework\ViewModels\Blocks\Engagement\StreakTypeDetail\" />
     <Folder Include="Framework\ViewModels\Blocks\Engagement\StreakTypeExclusionDetail\" />
+    <Folder Include="Framework\ViewModels\Blocks\Engagement\StreakTypeList\" />
     <Folder Include="Framework\ViewModels\Blocks\Event\" />
     <Folder Include="Framework\ViewModels\Blocks\Event\EventCalendarDetail\" />
     <Folder Include="Framework\ViewModels\Blocks\Event\EventCalendarItemList\" />
@@ -932,6 +935,7 @@
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\ScheduleDetail\scheduleExclusionBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\InteractionChannelDetail\interactionChannelBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\InteractionChannelDetail\interactionChannelDetailOptionsBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\ScheduledJobHistoryList\scheduledJobHistoryListOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\ScheduleList\scheduleListOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\SignalTypeList\signalTypeListOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\SignatureDocumentTemplateDetail\getPdfPreviewUrlRequestBag.d.ts" />
@@ -977,6 +981,7 @@
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Engagement\AchievementTypeDetail\achievementTypeBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Engagement\AchievementTypeDetail\achievementTypeDetailOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Engagement\ConnectionOpportunityList\connectionOpportunityListOptionsBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Engagement\ConnectionTypeList\connectionTypeListOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Engagement\SignUp\SignUpAttendanceDetail\signUpAttendanceBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Engagement\SignUp\SignUpAttendanceDetail\signUpAttendanceDetailInitializationBox.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Engagement\SignUp\SignUpAttendanceDetail\signUpAttendeeBag.d.ts" />
@@ -1011,6 +1016,7 @@
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Engagement\StreakTypeDetail\streakTypeDetailOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Engagement\StreakTypeExclusionDetail\streakTypeExclusionBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Engagement\StreakTypeExclusionDetail\streakTypeExclusionDetailOptionsBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Engagement\StreakTypeList\streakTypeListOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Event\EventCalendarDetail\eventAttributeBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Event\EventCalendarDetail\eventCalendarBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Event\EventCalendarDetail\eventCalendarDetailOptionsBag.d.ts" />
@@ -1255,7 +1261,6 @@
     <TypeScriptCompile Include="Framework\ViewModels\Controls\monthYearValue.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Controls\noteMentionItemBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Controls\phoneNumberBoxWithSmsControlBag.d.ts" />
-    <TypeScriptCompile Include="Framework\ViewModels\Controls\rockCacheability.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Controls\rockCacheabilityBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Controls\slidingDateRangeBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Controls\timeIntervalBag.d.ts" />
@@ -1445,7 +1450,6 @@
     <TypeScriptCompile Include="Framework\ViewModels\Utility\publicAttributeCategoryBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Utility\publicComparisonValueBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Utility\publicEditableAttributeBag.d.ts" />
-    <TypeScriptCompile Include="Framework\ViewModels\Utility\timeInterval.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Utility\taskActivityProgressLogBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Utility\taskActivityProgressStatusBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Utility\taskActivityProgressUpdateBag.d.ts" />
