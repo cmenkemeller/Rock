@@ -590,6 +590,8 @@ namespace RockWeb.Blocks.Mobile
                 cpWarningStrong.Value = colors.WarningStrong;
                 cpWarningSoft.Value = colors.WarningSoft;
 
+                cbEnableLegacyStyles.Checked = additionalSettings.DownhillSettings.EnableLegacyStyles;
+
                 cbNavbarTransclucent.Checked = additionalSettings.IOSEnableBarTransparency;
                 ddlNavbarBlurStyle.Visible = cbNavbarTransclucent.Checked;
                 ddlNavbarBlurStyle.BindToEnum<IOSBlurStyle>();
@@ -1155,12 +1157,6 @@ namespace RockWeb.Blocks.Mobile
                 additionalSettings.IOSEnableBarTransparency = cbNavbarTransclucent.Checked;
                 additionalSettings.IOSBarBlurStyle = ddlNavbarBlurStyle.SelectedValueAsEnumOrNull<IOSBlurStyle>() ?? IOSBlurStyle.None;
 
-                //additionalSettings.MenuButtonColor = cpEditMenuButtonColor.Value;
-                //additionalSettings.ActivityIndicatorColor = cpEditActivityIndicatorColor.Value;
-                //additionalSettings.DownhillSettings.TextColor = cpTextColor.Value;
-                //additionalSettings.DownhillSettings.HeadingColor = cpHeadingColor.Value;
-                //additionalSettings.DownhillSettings.BackgroundColor = cpBackgroundColor.Value;
-
                 additionalSettings.DownhillSettings.ApplicationColors.InterfaceStrongest = cpInterfaceStrongest.Value;
                 additionalSettings.DownhillSettings.ApplicationColors.InterfaceStronger = cpInterfaceStronger.Value;
                 additionalSettings.DownhillSettings.ApplicationColors.InterfaceStrong = cpInterfaceStrong.Value;
@@ -1185,21 +1181,9 @@ namespace RockWeb.Blocks.Mobile
                 additionalSettings.DownhillSettings.ApplicationColors.WarningStrong = cpWarningStrong.Value;
                 additionalSettings.DownhillSettings.ApplicationColors.WarningSoft = cpWarningSoft.Value;
 
-                //additionalSettings.DownhillSettings.ApplicationColors.Primary = cpPrimary.Value;
-                //additionalSettings.DownhillSettings.ApplicationColors.Secondary = cpSecondary.Value;
-                //additionalSettings.DownhillSettings.ApplicationColors.Success = cpSuccess.Value;
-                //additionalSettings.DownhillSettings.ApplicationColors.Info = cpInfo.Value;
-                //additionalSettings.DownhillSettings.ApplicationColors.Danger = cpDanger.Value;
-                //additionalSettings.DownhillSettings.ApplicationColors.Warning = cpWarning.Value;
-                //additionalSettings.DownhillSettings.ApplicationColors.Light = cpLight.Value;
-                //additionalSettings.DownhillSettings.ApplicationColors.Dark = cpDark.Value;
-                //additionalSettings.DownhillSettings.ApplicationColors.Brand = cpBrand.Value;
-                //additionalSettings.DownhillSettings.ApplicationColors.Info = cpInfo.Value;
-
-                //additionalSettings.DownhillSettings.RadiusBase = nbRadiusBase.Text.AsDecimal();
-
                 additionalSettings.DownhillSettings.FontSizeDefault = nbFontSizeDefault.Text.AsDecimal();
                 additionalSettings.DownhillSettings.Platform = Rock.DownhillCss.DownhillPlatform.Mobile;
+                additionalSettings.DownhillSettings.EnableLegacyStyles = cbEnableLegacyStyles.Checked;
 
                 additionalSettings.CssStyle = ceEditCssStyles.Text;
 
