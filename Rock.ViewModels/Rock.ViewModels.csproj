@@ -123,6 +123,8 @@
     <Compile Include="Blocks\Core\NoteWatchList\NoteWatchListOptionsBag.cs" />
     <Compile Include="Blocks\Core\RestControllerList\RestControllerListBag.cs" />
     <Compile Include="Blocks\Core\RestControllerList\RestControllerListOptionsBag.cs" />
+    <Compile Include="Blocks\Core\DefinedValueList\DefinedValueBag.cs" />
+    <Compile Include="Blocks\Core\DefinedValueList\DefinedValueListOptionsBag.cs" />
     <Compile Include="Blocks\Core\ScheduleDetail\ScheduleExclusionBag.cs" />
     <Compile Include="Blocks\Core\InteractionChannelDetail\InteractionChannelBag.cs" />
     <Compile Include="Blocks\Core\InteractionChannelDetail\InteractionChannelDetailOptionsBag.cs" />
@@ -143,6 +145,8 @@
     <Compile Include="Blocks\Engagement\AchievementAttemptDetail\AchievementAttemptDetailOptionsBag.cs" />
     <Compile Include="Blocks\Engagement\AchievementAttemptList\AchievementAttemptListOptionsBag.cs" />
     <Compile Include="Blocks\Engagement\ConnectionOpportunityList\ConnectionOpportunityListOptionsBag.cs" />
+    <Compile Include="Blocks\Engagement\ConnectionTypeList\ConnectionTypeListOptionsBag.cs" />
+    <Compile Include="Blocks\Engagement\SignUp\SignUpFinder\GetAvailableCampusesBag.cs" />
     <Compile Include="Blocks\Engagement\StepProgramList\StepProgramListBag.cs" />
     <Compile Include="Blocks\Engagement\StepProgramList\StepProgramListOptionsBag.cs" />
     <Compile Include="Blocks\CheckIn\AttendanceHistoryList\AttendanceHistoryListOptionsBag.cs" />
@@ -188,6 +192,7 @@
     <Compile Include="Blocks\Group\GroupRequirementTypeDetail\GroupRequirementTypeDetailOptionsBag.cs" />
     <Compile Include="Blocks\Reporting\PersistedDataViewList\PersistedDataViewListOptionsBag.cs" />
     <Compile Include="Blocks\Reporting\InteractionDetail\InteractionDetailInitializationBox.cs" />
+    <Compile Include="Blocks\Finance\SavedAccountList\SavedAccountListOptionsBag.cs" />
     <Compile Include="Blocks\Group\Scheduling\GroupScheduler\GroupSchedulerUnassignedResourceCountBag.cs" />
     <Compile Include="Blocks\Group\Scheduling\GroupScheduleToolbox\AssignmentOptionsBag.cs" />
     <Compile Include="Blocks\Group\Scheduling\GroupScheduleToolbox\CurrentScheduleBag.cs" />
@@ -220,6 +225,8 @@
     <Compile Include="Blocks\Reporting\MetricValueDetail\MetricValueBag.cs" />
     <Compile Include="Blocks\Reporting\MetricValueDetail\MetricValueDetailOptionsBag.cs" />
     <Compile Include="Blocks\Reporting\MetricValueDetail\MetricValuePartitionBag.cs" />
+    <Compile Include="Blocks\Reporting\MergeTemplateList\MergeTemplateListOptionsBag.cs" />
+    <Compile Include="Blocks\Reporting\ReportList\ReportListOptionsBag.cs" />
     <Compile Include="Blocks\Security\Login\PasswordlessLoginMfaBag.cs" />
     <Compile Include="Blocks\Security\Login\CredentialLoginMfaBag.cs" />
     <Compile Include="Blocks\Tv\AppleTvPageDetail\AppleTvPageBag.cs" />
@@ -491,6 +498,7 @@
     <Compile Include="Blocks\Group\LandingPageContentBag.cs" />
     <Compile Include="Blocks\Reporting\MergeTemplateDetail\MergeTemplateBag.cs" />
     <Compile Include="Blocks\Reporting\MergeTemplateDetail\MergeTemplateDetailOptionsBag.cs" />
+    <Compile Include="Blocks\Reporting\VolunteerGenerosityAnalysis\VolunteerGenerosityAnalysisBag.cs" />
     <Compile Include="Blocks\WebFarm\WebFarmNodeDetail\WebFarmMetricBag.cs" />
     <Compile Include="Blocks\WebFarm\WebFarmNodeDetail\WebFarmNodeBag.cs" />
     <Compile Include="Blocks\WebFarm\WebFarmNodeDetail\WebFarmNodeDetailOptionsBag.cs" />
