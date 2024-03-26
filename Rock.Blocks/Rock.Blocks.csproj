@@ -110,6 +110,7 @@
     <Compile Include="Cms\PersistedDatasetList.cs" />
     <Compile Include="Cms\PersonalLinkList.cs" />
     <Compile Include="Cms\PersonalLinkSectionList.cs" />
+	<Compile Include="Cms\PageRouteList.cs" />
     <Compile Include="Cms\SiteList.cs" />
     <Compile Include="Core\AuditList.cs" />
     <Compile Include="Core\RestControllerList.cs" />
@@ -156,6 +157,7 @@
     <Compile Include="Engagement\AchievementTypeDetail.cs" />
     <Compile Include="Engagement\ConnectionOpportunityList.cs" />
     <Compile Include="Engagement\ConnectionTypeList.cs" />
+    <Compile Include="Engagement\StepParticipantList.cs" />
     <Compile Include="Engagement\StepProgramList.cs" />
     <Compile Include="CheckIn\AttendanceHistoryList.cs" />
     <Compile Include="Engagement\StreakTypeList.cs" />
