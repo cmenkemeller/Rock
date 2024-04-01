@@ -434,6 +434,11 @@ namespace Rock.SystemGuid
         public const string MOBILE_CMS_STRUCTUREDCONTENTVIEW_BLOCK_TYPE = "219660C4-8F32-46DA-B8E3-A7A6FA0D6B76";
 
         /// <summary>
+        /// The GUID for the entity Rock.Blocks.Types.Mobile.Cms.ContentCollection
+        /// </summary>
+        public const string MOBILE_CMS_CONTENT_COLLECTION_BLOCK_TYPE = "983BBB4F-A870-4BF7-B958-AFFBC55B773E";
+
+        /// <summary>
         /// The GUID for the entity <see cref="Rock.Blocks.Types.Mobile.Core.Search"/>.
         /// </summary>
         public const string MOBILE_CORE_SEARCH_BLOCK_TYPE = "F81015CD-EBA9-4358-B930-4F1AB29AF879";

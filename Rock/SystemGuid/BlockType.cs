@@ -285,6 +285,11 @@ namespace Rock.SystemGuid
         #region Mobile Block Types
 
         /// <summary>
+        /// The mobile CMS &gt; <see cref="Rock.Blocks.Types.Mobile.Cms.ContentCollection">Content Collection</see> block type.
+        /// </summary>
+        public const string MOBILE_CMS_CONTENT_COLLECTION = "C2F77F8F-44B7-4986-B576-9E39D1FCF880";
+
+        /// <summary>
         /// The mobile Connection &gt; <see cref="Rock.Blocks.Types.Mobile.Connection.ConnectionTypeList">Connection Type List</see> block type.
         /// </summary>
         public const string MOBILE_CONNECTION_CONNECTION_TYPE_LIST = "31E1FCCF-C4B1-4D84-992C-DEACAF3697CF";
