@@ -21,35 +21,14 @@
 // </copyright>
 //
 
-import { PersonDtoBag } from "@Obsidian/ViewModels/Blocks/Reporting/VolunteerGenerosityAnalysis/personDtoBag";
-import { VolunteerGroupDataBag } from "@Obsidian/ViewModels/Blocks/Reporting/VolunteerGenerosityAnalysis/volunteerGroupDataBag";
-
-/** A bag that contains neccessary data for the Volunteer Generosity Analysis block. */
+/** A bag that contains all data for the Volunteer Generosity Analysis block. */
 export type VolunteerGenerosityDataBag = {
-    /** Gets or sets the estimated refresh time of the persisted dataset. */
-    estimatedRefreshTime: number;
+    /** Gets or sets the giving data. */
+    givingData?: unknown[] | null;
 
-    /** Gets or sets the giving identifier. */
-    givingId?: string | null;
+    /** Gets or sets the group data. */
+    groupData?: unknown[] | null;
 
-    /** Gets or sets the list of groups. */
-    groups?: VolunteerGroupDataBag[] | null;
-
-    /** Gets or sets the last name. */
-    lastName?: string | null;
-
-    /** Gets or sets the persisted dataset's last updated date. */
-    lastUpdated?: string | null;
-
-    /** Gets or sets the nick name. */
-    nickName?: string | null;
-
-    /** Gets or sets the person data. */
-    person?: PersonDtoBag | null;
-
-    /** Gets or sets the person identifier. */
-    personId: number;
-
-    /** Gets or sets the photo URL. */
-    photoUrl?: string | null;
+    /** Gets or sets the people data. */
+    peopleData?: unknown[] | null;
 };
