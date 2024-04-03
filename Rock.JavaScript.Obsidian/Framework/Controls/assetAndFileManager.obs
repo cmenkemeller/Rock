@@ -1,0 +1,235 @@
+<!-- Copyright by the Spark Development Network; Licensed under the Rock Community License -->
+<template>
+    <div id="pnlAssetManager" class="picker-wrapper clearfix">
+
+        <div class="picker-folders js-pickerfolders">
+            <div id="upnlFolders">
+                <input type="hidden" name="hfScriptInitialized" id="hfScriptInitialized" value="True">
+                <input type="hidden" name="hfSelectedValue" id="hfSelectedValue">
+                <input class="js-assetstorage-id" type="hidden" name="hfAssetStorageId" id="hfAssetStorageId" value="1">
+                <input class="js-selectfolder" type="hidden" name="hfSelectFolder" id="hfSelectFolder" value="~/Content/ExternalSite/Icons/">
+                <input class="js-expandedFolders" type="hidden" name="hfExpandedFolders" id="hfExpandedFolders" value="1,~/Content/,True||1,~/Content/ExternalSite/">
+                <input class="js-isroot" type="hidden" name="hfIsRoot" id="hfIsRoot" value="false">
+
+                <div class="actions btn-group">
+                    <RockButton type="button" btnSize="xs" title="Create a new folder in the selected folder" @click="showAddFolderForm">
+                        <i class="fa fa-folder-plus"></i> <span class="hidden-xs">Add Folder</span>
+                    </RockButton>
+                    <RockButton type="button" btnSize="xs" title="Delete the selected folder" @click="deleteSelectedFolder">
+                        <i class="fa fa-trash-alt"></i> <span class="hidden-xs">Delete Folder</span>
+                    </RockButton>
+                </div>
+
+                <div id="pnlCreateFolder" class="actions well well-sm clearfix js-createfolder-div" style="display: none;">
+                    <div class="pull-left margin-r-md">
+                        <input name="tbCreateFolder" type="text" id="tbCreateFolder" class="js-createfolder-input input-sm form-control">
+                    </div>
+                    <div class="pull-left padding-v-sm">
+                        <a id="lbCreateFolderAccept" class="btn btn-xs btn-default js-createfolder-accept" href="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;lbCreateFolderAccept&quot;, &quot;&quot;, true, &quot;AssetManager_894&quot;, &quot;&quot;, false, true))">
+                            <i class="fa fa-check"></i> Create Folder
+                        </a>
+                        <a href="#" class="btn btn-xs btn-default js-createfolder-cancel">
+                            <i class="fa fa-times"></i> Cancel
+                        </a>
+                    </div>
+                    <label class="js-createfolder-notification alert alert-warning" style="display:none"></label>
+                </div>
+
+                <div>
+                    <div class="treeview-scroll scroll-container scroll-container-horizontal scroll-container-picker js-folder-treeview">
+                        <div id="pnlTreeViewPort" class="viewport js-treeviewport" style="touch-action: none; height: 300px;">
+                            <div class="overview" style="transition-timing-function: cubic-bezier(0.1, 0.57, 0.1, 1); transition-duration: 0ms; transform: translate(0px) translateZ(0px);">
+                                <span id="lblFolders" class="treeview treeview-items">
+                                    <ul class="rocktree">
+                                        <li id="node-item-1-2c-2fcontent-2f-2ctrue" class="rocktree-item rocktree-folder" data-id="1%2C~%2FContent%2F%2CTrue" node-open="true"><i class="rocktree-icon icon-fw fa fa-fw fa-chevron-down"></i><span class="rocktree-name" title="Local Content"><i class="icon-fw fa fa-server"></i> <span class="rocktree-node-name-text">Local Content</span></span>
+                                            <ul class="rocktree-children">
+                                                <li id="node-item-1-2c-2fcontent-2femailtemplates-2f" class="rocktree-item rocktree-folder" data-id="1%2C~%2FContent%2FEmailTemplates%2F" data-parent-id="1%2C~%2FContent%2F%2CTrue" node-open="false"><i class="rocktree-icon icon-fw fa fa-fw fa-chevron-right"></i><span class="rocktree-name" title="EmailTemplates"><i class="icon-fw fa fa-folder"></i> <span class="rocktree-node-name-text">EmailTemplates</span></span></li>
+                                                <li id="node-item-1-2c-2fcontent-2fexternalsite-2f" class="rocktree-item rocktree-folder" data-id="1%2C~%2FContent%2FExternalSite%2F" data-parent-id="1%2C~%2FContent%2F%2CTrue" node-open="true"><i class="rocktree-icon icon-fw fa fa-fw fa-chevron-down"></i><span class="rocktree-name" title="ExternalSite"><i class="icon-fw fa fa-folder"></i> <span class="rocktree-node-name-text">ExternalSite</span></span>
+                                                    <ul class="rocktree-children">
+                                                        <li id="node-item-1-2c-2fcontent-2fexternalsite-2ficons-2f" class="rocktree-item rocktree-folder" data-id="1%2C~%2FContent%2FExternalSite%2FIcons%2F" data-parent-id="1%2C~%2FContent%2FExternalSite%2F" node-open="false"><i class="rocktree-icon icon-fw fa fa-fw fa-chevron-right"></i><span class="rocktree-name selected" title="Icons"><i class="icon-fw fa fa-folder"></i> <span class="rocktree-node-name-text">Icons</span></span></li>
+                                                        <li id="node-item-1-2c-2fcontent-2fexternalsite-2fnew-20one-2f" class="rocktree-item rocktree-folder" data-id="1%2C~%2FContent%2FExternalSite%2FNew%20One%2F" data-parent-id="1%2C~%2FContent%2FExternalSite%2F" node-open="false"><i class="rocktree-icon icon-fw fa fa-fw fa-chevron-right"></i><span class="rocktree-name" title="New One"><i class="icon-fw fa fa-folder"></i> <span class="rocktree-node-name-text">New One</span></span></li>
+                                                    </ul>
+                                                </li>
+                                                <li id="node-item-1-2c-2fcontent-2finternalsite-2f" class="rocktree-item rocktree-folder" data-id="1%2C~%2FContent%2FInternalSite%2F" data-parent-id="1%2C~%2FContent%2F%2CTrue" node-open="false"><i class="rocktree-icon icon-fw fa fa-fw fa-chevron-right"></i><span class="rocktree-name" title="InternalSite"><i class="icon-fw fa fa-folder"></i> <span class="rocktree-node-name-text">InternalSite</span></span></li>
+                                                <li id="node-item-1-2c-2fcontent-2ftests-2f" class="rocktree-item rocktree-folder" data-id="1%2C~%2FContent%2FTests%2F" data-parent-id="1%2C~%2FContent%2F%2CTrue" node-open="false"><i class="rocktree-icon icon-fw fa fa-fw fa-chevron-right"></i><span class="rocktree-name" title="Tests"><i class="icon-fw fa fa-folder"></i> <span class="rocktree-node-name-text">Tests</span></span></li>
+                                            </ul>
+                                        </li>
+                                        <li id="node-item-3-2c-2ctrue" class="rocktree-item rocktree-folder" data-id="3%2C%2CTrue" node-open="false"><i class="rocktree-icon icon-fw fa fa-fw fa-chevron-right"></i><span class="rocktree-name" title="EthanAmazon"><i class="icon-fw fa fa-aws"></i> <span class="rocktree-node-name-text">EthanAmazon</span></span></li>
+                                        <li id="node-item-18-2c-2ctrue" class="rocktree-item rocktree-folder" data-id="18%2C%2CTrue" node-open="false"><i class="rocktree-icon icon-fw fa fa-fw fa-chevron-right"></i><span class="rocktree-name" title="Working S3"><i class="icon-fw fa fa-aws"></i> <span class="rocktree-node-name-text">Working S3</span></span></li>
+                                    </ul>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="picker-files">
+            <div id="upnlFiles">
+                <div id="pnlFiles" class="js-files">
+                    <div class="actions assetmanager-actions">
+                        <div class="pull-left">
+                            <div class="fileupload-group" id="fupUpload" title="Upload a file to the selected location">
+                                <div class="js-upload-progress upload-progress-sm" style="display:none;">
+                                    <i class="fa fa-refresh fa-lg fa-spin"></i>
+                                    <div class="js-upload-progress-percent"></div>
+                                </div>
+                                <div class="fileuploaddefault-button">
+                                    <span>Upload</span><input type="file" name="fupUpload$fupUpload_fu" id="fupUpload_fupUpload_fu">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="btn-group mr-1">
+                            <a id="lbDownload" title="Download selected file" class="btn btn-xs btn-default js-singleselect aspNetDisabled" href="javascript:__doPostBack('lbDownload','')"><i class="fa fa-download"></i> <span class="hidden-xs">Download</span></a>
+                            <a onclick="return false;" id="lbRename" title="Rename selected file" class="btn btn-xs btn-default js-singleselect js-renamefile aspNetDisabled" href="javascript:__doPostBack('lbRename','')">
+                                <i class="fa fa-i-cursor"></i> <span class="hidden-xs">Rename</span>
+                            </a>
+                            <a onclick="Rock.dialogs.confirmDelete(event, ' file');" id="lbDelete" title="Delete selected files" class="btn btn-xs btn-default js-minselect aspNetDisabled" href="javascript:__doPostBack('lbDelete','')"><i class="fa fa-trash-alt"></i> <span class="hidden-xs">Delete</span></a>
+                        </div>
+                        <a id="lbRefresh" title="Refresh" class="btn btn-xs btn-square btn-default js-assetselect" href="javascript:__doPostBack('lbRefresh','')"><i class="fa fa-sync"></i></a>
+                    </div>
+                    <div id="divRenameFile" class="actions well well-sm js-renamefile-div" style="display: none;">
+                        <div class="pull-left">
+                            <input name="tbRenameFile" type="text" id="tbRenameFile" class="js-renamefile-input input-sm form-control">
+                        </div>
+                        <a id="lbRenameFileAccept" class="btn btn-xs btn-default js-renamefile-accept" href="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;lbRenameFileAccept&quot;, &quot;&quot;, true, &quot;AssetManager_894&quot;, &quot;&quot;, false, true))">
+                            <i class="fa fa-check"></i> Rename File
+                        </a>
+                        <a id="lbRenameFileCancel" href="#" class="btn btn-xs btn-default js-renamefile-cancel">
+                            <i class="fa fa-times"></i> Cancel
+                        </a>
+                        <label id="lblRenameFileNotification" class="js-renamefile-notification alert alert-warning clearfix" style="display:none"></label>
+                    </div>
+
+                    <table class="table table-striped table-responsive table-no-border assetmanager-files">
+                        <tbody>
+                            <tr id="rptFiles_ctl00_rptFileRow">
+                                <td>
+                                    <div class="checkbox ">
+                                        <label title=""><input id="rptFiles_ctl00_cbSelected" type="checkbox" name="rptFiles$ctl00$cbSelected" class="js-checkbox"><span class="label-text ">&nbsp;</span></label>
+                                    </div>
+                                </td>
+                                <td><img src="/Content/ASM_Thumbnails/1/Content/ExternalSite/Icons/favicon.ico" id="rptFiles_ctl00_imgIconPath" style="max-width:60px;"></td>
+                                <td>
+                                    <span id="rptFiles_ctl00_lbName" class="align-middle js-assetManager-name">favicon.ico</span>
+                                    <span id="rptFiles_ctl00_lbUrl" class="js-assetManager-uri" style="display: none">http://localhost:6229//Content/ExternalSite/Icons/favicon.ico</span>
+                                </td>
+                                <td data-priority="3"><span id="rptFiles_ctl00_lbLastModified">5/3/2022 10:50:38 AM</span></td>
+                                <td>
+                                    <span id="rptFiles_ctl00_lbFileSize">8 KB</span>
+                                    <span id="rptFiles_ctl00_lbKey" style="display: none">~/Content/ExternalSite/Icons/favicon.ico</span>
+                                </td>
+                            </tr>
+                            <tr id="rptFiles_ctl01_rptFileRow">
+                                <td>
+                                    <div class="checkbox ">
+                                        <label title=""><input id="rptFiles_ctl01_cbSelected" type="checkbox" name="rptFiles$ctl01$cbSelected" class="js-checkbox"><span class="label-text ">&nbsp;</span></label>
+                                    </div>
+                                </td>
+                                <td><img src="/Content/ASM_Thumbnails/1/Content/ExternalSite/Icons/touch-icon-ipad-retina.png" id="rptFiles_ctl01_imgIconPath" style="max-width:60px;"></td>
+                                <td>
+                                    <span id="rptFiles_ctl01_lbName" class="align-middle js-assetManager-name">touch-icon-ipad-retina.png</span>
+                                    <span id="rptFiles_ctl01_lbUrl" class="js-assetManager-uri" style="display: none">http://localhost:6229//Content/ExternalSite/Icons/touch-icon-ipad-retina.png</span>
+                                </td>
+                                <td data-priority="3"><span id="rptFiles_ctl01_lbLastModified">5/3/2022 10:50:38 AM</span></td>
+                                <td>
+                                    <span id="rptFiles_ctl01_lbFileSize">3 KB</span>
+                                    <span id="rptFiles_ctl01_lbKey" style="display: none">~/Content/ExternalSite/Icons/touch-icon-ipad-retina.png</span>
+                                </td>
+                            </tr>
+                            <tr id="rptFiles_ctl02_rptFileRow">
+                                <td>
+                                    <div class="checkbox ">
+                                        <label title=""><input id="rptFiles_ctl02_cbSelected" type="checkbox" name="rptFiles$ctl02$cbSelected" class="js-checkbox"><span class="label-text ">&nbsp;</span></label>
+                                    </div>
+                                </td>
+                                <td><img src="/Content/ASM_Thumbnails/1/Content/ExternalSite/Icons/touch-icon-ipad.png" id="rptFiles_ctl02_imgIconPath" style="max-width:60px;"></td>
+                                <td>
+                                    <span id="rptFiles_ctl02_lbName" class="align-middle js-assetManager-name">touch-icon-ipad.png</span>
+                                    <span id="rptFiles_ctl02_lbUrl" class="js-assetManager-uri" style="display: none">http://localhost:6229//Content/ExternalSite/Icons/touch-icon-ipad.png</span>
+                                </td>
+                                <td data-priority="3"><span id="rptFiles_ctl02_lbLastModified">5/3/2022 10:50:38 AM</span></td>
+                                <td>
+                                    <span id="rptFiles_ctl02_lbFileSize">1 KB</span>
+                                    <span id="rptFiles_ctl02_lbKey" style="display: none">~/Content/ExternalSite/Icons/touch-icon-ipad.png</span>
+                                </td>
+                            </tr>
+                            <tr id="rptFiles_ctl03_rptFileRow">
+                                <td>
+                                    <div class="checkbox ">
+                                        <label title=""><input id="rptFiles_ctl03_cbSelected" type="checkbox" name="rptFiles$ctl03$cbSelected" class="js-checkbox"><span class="label-text ">&nbsp;</span></label>
+                                    </div>
+                                </td>
+                                <td><img src="/Content/ASM_Thumbnails/1/Content/ExternalSite/Icons/touch-icon-iphone-retina.png" id="rptFiles_ctl03_imgIconPath" style="max-width:60px;"></td>
+                                <td>
+                                    <span id="rptFiles_ctl03_lbName" class="align-middle js-assetManager-name">touch-icon-iphone-retina.png</span>
+                                    <span id="rptFiles_ctl03_lbUrl" class="js-assetManager-uri" style="display: none">http://localhost:6229//Content/ExternalSite/Icons/touch-icon-iphone-retina.png</span>
+                                </td>
+                                <td data-priority="3"><span id="rptFiles_ctl03_lbLastModified">5/3/2022 10:50:38 AM</span></td>
+                                <td>
+                                    <span id="rptFiles_ctl03_lbFileSize">2 KB</span>
+                                    <span id="rptFiles_ctl03_lbKey" style="display: none">~/Content/ExternalSite/Icons/touch-icon-iphone-retina.png</span>
+                                </td>
+                            </tr>
+                            <tr id="rptFiles_ctl04_rptFileRow">
+                                <td>
+                                    <div class="checkbox ">
+                                        <label title=""><input id="rptFiles_ctl04_cbSelected" type="checkbox" name="rptFiles$ctl04$cbSelected" class="js-checkbox"><span class="label-text ">&nbsp;</span></label>
+                                    </div>
+                                </td>
+                                <td><img src="/Content/ASM_Thumbnails/1/Content/ExternalSite/Icons/touch-icon-iphone.png" id="rptFiles_ctl04_imgIconPath" style="max-width:60px;"></td>
+                                <td>
+                                    <span id="rptFiles_ctl04_lbName" class="align-middle js-assetManager-name">touch-icon-iphone.png</span>
+                                    <span id="rptFiles_ctl04_lbUrl" class="js-assetManager-uri" style="display: none">http://localhost:6229//Content/ExternalSite/Icons/touch-icon-iphone.png</span>
+                                </td>
+                                <td data-priority="3"><span id="rptFiles_ctl04_lbLastModified">5/3/2022 10:50:38 AM</span></td>
+                                <td>
+                                    <span id="rptFiles_ctl04_lbFileSize">1 KB</span>
+                                    <span id="rptFiles_ctl04_lbKey" style="display: none">~/Content/ExternalSite/Icons/touch-icon-iphone.png</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+    import { PropType } from "vue";
+    import RockButton from "./rockButton.obs";
+    import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
+    import { useVModelPassthrough } from "@Obsidian/Utility/component";
+
+    const props = defineProps({
+        modelValue: {
+            type: Object as PropType<ListItemBag>,
+            required: true
+        },
+    });
+
+    const emit = defineEmits<{
+        (e: "update:modelValue", value: ListItemBag): void
+    }>();
+
+    const internalValue = useVModelPassthrough(props, "modelValue", emit);
+
+    // #region Folder Event Handlers
+
+    function showAddFolderForm(): void {
+        throw new Error("Not implemented.");
+    }
+
+    function createFolder(): void {
+        throw new Error("Not implemented.");
+    }
+
+    function deleteSelectedFolder(): void {
+        throw new Error("Not implemented.");
+    }
+
+    // #endregion
+
+</script>
