@@ -35,6 +35,8 @@ import { alert, confirmDelete, showSecurity } from "@Obsidian/Utility/dialogs";
 import { useHttp } from "@Obsidian/Utility/http";
 import { makeUrlRedirectSafe } from "@Obsidian/Utility/url";
 import { asBooleanOrNull } from "@Obsidian/Utility/booleanUtils";
+import { splitCase } from "@Obsidian/Utility/stringUtils";
+import { areEqual, emptyGuid, toGuidOrNull } from "@Obsidian/Utility/guid";
 
 /** Provides a pattern for entity detail blocks. */
 export default defineComponent({
@@ -128,6 +130,14 @@ export default defineComponent({
         isDeleteVisible: {
             type: Boolean as PropType<boolean>,
             default: false
+        },
+
+        /**
+         * If true then the individual will be able to switch to fullscreen mode.
+         */
+        isFullScreenVisible: {
+            type: Boolean as PropType<boolean>,
+            default: true
         },
 
         /** The current display mode for the detail panel. */
@@ -275,17 +285,22 @@ export default defineComponent({
             }
 
             switch (internalMode.value) {
-                // If we are in view mode then display either the entity name or
-                // the entity type name.
+                // If we are in view mode then we should be display the entity name.
+                // If not, fall back on the entity type name.
                 case DetailPanelMode.View:
-                    return props.name ?? props.entityTypeName;
+                    return props.name ?? splitCase(props.entityTypeName);
 
-                // If we are in edit or add mode then display just the entity type
-                // name. An icon will be shown before the text.
-                case DetailPanelMode.Edit:
+                // If we are in Add mode then display "Add {Entity Type Name}"
                 case DetailPanelMode.Add:
+                    return `Add ${splitCase(props.entityTypeName)}`;
+
+                // If we are in edit mode then we should be displaying the entity name.
+                // If not, fall back on the entity type name.
+                case DetailPanelMode.Edit:
+                    return props.name ?? splitCase(props.entityTypeName);
+
                 default:
-                    return props.entityTypeName;
+                    return splitCase(props.entityTypeName);
             }
         });
 
@@ -456,14 +471,18 @@ export default defineComponent({
          * this detail block.
          */
         const getEntityFollowedState = async (): Promise<void> => {
+            const entityTypeGuid = toGuidOrNull(props.entityTypeGuid);
+
             // If we don't have an entity then mark the state as "unknown".
-            if (!props.entityTypeGuid || !props.entityKey) {
+            if (!entityTypeGuid
+                || areEqual(props.entityTypeGuid, emptyGuid)
+                || !props.entityKey) {
                 isEntityFollowed.value = null;
                 return;
             }
 
             const data: FollowingGetFollowingOptionsBag = {
-                entityTypeGuid: props.entityTypeGuid,
+                entityTypeGuid,
                 entityKey: props.entityKey
             };
 
@@ -585,6 +604,7 @@ export default defineComponent({
             formSubmissionSource = new PromiseCompletionSource();
             isFormSubmitting.value = true;
             await formSubmissionSource.promise;
+            isFormSubmitting.value = false;
         };
 
         /**
@@ -634,6 +654,7 @@ export default defineComponent({
             finally {
                 if (formSubmissionSource !== null) {
                     formSubmissionSource.resolve();
+                    formSubmissionSource = null;
                 }
             }
         };
@@ -682,13 +703,18 @@ export default defineComponent({
          * toggle the followed state of the entity.
          */
         const onFollowClick = async (): Promise<void> => {
+            const entityTypeGuid = toGuidOrNull(props.entityTypeGuid);
+
             // Shouldn't really happen, but just make sure we have everything.
-            if (isEntityFollowed.value === null || !props.entityTypeGuid || !props.entityKey) {
+            if (isEntityFollowed.value === null
+                || !entityTypeGuid
+                || areEqual(entityTypeGuid, emptyGuid)
+                || !props.entityKey) {
                 return;
             }
 
             const data: FollowingSetFollowingOptionsBag = {
-                entityTypeGuid: props.entityTypeGuid,
+                entityTypeGuid,
                 entityKey: props.entityKey,
                 isFollowing: !isEntityFollowed.value
             };
@@ -715,6 +741,7 @@ export default defineComponent({
         watch(isFormSubmitting, () => {
             if (isFormSubmitting.value === false && formSubmissionSource !== null) {
                 formSubmissionSource.resolve();
+                formSubmissionSource = null;
             }
         });
 
@@ -770,7 +797,7 @@ export default defineComponent({
     type="block"
     :title="panelTitle"
     :titleIconCssClass="panelTitleIconCssClass"
-    :hasFullscreen="true"
+    :hasFullscreen="isFullScreenVisible"
     :headerSecondaryActions="internalHeaderSecondaryActions">
 
     <template #headerActions>

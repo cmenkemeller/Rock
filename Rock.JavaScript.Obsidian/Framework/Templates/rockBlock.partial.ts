@@ -22,8 +22,8 @@ import { Component, computed, defineComponent, nextTick, onErrorCaptured, onMoun
 import { useStore } from "@Obsidian/PageState";
 import { RockDateTime } from "@Obsidian/Utility/rockDateTime";
 import { HttpBodyData, HttpMethod, HttpResult, HttpUrlParams } from "@Obsidian/Types/Utility/http";
-import { createInvokeBlockAction, provideBlockGuid, provideConfigurationValuesChanged, providePersonPreferences, provideReloadBlock } from "@Obsidian/Utility/block";
-import { areEqual, emptyGuid } from "@Obsidian/Utility/guid";
+import { createInvokeBlockAction, provideBlockGuid, provideConfigurationValuesChanged, providePersonPreferences, provideReloadBlock, provideStaticContent } from "@Obsidian/Utility/block";
+import { areEqual, emptyGuid, toGuidOrNull } from "@Obsidian/Utility/guid";
 import { PanelAction } from "@Obsidian/Types/Controls/panelAction";
 import { ObsidianBlockConfigBag } from "@Obsidian/ViewModels/Cms/obsidianBlockConfigBag";
 import { IBlockPersonPreferencesProvider, IPersonPreferenceCollection } from "@Obsidian/Types/Core/personPreferences";
@@ -131,6 +131,10 @@ export default defineComponent({
         startTimeMs: {
             type: Number as PropType<number>,
             required: true
+        },
+        staticContent: {
+            type: String as PropType<string>,
+            required: false
         }
     },
 
@@ -191,7 +195,7 @@ export default defineComponent({
             return await httpCall<T>("POST", url, params, data);
         };
 
-        const invokeBlockAction = createInvokeBlockAction(post, store.state.pageGuid, props.config.blockGuid ?? "", store.state.pageParameters);
+        const invokeBlockAction = createInvokeBlockAction(post, store.state.pageGuid, toGuidOrNull(props.config.blockGuid) ?? emptyGuid, store.state.pageParameters);
 
         /**
          * Reload the block by requesting the new initialization data and then
@@ -344,6 +348,7 @@ export default defineComponent({
         provideReloadBlock(reloadBlock);
         providePersonPreferences(getPreferenceProvider());
         const configurationValuesChanged = provideConfigurationValuesChanged();
+        provideStaticContent(props.staticContent);
 
         if (props.config.blockGuid) {
             provideBlockGuid(props.config.blockGuid);

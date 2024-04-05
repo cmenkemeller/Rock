@@ -591,8 +591,6 @@ namespace RockWeb.Blocks.Connection
             {
                 AvailableAttributes = ( ViewState[ViewStateKey.AvailableAttributeIds] as int[] ).Select( a => AttributeCache.Get( a ) ).ToList();
             }
-
-            BindBoardOrGrid();
         }
 
         /// <summary>
@@ -717,19 +715,39 @@ namespace RockWeb.Blocks.Connection
             else
             {
                 var causingControlClientId = Request["__EVENTTARGET"].ToStringSafe();
-                var causingControl = Page.FindControl( causingControlClientId );
-
                 if ( causingControlClientId == lbJavaScriptCommand.ClientID )
                 {
-                    // Handle card commands that are sent via JavaScript
+                    // Handle card commands that are sent via JavaScript. These postbacks will only come
+                    // from interactions with connection request cards while operating in board view mode;
+                    // simply process the JavaScript command and exit this method.
                     ProcessJavaScriptCommand();
+                    return;
                 }
-                else if ( causingControl != null &&
-                    ( causingControl == ppRequesterFilter || causingControl.Parent == ppRequesterFilter ) )
+
+                var causingControl = Page.FindControl( causingControlClientId );
+                var isCardViewMode = IsCardViewMode;
+
+                if ( causingControl != null )
                 {
-                    // If the postback comes from the filter drawer, don't modify the filter drawer CSS,
-                    // which dictates if the drawer is open or closed
-                    divFilterDrawer.Style.Clear();
+                    if ( causingControl == ppRequesterFilter || causingControl.Parent == ppRequesterFilter )
+                    {
+                        // If the postback comes from the filter drawer, don't modify the filter drawer CSS,
+                        // which dictates if the drawer is open or closed.
+                        divFilterDrawer.Style.Clear();
+                    }
+                    else if ( causingControl == lbToggleViewMode )
+                    {
+                        // If the postback comes from the toggle view mode button, the view mode is in the
+                        // process of changing as a result of this request; only re-add dynamic controls
+                        // and rebind the grid if we're currently in or transitioning to grid view mode.
+                        isCardViewMode = !isCardViewMode;
+                    }
+                }
+
+                if ( !isCardViewMode )
+                {
+                    AddDynamicControls();
+                    BindRequestsGrid();
                 }
             }
         }
@@ -1473,6 +1491,7 @@ namespace RockWeb.Blocks.Connection
             connectionRequest.SaveAttributeValues( rockContext );
 
             _connectionRequest = connectionRequest;
+            ConnectionRequestId = connectionRequest.Id;
 
             // Add an activity that the connector was assigned (or changed)
             if ( originalConnectorPersonAliasId != newConnectorPersonAliasId )
@@ -2517,7 +2536,7 @@ namespace RockWeb.Blocks.Connection
                     CurrentActivity = c.Workflow.ActiveActivityNames,
                     Date = c.Workflow.ActivatedDateTime.Value.ToShortDateString(),
                     OrderByDate = c.Workflow.ActivatedDateTime.Value,
-                    Status = c.Workflow.Status == "Completed" ? "<span class='label label-success'>Complete</span>" : "<span class='label label-info'>Running</span>"
+                    Status = $"<span class='label label-{( c.Workflow.CompletedDateTime.HasValue ? "success" : "info" )}'>{( c.Workflow.Status == "Active" ? "Running" : c.Workflow.Status )}</span>"
                 } )
                 .OrderByDescending( c => c.OrderByDate )
                 .ToList();
@@ -2671,6 +2690,13 @@ namespace RockWeb.Blocks.Connection
         /// <param name="e">The <see cref="RowEventArgs"/> instance containing the event data.</param>
         protected void gRequestModalViewModeActivities_RowSelected( object sender, RowEventArgs e )
         {
+            var viewModel = GetActivityViewModelQuery().FirstOrDefault( a => a.Id == e.RowKeyId );
+
+            if ( viewModel?.CanEdit != true )
+            {
+                return;
+            }
+
             CurrentActivityId = e.RowKeyId;
             RequestModalViewModeSubMode = RequestModalViewModeSubMode_AddEditActivity;
             ShowRequestModal();
@@ -4964,11 +4990,13 @@ namespace RockWeb.Blocks.Connection
 
             var rockContext = new RockContext();
             var connectionRequestService = new ConnectionRequestService( rockContext );
+
             _connectionRequestViewModel = connectionRequestService.GetConnectionRequestViewModel(
                 CurrentPersonAliasId.Value,
                 ConnectionRequestId.Value,
                 new ConnectionRequestViewModelQueryArgs(),
                 GetConnectionRequestStatusIconsTemplate() );
+
             return _connectionRequestViewModel;
         }
 

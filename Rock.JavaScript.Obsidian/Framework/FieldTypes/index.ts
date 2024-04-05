@@ -65,6 +65,9 @@ registerFieldType(FieldTypeGuids.ConnectionTypes, new ConnectionTypesField());
 import { CommunicationPreferenceField } from "./communicationPreferenceField.partial";
 registerFieldType(FieldTypeGuids.CommunicationPreferenceType, new CommunicationPreferenceField());
 
+import { CommunicationTemplateFieldType } from "./communicationTemplateField.partial";
+registerFieldType(FieldTypeGuids.CommunicationTemplate, new CommunicationTemplateFieldType());
+
 import { CurrencyFieldType } from "./currencyField.partial";
 registerFieldType(FieldTypeGuids.Currency, new CurrencyFieldType());
 
@@ -143,6 +146,9 @@ registerFieldType(FieldTypeGuids.IntegerRange, new IntegerRangeFieldType());
 import { KeyValueListFieldType } from "./keyValueListField.partial";
 registerFieldType(FieldTypeGuids.KeyValueList, new KeyValueListFieldType());
 
+import { LocationFieldType } from "./locationField.partial";
+registerFieldType(FieldTypeGuids.Location, new LocationFieldType());
+
 import { LocationListFieldType } from "./locationListField.partial";
 registerFieldType(FieldTypeGuids.LocationList, new LocationListFieldType());
 
@@ -194,6 +200,9 @@ registerFieldType(FieldTypeGuids.Schedules, new SchedulesFieldType());
 import { SingleSelectFieldType } from "./singleSelectField.partial";
 registerFieldType(FieldTypeGuids.SingleSelect, new SingleSelectFieldType());
 
+import { SecurityRoleFieldType } from "./securityRoleField.partial";
+registerFieldType(FieldTypeGuids.SecurityRole, new SecurityRoleFieldType());
+
 import { StructureContentEditorFieldType } from "./structureContentEditorField.partial";
 registerFieldType(FieldTypeGuids.StructureContentEditor, new StructureContentEditorFieldType());
 
@@ -206,6 +215,9 @@ registerFieldType(FieldTypeGuids.SocialMediaAccount, new SocialMediaAccountField
 import { SSNFieldType } from "./ssnField.partial";
 registerFieldType(FieldTypeGuids.Ssn, new SSNFieldType());
 
+import { SystemCommunicationFieldType } from "./systemCommunicationField.partial";
+registerFieldType(FieldTypeGuids.SystemCommunication, new SystemCommunicationFieldType());
+
 import { TextFieldType } from "./textField.partial";
 registerFieldType(FieldTypeGuids.Text, new TextFieldType());
 
@@ -215,8 +227,20 @@ registerFieldType(FieldTypeGuids.Time, new TimeFieldType());
 import { TimeZoneFieldType } from "./timeZoneField.partial";
 registerFieldType(FieldTypeGuids.TimeZone, new TimeZoneFieldType());
 
+import { UniversalItemPickerFieldType } from "./universalItemPickerField.partial";
+registerFieldType("b69b5a61-6fcd-4e3b-bb45-5f6802514953", new UniversalItemPickerFieldType());
+
+import { UniversalItemSearchPickerFieldType } from "./universalItemSearchPickerField.partial";
+registerFieldType("c5b32713-fb46-41c0-8bbc-9bd4142f841a", new UniversalItemSearchPickerFieldType());
+
+import { UniversalItemTreePickerFieldType } from "./universalItemTreePickerField.partial";
+registerFieldType("c7485f3f-0c10-4db6-9574-c10b195617e4", new UniversalItemTreePickerFieldType());
+
 import { UrlLinkFieldType } from "./urlLinkField.partial";
 registerFieldType(FieldTypeGuids.UrlLink, new UrlLinkFieldType());
 
 import { ValueListFieldType } from "./valueListField.partial";
 registerFieldType(FieldTypeGuids.ValueList, new ValueListFieldType());
+
+import { WorkflowTypeFieldType } from "./workflowTypeField.partial";
+registerFieldType(FieldTypeGuids.WorkflowType, new WorkflowTypeFieldType());
