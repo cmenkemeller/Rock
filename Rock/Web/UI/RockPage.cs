@@ -111,6 +111,17 @@ namespace Rock.Web.UI
         /// </summary>
         private readonly List<IServiceScope> _pageServiceScopes = new List<IServiceScope>();
 
+        /// <summary>
+        /// A list of blocks (their paths) that will force the obsidian libraries to be loaded.
+        /// This is particularly useful when a block has a settings dialog that is dependent on
+        /// obsidian, but the block itself is not.
+        /// </summary>
+        private static readonly List<string> _blocksToForceObsidianLoad = new List<string>
+        {
+            "~/Blocks/Cms/PageZoneBlocksEditor.ascx",
+            "~/Blocks/Mobile/MobilePageDetail.ascx"
+        };
+
         #endregion
 
         #region Protected Variables
@@ -235,7 +246,7 @@ namespace Rock.Web.UI
             {
                 if ( _PageReference == null && Context.Items.Contains( "Rock:PageReference" ) )
                 {
-                    _PageReference = Context.Items["Rock:PageReference"] as PageReference;
+                    _PageReference = Context.Items[ "Rock:PageReference" ] as PageReference;
                 }
 
                 return _PageReference;
@@ -320,7 +331,7 @@ namespace Rock.Web.UI
 
                 if ( Context.Items.Contains( "CurrentUser" ) )
                 {
-                    _CurrentUser = Context.Items["CurrentUser"] as Rock.Model.UserLogin;
+                    _CurrentUser = Context.Items[ "CurrentUser" ] as Rock.Model.UserLogin;
                 }
 
                 if ( _CurrentUser == null )
@@ -377,7 +388,7 @@ namespace Rock.Web.UI
 
                 if ( _currentPerson == null && Context.Items.Contains( "CurrentPerson" ) )
                 {
-                    _currentPerson = Context.Items["CurrentPerson"] as Person;
+                    _currentPerson = Context.Items[ "CurrentPerson" ] as Person;
                     return _currentPerson;
                 }
 
@@ -679,7 +690,7 @@ namespace Rock.Web.UI
         {
             // First look in the Zones dictionary
             if ( Zones.ContainsKey( zoneName ) )
-                return Zones[zoneName].Value;
+                return Zones[ zoneName ].Value;
 
             // If no match, return the defaultZone
             return defaultZone;
@@ -744,7 +755,7 @@ namespace Rock.Web.UI
         protected override void OnInit( EventArgs e )
         {
             // Add configuration specific to Rock Page to the observability activity
-            if (Activity.Current != null)
+            if ( Activity.Current != null )
             {
                 Activity.Current.DisplayName = $"PAGE: {Context.Request.HttpMethod} {PageReference.Route}";
 
@@ -799,7 +810,7 @@ namespace Rock.Web.UI
 
             if ( _showDebugTimings )
             {
-                _tsDuration = RockDateTime.Now.Subtract( ( DateTime ) Context.Items["Request_Start_Time"] );
+                _tsDuration = RockDateTime.Now.Subtract( ( DateTime ) Context.Items[ "Request_Start_Time" ] );
                 _previousTiming = _tsDuration.TotalMilliseconds;
                 _pageNeedsObsidian = true;
             }
@@ -844,7 +855,7 @@ namespace Rock.Web.UI
                 tools to be able to proxy Rock requests and translate the output. Partial postbacks
                 were not able to be translated.
             */
-            if ( Request.Headers["Disable_Postbacks"].AsBoolean() )
+            if ( Request.Headers[ "Disable_Postbacks" ].AsBoolean() )
             {
                 _scriptManager.EnablePartialRendering = false;
             }
@@ -899,7 +910,7 @@ namespace Rock.Web.UI
                         {
                             if ( key != null && !key.Equals( "Logout", StringComparison.OrdinalIgnoreCase ) )
                             {
-                                pageReference.Parameters.Add( key, PageReference.QueryString[key] );
+                                pageReference.Parameters.Add( key, PageReference.QueryString[ key ] );
                             }
                         }
                         Response.Redirect( pageReference.BuildUrl(), false );
@@ -956,9 +967,9 @@ namespace Rock.Web.UI
                 if ( personId.HasValue )
                 {
                     string personNameKey = "PersonName_" + personId.Value.ToString();
-                    if ( Session[personNameKey] != null )
+                    if ( Session[ personNameKey ] != null )
                     {
-                        UserName = Session[personNameKey].ToString();
+                        UserName = Session[ personNameKey ].ToString();
                     }
                     else
                     {
@@ -970,7 +981,7 @@ namespace Rock.Web.UI
                             CurrentPerson = person;
                         }
 
-                        Session[personNameKey] = UserName;
+                        Session[ personNameKey ] = UserName;
                     }
                 }
 
@@ -1038,9 +1049,9 @@ namespace Rock.Web.UI
                     if ( body != null )
                     {
                         // determine if we need to append or add the class
-                        if ( body.Attributes["class"] != null )
+                        if ( body.Attributes[ "class" ] != null )
                         {
-                            body.Attributes["class"] += " " + this.BodyCssClass;
+                            body.Attributes[ "class" ] += " " + this.BodyCssClass;
                         }
                         else
                         {
@@ -1069,7 +1080,7 @@ namespace Rock.Web.UI
                     // Clear the session state cookie so it can be recreated as secured (see engineering note in Global.asax EndRequest)
                     SessionStateSection sessionState = ( SessionStateSection ) ConfigurationManager.GetSection( "system.web/sessionState" );
                     string sidCookieName = sessionState.CookieName; // ASP.NET_SessionId
-                    var cookie = Response.Cookies[sidCookieName];
+                    var cookie = Response.Cookies[ sidCookieName ];
                     cookie.Expires = RockInstanceConfig.SystemDateTime.AddDays( -1 );
                     AddOrUpdateCookie( cookie );
 
@@ -1193,7 +1204,7 @@ namespace Rock.Web.UI
                     if ( !canAdministratePage || !canEditPage )
                     {
                         // if the current user is being impersonated by another user (typically an admin), then check their security
-                        var impersonatedByUser = Session["ImpersonatedByUser"] as UserLogin;
+                        var impersonatedByUser = Session[ "ImpersonatedByUser" ] as UserLogin;
                         var currentUserIsImpersonated = ( HttpContext.Current?.User?.Identity?.Name ?? string.Empty ).StartsWith( "rckipid=" );
                         if ( impersonatedByUser != null && currentUserIsImpersonated )
                         {
@@ -1319,10 +1330,8 @@ Rock.settings.initialize({{
                                         control = TemplateControl.LoadControl( block.BlockType.Path );
                                         control.ClientIDMode = ClientIDMode.AutoID;
 
-                                        // This block needs Obsidian so that it can
-                                        // open the custom settings dialogs of Obsidian
-                                        // blocks on the page.
-                                        if ( block.BlockType.Path.Equals( "~/Blocks/Cms/PageZoneBlocksEditor.ascx", StringComparison.OrdinalIgnoreCase ) )
+                                        // These blocks needs Obsidian for their settings dialog to display properly.
+                                        if( _blocksToForceObsidianLoad.Any( blockTypePath => blockTypePath.Equals( block.BlockType.Path ) ) )
                                         {
                                             _pageNeedsObsidian = true;
                                         }
@@ -1479,7 +1488,7 @@ Obsidian.onReady(() => {{
             pageGuid: '{_pageCache.Guid}',
             pageParameters: {sanitizedPageParameters.ToJson()},
             currentPerson: {currentPersonJson},
-            isAnonymousVisitor: {(isAnonymousVisitor ? "true" : "false")},
+            isAnonymousVisitor: {( isAnonymousVisitor ? "true" : "false" )},
             loginUrlWithReturnUrl: '{GetLoginUrlWithReturnUrl()}'
         }});
     }});
@@ -1535,7 +1544,7 @@ Obsidian.init({{ debug: true, fingerprint: ""v={_obsidianFingerprint}"" }});
                         phLoadStats = new PlaceHolder();
                         adminFooter.Controls.Add( phLoadStats );
 
-                        var cacheControlCookie = Request.Cookies[RockCache.CACHE_CONTROL_COOKIE];
+                        var cacheControlCookie = Request.Cookies[ RockCache.CACHE_CONTROL_COOKIE ];
                         var isCacheEnabled = cacheControlCookie == null || cacheControlCookie.Value.AsBoolean();
 
                         var cacheIndicator = isCacheEnabled ? "text-success" : "text-danger";
@@ -1549,7 +1558,7 @@ Obsidian.init({{ debug: true, fingerprint: ""v={_obsidianFingerprint}"" }});
                         adminFooter.Controls.Add( lbCacheControl );
 
                         // If the current user is Impersonated by another user, show a link on the admin bar to log back in as the original user
-                        var impersonatedByUser = Session["ImpersonatedByUser"] as UserLogin;
+                        var impersonatedByUser = Session[ "ImpersonatedByUser" ] as UserLogin;
                         var currentUserIsImpersonated = ( HttpContext.Current?.User?.Identity?.Name ?? string.Empty ).StartsWith( "rckipid=" );
                         if ( canAdministratePage && currentUserIsImpersonated && impersonatedByUser != null )
                         {
@@ -1560,7 +1569,7 @@ Obsidian.init({{ debug: true, fingerprint: ""v={_obsidianFingerprint}"" }});
                             //_btnRestoreImpersonatedByUser.CssClass = "btn";
                             _btnRestoreImpersonatedByUser.Visible = impersonatedByUser != null;
                             _btnRestoreImpersonatedByUser.Click += _btnRestoreImpersonatedByUser_Click;
-                            _btnRestoreImpersonatedByUser.Text = $"<i class='fa-fw fa fa-unlock'></i> " + $"Restore { impersonatedByUser?.Person?.ToString()}";
+                            _btnRestoreImpersonatedByUser.Text = $"<i class='fa-fw fa fa-unlock'></i> " + $"Restore {impersonatedByUser?.Person?.ToString()}";
                             impersonatedByUserDiv.Controls.Add( _btnRestoreImpersonatedByUser );
                             adminFooter.Controls.Add( impersonatedByUserDiv );
                         }
@@ -1762,7 +1771,7 @@ Obsidian.init({{ debug: true, fingerprint: ""v={_obsidianFingerprint}"" }});
         /// <param name="rockContext">The <see cref="RockContext"/>.</param>
         private void SetCookieContextFromQueryString( RockContext rockContext )
         {
-            char[] delim = new char[1] { ',' };
+            char[] delim = new char[ 1 ] { ',' };
 
             foreach ( string param in PageParameter( "SetContext", true ).Split( delim, StringSplitOptions.RemoveEmptyEntries ) )
             {
@@ -1772,13 +1781,13 @@ Obsidian.init({{ debug: true, fingerprint: ""v={_obsidianFingerprint}"" }});
                     continue; // Cookie value is invalid (not delimited).
                 }
 
-                var contextModelEntityType = EntityTypeCache.Get( parts[0], false, rockContext );
+                var contextModelEntityType = EntityTypeCache.Get( parts[ 0 ], false, rockContext );
                 if ( contextModelEntityType == null )
                 {
                     continue; // Couldn't load EntityType.
                 }
 
-                int? contextId = parts[1].AsIntegerOrNull();
+                int? contextId = parts[ 1 ].AsIntegerOrNull();
                 if ( contextId == null )
                 {
                     continue;  // Invalid Entity Id.
@@ -1916,14 +1925,14 @@ Obsidian.init({{ debug: true, fingerprint: ""v={_obsidianFingerprint}"" }});
 
             // Check for any encrypted context keys specified in query string.  These take precedence
             // over any previously set context values.
-            char[] delim = new char[1] { ',' };
+            char[] delim = new char[ 1 ] { ',' };
             foreach ( string param in PageParameter( "context", true ).Split( delim, StringSplitOptions.RemoveEmptyEntries ) )
             {
                 string contextItem = Rock.Security.Encryption.DecryptString( param );
                 string[] parts = contextItem.Split( '|' );
                 if ( parts.Length == 2 )
                 {
-                    keyEntityDictionary.AddOrReplace( parts[0], new Data.KeyEntity( parts[1] ) );
+                    keyEntityDictionary.AddOrReplace( parts[ 0 ], new Data.KeyEntity( parts[ 1 ] ) );
                 }
             }
 
@@ -2202,7 +2211,7 @@ Obsidian.init({{ debug: true, fingerprint: ""v={_obsidianFingerprint}"" }});
             // Finalize the debug settings
             if ( _showDebugTimings )
             {
-                _tsDuration = RockDateTime.Now.Subtract( ( DateTime ) Context.Items["Request_Start_Time"] );
+                _tsDuration = RockDateTime.Now.Subtract( ( DateTime ) Context.Items[ "Request_Start_Time" ] );
 
                 if ( _pageNeedsObsidian )
                 {
@@ -2214,7 +2223,7 @@ Obsidian.onReady(() => {{
     System.import('@Obsidian/Templates/rockPage.js').then(module => {{
         module.initializePageTimings({{
             elementId: '{_obsidianPageTimingControlId}',
-            debugTimingViewModels: { _debugTimingViewModels.ToCamelCaseJson( false, true ) }
+            debugTimingViewModels: {_debugTimingViewModels.ToCamelCaseJson( false, true )}
         }});
     }});
 }});";
@@ -2232,7 +2241,7 @@ Obsidian.onReady(() => {{
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void _btnRestoreImpersonatedByUser_Click( object sender, EventArgs e )
         {
-            var impersonatedByUser = Session["ImpersonatedByUser"] as UserLogin;
+            var impersonatedByUser = Session[ "ImpersonatedByUser" ] as UserLogin;
             if ( impersonatedByUser != null )
             {
                 Authorization.SignOut();
@@ -2317,7 +2326,7 @@ Obsidian.onReady(() => {{
                 {
                     // Attempting to use an impersonation token that doesn't exist or is no longer valid, so log them out
                     Authorization.SignOut();
-                    Session["InvalidPersonToken"] = true;
+                    Session[ "InvalidPersonToken" ] = true;
                     Response.Redirect( PageReference.BuildUrl( true ), false );
                     Context.ApplicationInstance.CompleteRequest();
                     return false;
@@ -2335,7 +2344,7 @@ Obsidian.onReady(() => {{
                         if ( personToken.PageId.HasValue && personToken.PageId != this.PageId )
                         {
                             Authorization.SignOut();
-                            Session["InvalidPersonToken"] = true;
+                            Session[ "InvalidPersonToken" ] = true;
                             Response.Redirect( Request.RawUrl, false );
                             Context.ApplicationInstance.CompleteRequest();
                             return false;
@@ -2433,7 +2442,7 @@ Obsidian.onReady(() => {{
         {
             base.OnSaveStateComplete( e );
 
-            _tsDuration = RockDateTime.Now.Subtract( ( DateTime ) Context.Items["Request_Start_Time"] );
+            _tsDuration = RockDateTime.Now.Subtract( ( DateTime ) Context.Items[ "Request_Start_Time" ] );
 
             ProcessPageInteraction();
 
@@ -2461,7 +2470,7 @@ Obsidian.onReady(() => {{
                     }
                 }
 
-                phLoadStats.Controls.Add( new LiteralControl( $"<span class='cms-admin-footer-property'><a href='{ showTimingsUrl }'> Page Load Time: {_tsDuration.TotalSeconds:N2}s </a></span><span class='margin-l-md js-view-state-stats cms-admin-footer-property'></span> <span class='margin-l-md js-html-size-stats cms-admin-footer-property'></span>" ) );
+                phLoadStats.Controls.Add( new LiteralControl( $"<span class='cms-admin-footer-property'><a href='{showTimingsUrl}'> Page Load Time: {_tsDuration.TotalSeconds:N2}s </a></span><span class='margin-l-md js-view-state-stats cms-admin-footer-property'></span> <span class='margin-l-md js-html-size-stats cms-admin-footer-property'></span>" ) );
 
                 if ( !ClientScript.IsStartupScriptRegistered( "rock-js-view-state-size" ) )
                 {
@@ -2522,7 +2531,7 @@ Sys.Application.add_load(function () {
                 return;
             }
 
-            var rockSessionGuid = Session["RockSessionId"]?.ToString().AsGuidOrNull() ?? Guid.Empty;
+            var rockSessionGuid = Session[ "RockSessionId" ]?.ToString().AsGuidOrNull() ?? Guid.Empty;
 
             var pageInteraction = new PageInteractionInfo
             {
@@ -2562,7 +2571,7 @@ $.ajax({
 
             script = script.Replace( "<rockVisitorCookieName>", Rock.Personalization.RequestCookieKey.ROCK_VISITOR_KEY );
             script = script.Replace( "<jsonData>", pageInteraction.ToJson() );
-            script = script.Replace( "<userIdProperty>", nameof(pageInteraction.UserIdKey) );
+            script = script.Replace( "<userIdProperty>", nameof( pageInteraction.UserIdKey ) );
 
             ClientScript.RegisterStartupScript( this.Page.GetType(), "rock-js-register-interaction", script, true );
         }
@@ -2582,7 +2591,7 @@ $.ajax({
         /// <returns></returns>
         private DebugTimingViewModel GetDebugTimingOutput( string eventTitle, double stepDuration, int indentLevel = 0, bool boldTitle = false, string subtitle = "" )
         {
-            _tsDuration = RockDateTime.Now.Subtract( ( DateTime ) Context.Items["Request_Start_Time"] );
+            _tsDuration = RockDateTime.Now.Subtract( ( DateTime ) Context.Items[ "Request_Start_Time" ] );
             _duration = Math.Round( stepDuration, 2 );
 
             var viewModel = new DebugTimingViewModel
@@ -2787,7 +2796,7 @@ $.ajax({
             try
             {
                 // If the script has already been loaded then don't do it again
-                if ( Application["GoogleAnalyticsScript"] is string scriptTemplate )
+                if ( Application[ "GoogleAnalyticsScript" ] is string scriptTemplate )
                 {
                     return;
                 }
@@ -3120,7 +3129,7 @@ $.ajax({
         {
             if ( keyEntityDictionary.ContainsKey( entity.Name ) )
             {
-                var keyModel = keyEntityDictionary[entity.Name];
+                var keyModel = keyEntityDictionary[ entity.Name ];
 
                 if ( keyModel.Entity == null )
                 {
@@ -3168,7 +3177,7 @@ $.ajax({
                             string[] assemblyNameParts = entity.AssemblyName.Split( new char[] { ',' } );
                             if ( assemblyNameParts.Length > 1 )
                             {
-                                modelType = Type.GetType( string.Format( "{0}, {1}", entity.Name, assemblyNameParts[1] ) );
+                                modelType = Type.GetType( string.Format( "{0}, {1}", entity.Name, assemblyNameParts[ 1 ] ) );
                             }
                         }
 
@@ -3356,11 +3365,11 @@ $.ajax({
 
             if ( Response.Cookies.AllKeys.Contains( cookieName ) )
             {
-                cookie = Response.Cookies[cookieName];
+                cookie = Response.Cookies[ cookieName ];
             }
             else if ( Request.Cookies.AllKeys.Contains( cookieName ) )
             {
-                cookie = Request.Cookies[cookieName];
+                cookie = Request.Cookies[ cookieName ];
             }
 
             return cookie;
@@ -3382,7 +3391,7 @@ $.ajax({
                     continue;
                 }
 
-                legacyCookies.Add( Request.Cookies[cookieName] );
+                legacyCookies.Add( Request.Cookies[ cookieName ] );
             }
 
             foreach ( var legacyCookie in legacyCookies )
@@ -3394,7 +3403,7 @@ $.ajax({
 
                     for ( var i = 0; i < legacyCookie.Values.Count; i++ )
                     {
-                        var cookieValue = legacyCookie.Values[i];
+                        var cookieValue = legacyCookie.Values[ i ];
                         if ( cookieValue.IsNullOrWhiteSpace() )
                         {
                             continue;
@@ -3410,7 +3419,7 @@ $.ajax({
 
                         // Re-add the entire, encoded value, as the object loading process depends on this specific format.
                         var encodedCookieValue = HttpUtility.UrlEncode( cookieValue );
-                        contextItems.Add( valueParts[0], encodedCookieValue );
+                        contextItems.Add( valueParts[ 0 ], encodedCookieValue );
                     }
 
                     // Add the new, JSON-based cookie.
@@ -3429,7 +3438,7 @@ $.ajax({
 
                         if ( legacyCookieNameParts.Length == 2 )
                         {
-                            pageId = legacyCookieNameParts[1].AsIntegerOrNull();
+                            pageId = legacyCookieNameParts[ 1 ].AsIntegerOrNull();
                             if ( pageId.GetValueOrDefault() <= 0 )
                             {
                                 // There was something wrong with this cookie name; skip it.
@@ -3501,7 +3510,7 @@ $.ajax({
                         continue;
                     }
 
-                    keyEntityDictionary.AddOrReplace( itemParts[0], new Data.KeyEntity( itemParts[1] ) );
+                    keyEntityDictionary.AddOrReplace( itemParts[ 0 ], new Data.KeyEntity( itemParts[ 1 ] ) );
                 }
             }
             catch
@@ -3519,12 +3528,12 @@ $.ajax({
                 return;
             }
 
-            if ( Request.Cookies["rock_wifi"] != null )
+            if ( Request.Cookies[ "rock_wifi" ] != null )
             {
-                HttpCookie httpCookie = Request.Cookies["rock_wifi"];
-                if ( LinkPersonAliasToDevice( ( int ) personAliasId, httpCookie.Values["ROCK_PERSONALDEVICE_ADDRESS"] ) )
+                HttpCookie httpCookie = Request.Cookies[ "rock_wifi" ];
+                if ( LinkPersonAliasToDevice( ( int ) personAliasId, httpCookie.Values[ "ROCK_PERSONALDEVICE_ADDRESS" ] ) )
                 {
-                    var wiFiCookie = Response.Cookies["rock_wifi"];
+                    var wiFiCookie = Response.Cookies[ "rock_wifi" ];
                     wiFiCookie.Expires = RockInstanceConfig.SystemDateTime.AddDays( -1 );
                     AddOrUpdateCookie( wiFiCookie );
                 }
@@ -3584,7 +3593,7 @@ $.ajax({
         {
             if ( Request.Cookies.AllKeys.Contains( name ) )
             {
-                return Request.Cookies[name]?.Value;
+                return Request.Cookies[ name ]?.Value;
             }
 
             return null;
@@ -3599,7 +3608,7 @@ $.ajax({
         {
             if ( Response.Cookies.AllKeys.Contains( name ) )
             {
-                return Request.Cookies[name]?.Value;
+                return Request.Cookies[ name ]?.Value;
             }
 
             return null;
@@ -3847,7 +3856,7 @@ $.ajax({
             System.Collections.IDictionary items = HttpContext.Current.Items;
             if ( items.Contains( key ) )
             {
-                items[key] = item;
+                items[ key ] = item;
             }
             else
             {
@@ -3868,7 +3877,7 @@ $.ajax({
             System.Collections.IDictionary items = HttpContext.Current.Items;
             if ( items.Contains( itemKey ) )
             {
-                return items[itemKey];
+                return items[ itemKey ];
             }
 
             return null;
@@ -3894,24 +3903,24 @@ $.ajax({
             {
                 if ( Page.RouteData.Values.ContainsKey( name ) )
                 {
-                    return ( string ) Page.RouteData.Values[name];
+                    return ( string ) Page.RouteData.Values[ name ];
                 }
 
-                if ( !string.IsNullOrEmpty( Request.QueryString[name] ) )
+                if ( !string.IsNullOrEmpty( Request.QueryString[ name ] ) )
                 {
-                    return Request.QueryString[name];
+                    return Request.QueryString[ name ];
                 }
 
                 if ( PageReference.Parameters.ContainsKey( name ) )
                 {
-                    return PageReference.Parameters[name];
+                    return PageReference.Parameters[ name ];
                 }
 
                 if ( searchFormParams )
                 {
-                    if ( !string.IsNullOrEmpty( this.Page.Request.Params[name] ) )
+                    if ( !string.IsNullOrEmpty( this.Page.Request.Params[ name ] ) )
                     {
-                        return this.Page.Request.Params[name];
+                        return this.Page.Request.Params[ name ];
                     }
                 }
             }
@@ -3935,16 +3944,16 @@ $.ajax({
 
             if ( pageReference.Parameters.ContainsKey( name ) )
             {
-                return ( string ) pageReference.Parameters[name];
+                return ( string ) pageReference.Parameters[ name ];
             }
 
-            if ( String.IsNullOrEmpty( pageReference.QueryString[name] ) )
+            if ( String.IsNullOrEmpty( pageReference.QueryString[ name ] ) )
             {
                 return string.Empty;
             }
             else
             {
-                return pageReference.QueryString[name];
+                return pageReference.QueryString[ name ];
             }
         }
 
@@ -3958,7 +3967,7 @@ $.ajax({
 
             foreach ( var key in Page.RouteData.Values.Keys )
             {
-                parameters.Add( key, Page.RouteData.Values[key] );
+                parameters.Add( key, Page.RouteData.Values[ key ] );
             }
 
             foreach ( string param in Request.QueryString.Keys )
@@ -3972,7 +3981,7 @@ $.ajax({
                         and ignore the value stored in the QueryString list (the value is the same). In any case if there is contention between a
                         Route Key and QueryString Key the Route will take precedence.
                     */
-                    parameters.AddOrIgnore( param, Request.QueryString[param] );
+                    parameters.AddOrIgnore( param, Request.QueryString[ param ] );
                 }
             }
 
@@ -3991,7 +4000,7 @@ $.ajax({
             {
                 if ( param != null )
                 {
-                    parameters.Add( param, Request.QueryString[param] );
+                    parameters.Add( param, Request.QueryString[ param ] );
                 }
             }
 
@@ -4078,7 +4087,7 @@ $.ajax({
                 int index = 0;
                 for ( int i = page.Header.Controls.Count - 1; i >= 0; i-- )
                 {
-                    if ( page.Header.Controls[i] is HtmlMeta )
+                    if ( page.Header.Controls[ i ] is HtmlMeta )
                     {
                         index = i;
                         break;
@@ -4120,14 +4129,14 @@ $.ajax({
                         HtmlMeta existingMeta = ( HtmlMeta ) control;
 
                         bool sameAttributes = true;
-                        bool hasContentAttribute_ExistingMeta = ( existingMeta.Attributes["Content"] != null );
+                        bool hasContentAttribute_ExistingMeta = ( existingMeta.Attributes[ "Content" ] != null );
 
                         foreach ( string attributeKey in newMeta.Attributes.Keys )
                         {
                             if ( attributeKey.ToLower() != "content" ) // ignore content attribute.
                             {
-                                if ( existingMeta.Attributes[attributeKey] == null ||
-                                    existingMeta.Attributes[attributeKey].ToLower() != newMeta.Attributes[attributeKey].ToLower() )
+                                if ( existingMeta.Attributes[ attributeKey ] == null ||
+                                    existingMeta.Attributes[ attributeKey ].ToLower() != newMeta.Attributes[ attributeKey ].ToLower() )
                                 {
                                     sameAttributes = false;
                                     break;
@@ -4175,9 +4184,9 @@ $.ajax({
                     {
                         for ( int i = 0; i < header.Controls.Count; i++ )
                         {
-                            if ( header.Controls[i] is ContentPlaceHolder )
+                            if ( header.Controls[ i ] is ContentPlaceHolder )
                             {
-                                var ph = ( ContentPlaceHolder ) header.Controls[i];
+                                var ph = ( ContentPlaceHolder ) header.Controls[ i ];
                                 if ( ph.ID == contentPlaceHolderId )
                                 {
                                     ph.Controls.Add( new LiteralControl( "\n\t" ) );
@@ -4218,9 +4227,9 @@ $.ajax({
                     {
                         for ( int i = 0; i < header.Controls.Count; i++ )
                         {
-                            if ( header.Controls[i] is ContentPlaceHolder )
+                            if ( header.Controls[ i ] is ContentPlaceHolder )
                             {
-                                var ph = ( ContentPlaceHolder ) header.Controls[i];
+                                var ph = ( ContentPlaceHolder ) header.Controls[ i ];
                                 if ( ph.ID == contentPlaceHolderId )
                                 {
                                     ph.Controls.Add( new LiteralControl( "\n\t" ) );
@@ -4309,8 +4318,8 @@ $.ajax({
                         bool sameAttributes = true;
 
                         foreach ( string attributeKey in newLink.Attributes.Keys )
-                            if ( existingLink.Attributes[attributeKey] != null &&
-                                existingLink.Attributes[attributeKey].ToLower() != newLink.Attributes[attributeKey].ToLower() )
+                            if ( existingLink.Attributes[ attributeKey ] != null &&
+                                existingLink.Attributes[ attributeKey ].ToLower() != newLink.Attributes[ attributeKey ].ToLower() )
                             {
                                 sameAttributes = false;
                                 break;
@@ -4785,7 +4794,7 @@ $.ajax({
                 {
                     var dataSegments = triggerData.Split( ':' );
 
-                    if ( int.TryParse( dataSegments[1], out var blockId ) )
+                    if ( int.TryParse( dataSegments[ 1 ], out var blockId ) )
                     {
                         OnBlockUpdated( blockId );
                     }
@@ -4850,7 +4859,7 @@ $.ajax({
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void lbCacheControl_Click( object sender, EventArgs e )
         {
-            var cacheControlCookie = Request.Cookies[RockCache.CACHE_CONTROL_COOKIE];
+            var cacheControlCookie = Request.Cookies[ RockCache.CACHE_CONTROL_COOKIE ];
             var isCacheEnabled = cacheControlCookie == null || cacheControlCookie.Value.AsBoolean();
 
             if ( cacheControlCookie == null )

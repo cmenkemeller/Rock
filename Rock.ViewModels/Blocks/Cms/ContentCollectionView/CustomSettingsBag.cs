@@ -150,5 +150,10 @@ namespace Rock.ViewModels.Blocks.Cms.ContentCollectionView
         /// </summary>
         /// <value>The request filter boost amount.</value>
         public decimal? RequestFilterBoostAmount { get; set; }
+
+        /// <summary>
+        /// Gets or sets the site type for the block.
+        /// </summary>
+        public string SiteType { get; set; }
     }
 }
