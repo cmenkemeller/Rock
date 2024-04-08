@@ -422,7 +422,7 @@ namespace RockWeb.Blocks.Mobile
         /// </summary>
         /// <param name="category">The category.</param>
         /// <returns>System.String.</returns>
-        private string RemoveMobileCategoryPrefix( string category )
+        private string UpdateCategoryForMobile( string category )
         {
             if ( category.IsNullOrWhiteSpace() )
             {
@@ -432,6 +432,11 @@ namespace RockWeb.Blocks.Mobile
             if ( category.StartsWith( "Mobile >" ) )
             {
                 category = category.Replace( "Mobile >", string.Empty ).Trim();
+            }
+
+            if( category == "CMS" )
+            {
+                category = "Cms";
             }
 
             return category;
@@ -448,7 +453,7 @@ namespace RockWeb.Blocks.Mobile
             // Find all mobile block types and build the component repeater.
             //
             var blockTypes = BlockTypeCache.All()
-                .Where( t => RemoveMobileCategoryPrefix( t.Category ) == ddlBlockTypeCategory.SelectedValue )
+                .Where( t => UpdateCategoryForMobile( t.Category ) == ddlBlockTypeCategory.SelectedValue )
                 .OrderBy( t => t.Name );
 
             foreach ( var blockType in blockTypes )
@@ -674,8 +679,7 @@ namespace RockWeb.Blocks.Mobile
                         }
                     }
 
-                    var category = RemoveMobileCategoryPrefix( blockType.Category );
-
+                    var category = UpdateCategoryForMobile( blockType.Category );
 
                     if ( !categories.Contains( category ) )
                     {
@@ -690,7 +694,7 @@ namespace RockWeb.Blocks.Mobile
             ddlBlockTypeCategory.Items.Clear();
             foreach ( var c in categories.OrderBy( c => c ) )
             {
-                var text = RemoveMobileCategoryPrefix( c );
+                var text = UpdateCategoryForMobile( c );
                 ddlBlockTypeCategory.Items.Add( new ListItem( text, c ) );
             }
             ddlBlockTypeCategory.SetValue( selectedCategory );
