@@ -412,7 +412,7 @@ namespace Rock.Blocks.Cms
                         Label = filterSettings.Label,
                         IsMultipleSelection = filterSettings.IsMultipleSelection,
                         HeaderMarkup = filterOption.HeaderMarkup,
-                        Items = attributeValues.ContainsKey( attrKey ) ? attributeValues[ attrKey ] : new List<ListItemBag>()
+                        Items = attributeValues.ContainsKey( attrKey ) ? attributeValues[attrKey] : new List<ListItemBag>()
                     } );
                 }
 
@@ -431,7 +431,7 @@ namespace Rock.Blocks.Cms
                         Label = filterSettings.Label,
                         IsMultipleSelection = filterSettings.IsMultipleSelection,
                         HeaderMarkup = filterOption.HeaderMarkup,
-                        Items = fieldValues.ContainsKey( key ) ? fieldValues[ key ] : new List<ListItemBag>()
+                        Items = fieldValues.ContainsKey( key ) ? fieldValues[key] : new List<ListItemBag>()
                     } );
                 }
             }
@@ -1144,7 +1144,7 @@ namespace Rock.Blocks.Cms
 
             string resultsTemplate;
 
-            if( PageCache.Layout?.Site?.SiteType == Model.SiteType.Mobile )
+            if ( PageCache.Layout?.Site?.SiteType == Model.SiteType.Mobile )
             {
                 resultsTemplate = GetAttributeValue( AttributeKey.GroupHeaderTemplate );
             }
