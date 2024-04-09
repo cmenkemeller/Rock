@@ -130,6 +130,12 @@ namespace Rock.Blocks.Cms
         Category = "CustomSetting",
         Key = AttributeKey.ResultsTemplate )]
 
+    [TextField( "Group Header Markup",
+        Description = "The lava template to use to render the group headers. This will display above each content collection source.",
+        DefaultValue = @"",
+        Category = "CustomSetting",
+        Key = AttributeKey.GroupHeaderTemplate )]
+
     [TextField( "Item Template",
         Description = "The lava template to use to render a single result.",
         DefaultValue = DefaultTemplateMarker,
@@ -198,6 +204,8 @@ namespace Rock.Blocks.Cms
 
             public const string ResultsTemplate = "ResultsTemplate";
 
+            public const string GroupHeaderTemplate = "GroupHeaderTemplate";
+
             public const string ItemTemplate = "ItemTemplate";
 
             public const string PreSearchTemplate = "PreSearchTemplate";
@@ -256,14 +264,14 @@ namespace Rock.Blocks.Cms
                                           ClassName=""mb-16"" />
     </Grid.Behaviors>
     
-    <Label Text=""{{ Item.Name }}""
+    <Label Text=""{{ Item.Name | Escape }}""
            StyleClass=""body, bold, text-interface-stronger, mt-16""
            MaxLines=""2""
            LineBreakMode=""TailTruncation""
            Grid.Row=""0""
            Grid.Column=""0"" />
            
-    <Label Text=""{{ Item.Content | StripHtml | Trim }}""
+    <Label Text=""{{ Item.Content | StripHtml | Trim | Escape }}""
            StyleClass=""footnote, text-interface-strong""
            MaxLines=""2""
            LineBreakMode=""TailTruncation""
@@ -1133,7 +1141,18 @@ namespace Rock.Blocks.Cms
 
             // Always include the source result template just in case something
             // weird happens and they start loading items past offset 0 first.
-            var resultsTemplate = GetAttributeValue( AttributeKey.ResultsTemplate );
+
+            string resultsTemplate;
+
+            if( PageCache.Layout?.Site?.SiteType == Model.SiteType.Mobile )
+            {
+                resultsTemplate = GetAttributeValue( AttributeKey.GroupHeaderTemplate );
+            }
+            else
+            {
+                resultsTemplate = GetAttributeValue( AttributeKey.ResultsTemplate );
+            }
+
             var mergeFields = RequestContext.GetCommonMergeFields();
 
             if ( source != null )
@@ -1224,13 +1243,13 @@ namespace Rock.Blocks.Cms
         {
             var contentCollectionGuid = GetAttributeValue( AttributeKey.ContentCollection ).AsGuidOrNull();
 
-            if( contentCollectionGuid == null )
+            if ( contentCollectionGuid == null )
             {
                 return null;
             }
 
             var contentCollection = ContentCollectionCache.Get( contentCollectionGuid.Value );
-            if( contentCollection == null )
+            if ( contentCollection == null )
             {
                 return null;
             }
@@ -1340,6 +1359,7 @@ namespace Rock.Blocks.Cms
                     BoostMatchingRequestFilters = GetAttributeValue( AttributeKey.BoostMatchingRequestFilters ).AsBoolean(),
                     SegmentBoostAmount = GetAttributeValue( AttributeKey.SegmentBoostAmount ).AsDecimalOrNull(),
                     RequestFilterBoostAmount = GetAttributeValue( AttributeKey.RequestFilterBoostAmount ).AsDecimalOrNull(),
+                    GroupHeaderTemplate = GetAttributeValue( AttributeKey.GroupHeaderTemplate ),
                     SiteType = ( PageCache?.Layout?.Site?.SiteType ?? Model.SiteType.Web ).ToString().ToLower()
                 };
 
@@ -1446,6 +1466,9 @@ namespace Rock.Blocks.Cms
 
                 box.IfValidProperty( nameof( box.Settings.RequestFilterBoostAmount ),
                     () => block.SetAttributeValue( AttributeKey.RequestFilterBoostAmount, box.Settings.RequestFilterBoostAmount.ToString() ) );
+
+                box.IfValidProperty( nameof( box.Settings.GroupHeaderTemplate ),
+                    () => block.SetAttributeValue( AttributeKey.GroupHeaderTemplate, box.Settings.GroupHeaderTemplate ) );
 
                 block.SaveAttributeValues( rockContext );
 

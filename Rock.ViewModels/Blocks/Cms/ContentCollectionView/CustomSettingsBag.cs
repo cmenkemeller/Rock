@@ -126,6 +126,12 @@ namespace Rock.ViewModels.Blocks.Cms.ContentCollectionView
         public string PreSearchTemplate { get; set; }
 
         /// <summary>
+        /// Gets or sets the template that will be used to render above each content
+        /// collection source group (mobile only).
+        /// </summary>
+        public string GroupHeaderTemplate { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether results with matching
         /// personalization segments should be boosted.
         /// </summary>
