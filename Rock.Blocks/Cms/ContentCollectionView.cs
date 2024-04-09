@@ -130,9 +130,9 @@ namespace Rock.Blocks.Cms
         Category = "CustomSetting",
         Key = AttributeKey.ResultsTemplate )]
 
-    [TextField( "Group Header Markup",
+    [TextField( "Group Header Template",
         Description = "The lava template to use to render the group headers. This will display above each content collection source.",
-        DefaultValue = @"",
+        DefaultValue = DefaultMobileGroupHeaderTemplate,
         Category = "CustomSetting",
         Key = AttributeKey.GroupHeaderTemplate )]
 
@@ -244,7 +244,7 @@ namespace Rock.Blocks.Cms
         /// <summary>
         /// The default template for the web item.
         /// </summary>
-        private const string DefaultWebItemTemplate = @"<div class=""result-item"">
+        private readonly string DefaultWebItemTemplate = @"<div class=""result-item"">
     <h4 class=""mt-0"">{{ Item.Name }}</h4>
     <div class=""mb-3"">
     {{ Item.Content | StripHtml | Truncate:300 }}
@@ -255,7 +255,7 @@ namespace Rock.Blocks.Cms
         /// <summary>
         /// The default template for the mobile item.
         /// </summary>
-        private const string DefaultMobileItemTemplate = @"<Grid RowDefinitions=""Auto, Auto, Auto""
+        private readonly string DefaultMobileItemTemplate = @"<Grid RowDefinitions=""Auto, Auto, Auto""
       ColumnDefinitions=""*, Auto""
       StyleClass=""px-16, gap-col-12"">
     
@@ -296,9 +296,27 @@ namespace Rock.Blocks.Cms
         /// <summary>
         /// The default template for the pre-search content.
         /// </summary>
-        private const string DefaultWebPreSearchTemplate = @"<div class=""panel panel-default"">
+        private readonly string DefaultWebPreSearchTemplate = @"<div class=""panel panel-default"">
     <div class=""panel-body"">Discover content that matches your preferences.</div>
 </div>";
+
+        /// <summary>
+        /// The default template for a mobile group header.
+        /// </summary>
+        private const string DefaultMobileGroupHeaderTemplate = @"<Grid StyleClass=""px-8, mt-8""
+      MarginBottom=""-8""
+      HorizontalOptions=""Center""
+      ColumnDefinitions=""Auto, *"">
+    
+    <Rock:Icon IconClass=""{{ SourceEntity.IconCssClass }}""
+               StyleClass=""mr-8, title2, text-primary-strong""
+               Grid.Column=""0""
+               VerticalOptions=""Center"" />
+
+    <Label Text=""{{ SourceName | Escape }}""
+           StyleClass=""title2, text-interface-stronger, bold""
+           Grid.Column=""1"" />
+</Grid>";
 
         #endregion
 
