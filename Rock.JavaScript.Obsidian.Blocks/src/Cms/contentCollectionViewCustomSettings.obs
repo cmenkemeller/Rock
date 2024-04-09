@@ -92,6 +92,12 @@
                         label="Pre-Search Template"
                         mode="lava" />
 
+            <CodeEditor v-model="groupHeaderTemplate"
+                        v-if="isMobileSiteType && isGroupBySourceEnabled"
+                        label="Group Header Template"
+                        help="The template to use for the header of each group of results."
+                        mode="lava" />
+
             <div v-if="showFiltersPanel">
                 <SectionHeader title="Filters"
                                description="Determine which filters you would like to show in what order." />
@@ -224,6 +230,8 @@
     const trendingTerm = ref("");
     const filters = ref<FilterOptionsBag[]>([]);
     const resultsTemplate = ref("");
+    const groupHeaderTemplate = ref("");
+
     const itemTemplate = ref("");
     const preSearchTemplate = ref("");
     const boostMatchingSegments = ref(false);
@@ -248,6 +256,10 @@
 
     const isMobileSiteType = computed((): boolean => {
         return siteType.value === "mobile";
+    });
+
+    const isGroupBySourceEnabled = computed((): boolean => {
+        return groupResultsBySource.value;
     });
 
     // #endregion
@@ -281,6 +293,7 @@
             segmentBoostAmount.value = result.data.settings.segmentBoostAmount ?? null;
             requestFilterBoostAmount.value = result.data.settings.requestFilterBoostAmount ?? null;
             siteType.value = result.data.settings.siteType ?? "web";
+            groupHeaderTemplate.value = result.data.settings.groupHeaderTemplate ?? "";
 
             // Set any additional information required by the UI to paint the
             // custom settings interface.
@@ -339,6 +352,7 @@
         setCustomSettingsBoxValue(box, "boostMatchingRequestFilters", boostMatchingRequestFilters.value);
         setCustomSettingsBoxValue(box, "segmentBoostAmount", segmentBoostAmount.value);
         setCustomSettingsBoxValue(box, "requestFilterBoostAmount", requestFilterBoostAmount.value);
+        setCustomSettingsBoxValue(box, "groupHeaderTemplate", groupHeaderTemplate.value);
 
         const data = {
             box
