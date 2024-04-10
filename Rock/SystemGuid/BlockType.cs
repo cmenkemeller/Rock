@@ -384,6 +384,11 @@ namespace Rock.SystemGuid
         /// </summary>
         public const string MOBILE_CRM_GROUP_MEMBERS  = "1F1E7598-8D51-4750-8D61-E5791A226FDB";
 
+        /// <summary>
+        /// The mobile Giving &gt; <see cref="Rock.Blocks.Types.Mobile.Finance.Giving">Giving</see> block type.
+        /// </summary>
+        public const string MOBILE_FINANCE_GIVING = "7139F7AD-46DA-437C-B987-52B8E8022D11";
+
         #endregion
 
         #region Obsidian Block Types

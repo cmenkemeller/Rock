@@ -606,6 +606,11 @@ namespace Rock.SystemGuid
         public const string MOBILE_CRM_GROUP_MEMBERS = "592242ED-7536-49EA-94DE-7B4EBA7E87A6";
 
         /// <summary>
+        /// The GUID for the entity <see cref="Rock.Blocks.Types.Mobile.Finance.Giving"/>.
+        /// </summary>
+        public const string MOBILE_FINANCE_GIVING = "A8556858-203B-441B-A644-1C8E8A94F504";
+
+        /// <summary>
         /// The obsidian event registration entry
         /// </summary>
         public const string OBSIDIAN_EVENT_REGISTRATION_ENTRY = "06AAC065-BF89-483D-B671-80F0F72779A6";
