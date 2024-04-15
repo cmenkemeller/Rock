@@ -110,8 +110,10 @@
     <Compile Include="Cms\PersonalLinkList.cs" />
     <Compile Include="Cms\PersonalLinkSectionList.cs" />
 	<Compile Include="Cms\PageRouteList.cs" />
+	<Compile Include="Crm\PersonMergeRequestList.cs" />
     <Compile Include="Core\AuditList.cs" />
     <Compile Include="Core\RestControllerList.cs" />
+	<Compile Include="Event\RegistrationInstanceFeeList.cs" />
     <Compile Include="Cms\SiteList.cs" />
     <Compile Include="Communication\CommunicationList.cs" />
     <Compile Include="Communication\SmsPipelineList.cs" />
@@ -148,6 +150,7 @@
     <Compile Include="Crm\AssessmentTypeList.cs" />
     <Compile Include="Crm\NamelessPersonList.cs" />
     <Compile Include="Crm\SignalTypeDetail.cs" />
+	<Compile Include="Core\ScheduledJobList.cs" />
     <Compile Include="Core\SuggestionDetail.cs" />
     <Compile Include="Cms\LavaShortcodeDetail.cs" />
     <Compile Include="Engagement\AchievementAttemptDetail.cs" />
@@ -195,6 +198,7 @@
     <Compile Include="Reporting\MergeTemplateList.cs" />
     <Compile Include="Reporting\ReportList.cs" />
     <Compile Include="Reporting\VolunteerGenerosityAnalysis.cs" />
+    <Compile Include="RockEntityDetailBlockType.cs" />
     <Compile Include="Tv\AppleTvPageDetail.cs" />
     <Compile Include="Engagement\StepTypeDetail.cs" />
     <Compile Include="Tv\AppleTvAppDetail.cs" />

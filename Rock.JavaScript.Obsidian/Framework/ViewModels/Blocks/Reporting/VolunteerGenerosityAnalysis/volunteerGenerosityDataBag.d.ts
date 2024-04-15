@@ -21,14 +21,9 @@
 // </copyright>
 //
 
+import { VolunteerGenerosityPersonDataBag } from "@Obsidian/ViewModels/Blocks/Reporting/VolunteerGenerosityAnalysis/volunteerGenerosityPersonDataBag";
+
 /** A bag that contains all data for the Volunteer Generosity Analysis block. */
 export type VolunteerGenerosityDataBag = {
-    /** Gets or sets the giving data. */
-    givingData?: unknown[] | null;
-
-    /** Gets or sets the group data. */
-    groupData?: unknown[] | null;
-
-    /** Gets or sets the people data. */
-    peopleData?: unknown[] | null;
+    peopleData?: VolunteerGenerosityPersonDataBag[] | null;
 };

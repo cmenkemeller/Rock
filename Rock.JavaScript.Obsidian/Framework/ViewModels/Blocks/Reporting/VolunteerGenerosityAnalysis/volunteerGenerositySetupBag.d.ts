@@ -21,24 +21,20 @@
 // </copyright>
 //
 
-import { VolunteerGivingDataBag } from "@Obsidian/ViewModels/Blocks/Reporting/VolunteerGenerosityAnalysis/volunteerGivingDataBag";
+/** A bag that contains all data for the Volunteer Generosity Analysis block. */
+export type VolunteerGenerositySetupBag = {
+    /** Gets or sets the estimated refresh time of the persisted dataset.  */
+    estimatedRefreshTime: number;
 
-export type VolunteerGroupDataBag = {
-    /** Gets or sets the campus id. */
-    campusId: number;
+    /** Gets or sets the last updated date time.  */
+    lastUpdated?: string | null;
 
-    /** Gets or sets the giving data. */
-    givingData?: VolunteerGivingDataBag[] | null;
+    /** Gets or sets the bool that shows/hides the campus filter. */
+    showCampusFilter: boolean;
 
-    /** Gets or sets the group id. */
-    groupId?: string | null;
+    /** Gets or sets the list of unique campuses. */
+    uniqueCampuses?: string[] | null;
 
-    /** Gets or sets the group name. */
-    groupName?: string | null;
-
-    /** Gets or sets the last attendance date. */
-    lastAttendanceDate?: string | null;
-
-    /** Gets or sets the campus name. */
-    shortCode?: string | null;
+    /** Gets or sets the list of unique groups  */
+    uniqueGroups?: string[] | null;
 };

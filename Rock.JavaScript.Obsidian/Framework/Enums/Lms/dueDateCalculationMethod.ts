@@ -21,13 +21,31 @@
 // </copyright>
 //
 
-export type PeopleDataBag = {
-    /** Gets or sets the id key. */
-    idKey?: string | null;
-    /** Gets or sets the last name. */
-    lastName?: string | null;
-    /** Gets or sets the nickname. */
-    nickName?: string | null;
-    /** Gets or sets the photo URL. */
-    photoUrl?: string | null;
+/** Determines the completion status of a LearningProgramCompletion. */
+export const DueDateCalculationMethod = {
+    /** A specific date. */
+    Specific: 1,
+
+    /** An offset of the class start date. */
+    ClassStartOffset: 2,
+
+    /** An offset of the class enrollment date. */
+    EnrollmentOffset: 3,
+
+    /** No calculation. */
+    NoDate: 4
+} as const;
+
+/** Determines the completion status of a LearningProgramCompletion. */
+export const DueDateCalculationMethodDescription: Record<number, string> = {
+    1: "Specific",
+
+    2: "Class Start Offset",
+
+    3: "Enrollment Offset",
+
+    4: "No Date"
 };
+
+/** Determines the completion status of a LearningProgramCompletion. */
+export type DueDateCalculationMethod = typeof DueDateCalculationMethod[keyof typeof DueDateCalculationMethod];
