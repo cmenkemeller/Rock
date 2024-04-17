@@ -620,6 +620,31 @@ namespace Rock.Rest.v2
 
         #endregion
 
+        #region Asset Manager
+
+        /// <summary>
+        /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
+        /// </summary>
+        /// <param name="options">The options that describe which items to load.</param>
+        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        [HttpPost]
+        [System.Web.Http.Route( "AssetManagerGetChildren" )]
+        [Authenticate]
+        [Rock.SystemGuid.RestActionGuid( "9A96E14F-99DB-4F9A-95EB-DF17D3B5EE25" )]
+        public IQueryable<TreeItemBag> AssetManagerGetChildren( [FromBody] AssetManagerGetChildrenOptionsBag options )
+        {
+            return Rock.Rest.Controllers.AssetStorageProvidersController.GetAssetFolderChildren( options.AssetFolderId )
+                .Select( item => new TreeItemBag
+                {
+                    Text = item.Name,
+                    Value = item.Id,
+                    IconCssClass = item.IconCssClass,
+                    HasChildren = item.HasChildren
+                } );
+        }
+
+        #endregion
+
         #region Asset Storage Provider Picker
 
         /// <summary>
@@ -5826,7 +5851,8 @@ namespace Rock.Rest.v2
             var rockContext = new RockContext();
 
             // Chain to the v1 controller.
-            return Rock.Rest.Controllers.PeopleController.SearchForPeople( rockContext, options.Name, options.Address, options.Phone, options.Email, options.IncludeDetails, options.IncludeBusinesses, options.IncludeDeceased, false );
+            var results = Rock.Rest.Controllers.PeopleController.SearchForPeople( rockContext, options.Name, options.Address, options.Phone, options.Email, options.IncludeDetails, options.IncludeBusinesses, options.IncludeDeceased, false );
+            return results;
         }
 
         #endregion

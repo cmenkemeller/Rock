@@ -7,8 +7,8 @@
             {{ itemName }}
             <span class="label label-tree" v-if="showChildCount && item.childCount">{{ item.childCount }}</span>
         </span>
-        <ul v-if="hasChildrenLoaded" v-show="showChildren" class="rocktree-children" v-for="child in children">
-            <treeListItem :modelValue="modelValue" @update:modelValue="onUpdateSelectedValues" @treeitem-expanded="onChildItemExpanded" :item="child" :multiple="multiple" :disableFolderSelection="disableFolderSelection" :autoExpand="autoExpand" :showChildCount="showChildCount" />
+        <ul v-if="hasChildrenLoaded" v-show="showChildren" class="rocktree-children">
+            <treeListItem v-for="child in children" :modelValue="modelValue" @update:modelValue="onUpdateSelectedValues" @treeitem-expanded="onChildItemExpanded" :item="child" :multiple="multiple" :disableFolderSelection="disableFolderSelection" :autoExpand="autoExpand" :showChildCount="showChildCount" />
         </ul>
     </li>
 </template>

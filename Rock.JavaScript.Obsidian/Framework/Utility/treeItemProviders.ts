@@ -36,6 +36,7 @@ import { ReportPickerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Con
 import { SchedulePickerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/schedulePickerGetChildrenOptionsBag";
 import { WorkflowActionTypePickerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/workflowActionTypePickerGetChildrenOptionsBag";
 import { MergeFieldPickerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/mergeFieldPickerGetChildrenOptionsBag";
+import { AssetManagerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetChildrenOptionsBag";
 import { flatten } from "./arrayUtils";
 import { toNumberOrNull } from "./numberUtils";
 
@@ -1087,5 +1088,49 @@ export class MergeFieldTreeItemProvider implements ITreeItemProvider {
      */
     async getChildItems(item: TreeItemBag): Promise<TreeItemBag[]> {
         return this.getItems(item.value);
+    }
+}
+
+
+/**
+ * Tree Item Provider for Asset Storage Provider folders from the server and displaying
+ * them inside a tree list.
+ */
+export class AssetManagerTreeItemProvider implements ITreeItemProvider {
+    /**
+     * Gets the child items from the server.
+     *
+     * @param parentGuid The parent item whose children are retrieved.
+     *
+     * @returns A collection of TreeItem objects as an asynchronous operation.
+     */
+    private async getItems(parentId: string | null = null): Promise<TreeItemBag[]> {
+        const options: AssetManagerGetChildrenOptionsBag = {
+            assetFolderId: parentId ?? "0"
+        };
+        const url = "/api/v2/Controls/AssetManagerGetChildren";
+        const response = await post<TreeItemBag[]>(url, undefined, options);
+
+        if (response.isSuccess && response.data) {
+            return response.data;
+        }
+        else {
+            console.log("Error", response.errorMessage);
+            return [];
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    async getRootItems(): Promise<TreeItemBag[]> {
+        return await this.getItems(null);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    async getChildItems(item: TreeItemBag): Promise<TreeItemBag[]> {
+        return this.getItems(decodeURIComponent(item.value ?? ""));
     }
 }

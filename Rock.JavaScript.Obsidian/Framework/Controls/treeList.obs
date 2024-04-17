@@ -80,7 +80,19 @@
     const getRootItems = async (): Promise<void> => {
         if (props.provider) {
             const result = props.provider.getRootItems(props.modelValue);
-            const rootItems = isPromise(result) ? await result : result;
+            let rootItems = result;
+
+            if (isPromise(result)) {
+                internalItems.value = [{
+                    children: [],
+                    hasChildren: false,
+                    iconCssClass: "fa fa-spinner fa-spin",
+                    value: "",
+                    isActive: false,
+                    isFolder: false
+                }];
+                rootItems = await result;
+            }
 
             internalItems.value = JSON.parse(JSON.stringify(rootItems)) as TreeItemBag[];
 
@@ -113,8 +125,25 @@
             // We have a provider, check if the item needs it's children loaded still.
             if (item.hasChildren && item.children === null) {
                 const result = props.provider.getChildItems(item);
-                const children = isPromise(result) ? await result : result;
 
+                let children = result;
+
+                if (isPromise(result)) {
+                    item.children = [{
+                        children: [],
+                        hasChildren: false,
+                        iconCssClass: "fa fa-spinner fa-spin",
+                        value: "",
+                        isActive: false,
+                        isFolder: false
+                    }];
+
+                    children = await result;
+                }
+
+                if (!children || (Array.isArray(children) && children.length === 0)) {
+                    item.hasChildren = false;
+                }
                 item.children = JSON.parse(JSON.stringify(children)) as TreeItemBag[];
 
                 emit("update:items", internalItems.value);

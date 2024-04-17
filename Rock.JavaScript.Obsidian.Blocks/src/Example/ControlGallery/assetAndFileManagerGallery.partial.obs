@@ -1,7 +1,7 @@
 <template>
     <GalleryAndResult :importCode="importCode" :exampleCode="exampleCode">
 
-        <AssetAndFileManager />
+        <AssetAndFileManager style="height:400px" />
 
         <template #settings>
             <div class="row">
