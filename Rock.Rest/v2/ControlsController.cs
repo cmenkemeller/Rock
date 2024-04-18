@@ -643,6 +643,27 @@ namespace Rock.Rest.v2
                 } );
         }
 
+        /// <summary>
+        /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
+        /// </summary>
+        /// <param name="options">The options that describe which items to load.</param>
+        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        [HttpPost]
+        [System.Web.Http.Route( "AssetManagerGetFiles" )]
+        [Authenticate]
+        [Rock.SystemGuid.RestActionGuid( "D45422C0-5FCA-44C4-B9E1-4BA05E8D534D" )]
+        public IQueryable<TreeItemBag> AssetManagerGetFiles( [FromBody] AssetManagerGetChildrenOptionsBag options )
+        {
+            return Rock.Rest.Controllers.AssetStorageProvidersController.GetAssetFolderChildren( options.AssetFolderId )
+                .Select( item => new TreeItemBag
+                {
+                    Text = item.Name,
+                    Value = item.Id,
+                    IconCssClass = item.IconCssClass,
+                    HasChildren = item.HasChildren
+                } );
+        }
+
         #endregion
 
         #region Asset Storage Provider Picker

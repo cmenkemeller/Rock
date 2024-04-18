@@ -1,7 +1,7 @@
 <!-- Copyright by the Spark Development Network; Licensed under the Rock Community License -->
 <template>
     <div id="pnlAssetManager" class="picker-wrapper">
-        <div class="picker-folders d-flex flex-column h-100 mh-100 bg-body p-2 mr-3">
+        <div class="picker-folders d-flex flex-column h-100 mh-100 bg-body p-2 mr-2">
             <input type="hidden" name="hfScriptInitialized" id="hfScriptInitialized" value="True">
             <input type="hidden" name="hfSelectedValue" id="hfSelectedValue">
             <input class="js-assetstorage-id" type="hidden" name="hfAssetStorageId" id="hfAssetStorageId" value="1">
@@ -35,12 +35,13 @@
                 </label>
             </div>
 
-            <div class="overflow-y-auto overflow-x-auto mh-100">
-                <TreeList v-model="selectedFolderArray" :provider="itemProvider" />
+            <div class="overflow-y-auto overflow-x-auto mh-100" style="z-index:0">
+                <!-- TODO: disallow deselect -->
+                <TreeList v-model="selectedFolderArray" :provider="itemProvider" disableDeselect />
             </div>
         </div>
 
-        <div class="picker-files d-flex flex-column h-100 mh-100">
+        <div class="picker-files d-flex flex-column h-100 mh-100 p-2">
             <div class="mb-3 d-flex">
                 <div class="fileupload-group" title="Upload a file to the selected location" style="display:none;">
                     <div class="js-upload-progress upload-progress-sm">
@@ -66,18 +67,6 @@
                     <i class="fa fa-sync"></i>
                 </RockButton>
             </div>
-            <!-- <div v-if="isRenameFolderFormVisible" class="well well-sm d-flex flex-wrap align-items-center flex-shrink-0">
-                <div class="mr-2">
-                    <input v-model="fileName" type="text" class="input-sm form-control">
-                </div>
-                <RockButton @click="renameFile" type="button" btnSize="xs" class="mr-2">
-                    <i class="fa fa-check"></i> Rename File
-                </RockButton>
-                <RockButton @click="cancelRenameFile" type="button" btnSize="xs">
-                    <i class="fa fa-times"></i> Cancel
-                </RockButton>
-                <label id="lblRenameFileNotification" class="js-renamefile-notification alert alert-warning clearfix" style="display:none"></label>
-            </div> -->
 
             <div class="overflow-y-auto mh-100">
                 <table class="table table-responsive table-borderless assetmanager-files">
@@ -157,7 +146,7 @@
 
     const itemProvider = ref(new AssetManagerTreeItemProvider());
     const selectedFolderArray = ref<string[]>([]);
-    const selectedFolder = computed<string | null>(() => selectedFolderArray[0] || null);
+    const selectedFolder = computed<string | null>(() => decodeURIComponent(selectedFolderArray.value[0] ?? "") || null);
     const isFolderSelected = computed(() => !!selectedFolder.value);
 
     const isCreateFolderFormVisible = ref(false);

@@ -8,7 +8,11 @@
             <span class="label label-tree" v-if="showChildCount && item.childCount">{{ item.childCount }}</span>
         </span>
         <ul v-if="hasChildrenLoaded" v-show="showChildren" class="rocktree-children">
-            <treeListItem v-for="child in children" :modelValue="modelValue" @update:modelValue="onUpdateSelectedValues" @treeitem-expanded="onChildItemExpanded" :item="child" :multiple="multiple" :disableFolderSelection="disableFolderSelection" :autoExpand="autoExpand" :showChildCount="showChildCount" />
+            <treeListItem v-for="child in children"
+                          @update:modelValue="onUpdateSelectedValues"
+                          @treeitem-expanded="onChildItemExpanded"
+                          :item="child"
+                          v-bind="{ modelValue, multiple, disableFolderSelection, disableDeselect, autoExpand, showChildCount }" />
         </ul>
     </li>
 </template>
@@ -55,6 +59,14 @@
          * Whether to show the number of children a parent node has, if provided
          */
         showChildCount: {
+            type: Boolean,
+            default: false
+        },
+
+        /**
+         * When using the tree list outside of a picker,
+         */
+        disableDeselect: {
             type: Boolean,
             default: false
         }
@@ -196,19 +208,24 @@
             return;
         }
 
-        if (props.multiple) {
-            if (props.item.value && !props.modelValue.includes(props.item.value)) {
+        const isAlreadySelected = props.modelValue.includes(props.item.value ?? "");
+
+        if (props.disableDeselect && isAlreadySelected) {
+            return;
+        }
+        else if (props.multiple) {
+            if (props.item.value && !isAlreadySelected) {
                 emit("update:modelValue", [...props.modelValue, props.item.value]);
             }
-            else if (props.item.value && props.modelValue.includes(props.item.value)) {
+            else if (props.item.value && isAlreadySelected) {
                 emit("update:modelValue", [...props.modelValue.filter(v => v !== props.item.value)]);
             }
         }
         else {
-            if (props.item.value && !props.modelValue.includes(props.item.value)) {
+            if (props.item.value && !isAlreadySelected) {
                 emit("update:modelValue", [props.item.value]);
             }
-            else if (props.item.value && props.modelValue.includes(props.item.value)) {
+            else if (props.item.value && isAlreadySelected) {
                 emit("update:modelValue", []);
             }
         }

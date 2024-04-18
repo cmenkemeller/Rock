@@ -3,13 +3,16 @@
     <div style="overflow-x: hidden; max-width: 100%;">
         <ul class="rocktree">
             <TreeListItem v-for="child in internalItems"
-                          :modelValue="modelValue"
                           :item="child"
-                          :multiple="multiple"
-                          :disableFolderSelection="disableFolderSelection"
-                          :autoExpand="autoExpand"
-                          :showChildCount="showChildCount"
-                          :provider="provider"
+                          v-bind="{
+                              modelValue,
+                              multiple,
+                              disableFolderSelection,
+                              autoExpand,
+                              showChildCount,
+                              provider,
+                              disableDeselect
+                          }"
                           @update:modelValue="onUpdateSelectedValues"
                           @treeitem-expanded="onItemExpanded" />
         </ul>
@@ -60,6 +63,14 @@
          * Whether to show the number of children a parent node has, if provided
          */
         showChildCount: {
+            type: Boolean,
+            default: false
+        },
+
+        /**
+         * When using the tree list outside of a picker,
+         */
+        disableDeselect: {
             type: Boolean,
             default: false
         }
