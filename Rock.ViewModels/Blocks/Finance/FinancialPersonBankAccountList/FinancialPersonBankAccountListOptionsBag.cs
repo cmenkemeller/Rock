@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -15,10 +15,12 @@
 // </copyright>
 //
 
-import { PublicAttributeBag } from "./Utility/publicAttributeBag";
-
-export interface IEntity {
-    idKey?: string | null;
-    attributes?: Record<string, PublicAttributeBag> | null;
-    attributeValues?: Record<string, string> | null;
+namespace Rock.ViewModels.Blocks.Finance.FinancialPersonBankAccountList
+{
+    /// <summary>
+    /// The additional configuration options for the Financial Person Bank Account List block.
+    /// </summary>
+    public class FinancialPersonBankAccountListOptionsBag
+    {
+    }
 }

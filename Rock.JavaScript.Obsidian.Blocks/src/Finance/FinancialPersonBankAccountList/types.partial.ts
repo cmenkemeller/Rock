@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -15,10 +15,6 @@
 // </copyright>
 //
 
-import { PublicAttributeBag } from "./Utility/publicAttributeBag";
-
-export interface IEntity {
-    idKey?: string | null;
-    attributes?: Record<string, PublicAttributeBag> | null;
-    attributeValues?: Record<string, string> | null;
+export const enum NavigationUrlKey {
+    DetailPage = "DetailPage"
 }

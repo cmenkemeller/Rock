@@ -21,20 +21,6 @@
 // </copyright>
 //
 
-using Rock.Model;
-using Rock.SystemGuid;
-
-namespace Rock.Rest.Controllers
-{
-    /// <summary>
-    /// Themes REST API
-    /// </summary>
-    [RestControllerGuid( "C63281B8-A415-4820-AD6F-092E04FEDDAC" )]
-    public partial class ThemesController : Rock.Rest.ApiController<Rock.Model.Theme>
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ThemesController"/> class.
-        /// </summary>
-        public ThemesController() : base( new Rock.Model.ThemeService( new Rock.Data.RockContext() ) ) { } 
-    }
-}
+/** The additional configuration options for the Financial Person Bank Account List block. */
+export type FinancialPersonBankAccountListOptionsBag = {
+};
