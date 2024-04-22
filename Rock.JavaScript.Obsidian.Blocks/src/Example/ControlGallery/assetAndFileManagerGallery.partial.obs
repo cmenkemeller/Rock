@@ -1,11 +1,12 @@
 <template>
     <GalleryAndResult :importCode="importCode" :exampleCode="exampleCode">
 
-        <AssetAndFileManager style="height:400px" />
+        <AssetAndFileManager :height="height" />
 
         <template #settings>
             <div class="row">
                 <div class="col-md-3">
+                    <CheckBox v-model="isStaticHeight" text="Use Static Height?" label="" disableLabel />
                 </div>
             </div>
         </template>
@@ -16,16 +17,20 @@
     import { computed, ref } from "vue";
     import GalleryAndResult from "./galleryAndResult.partial.obs";
     import AssetAndFileManager from "@Obsidian/Controls/assetAndFileManager.obs";
+    import CheckBox from "@Obsidian/Controls/checkBox.obs";
     import { getSfcControlImportPath } from "./utils.partial";
 
     const value = ref([]);
     const someBool = ref(false);
-    const someVal = ref("hi");
+
+    const isStaticHeight = ref(true);
+    const staticHeight = ref("400px");
+    const height = computed(() => isStaticHeight.value ? staticHeight.value : "flexible");
 
     const importCode = getSfcControlImportPath("assetAndFileManager");
     const exampleCode = computed(() => {
         const someBoolProp = someBool.value ? " someBool" : "";
-        const someValProp = someVal.value ? ` someVal="${someVal.value}"` : "";
-        return `<AssetAndFileManager v-model="value"${someBoolProp}${someValProp} />`;
+        const heightProp = isStaticHeight.value ? ` height="${height.value}"` : "";
+        return `<AssetAndFileManager v-model="value"${someBoolProp}${heightProp} />`;
     });
 </script>

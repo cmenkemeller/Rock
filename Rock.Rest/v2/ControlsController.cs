@@ -41,6 +41,7 @@ using Rock.Media;
 using Rock.Model;
 using Rock.Rest.Filters;
 using Rock.Security;
+using Rock.Storage.AssetStorage;
 using Rock.Utility;
 using Rock.Utility.CaptchaApi;
 using Rock.ViewModels.Controls;
@@ -652,16 +653,30 @@ namespace Rock.Rest.v2
         [System.Web.Http.Route( "AssetManagerGetFiles" )]
         [Authenticate]
         [Rock.SystemGuid.RestActionGuid( "D45422C0-5FCA-44C4-B9E1-4BA05E8D534D" )]
-        public IQueryable<TreeItemBag> AssetManagerGetFiles( [FromBody] AssetManagerGetChildrenOptionsBag options )
+        public List<Asset> AssetManagerGetFiles( [FromBody] AssetManagerGetChildrenOptionsBag options )
         {
-            return Rock.Rest.Controllers.AssetStorageProvidersController.GetAssetFolderChildren( options.AssetFolderId )
-                .Select( item => new TreeItemBag
-                {
-                    Text = item.Name,
-                    Value = item.Id,
-                    IconCssClass = item.IconCssClass,
-                    HasChildren = item.HasChildren
-                } );
+            var assetParts = options.AssetFolderId.Split( ',' );
+            int assetStorageProviderId;
+            string path;
+
+            if ( assetParts.Length < 2 )
+            {
+                return new List<Asset>();
+            }
+            else
+            {
+                assetStorageProviderId = assetParts[0].AsInteger();
+                path = assetParts[1];
+            }
+
+            return Rock.Rest.Controllers.AssetStorageProvidersController.GetFilesForPath( assetStorageProviderId, path );
+            //.Select( item => new TreeItemBag
+            //{
+            //    Text = item.Name,
+            //    Value = item.Id,
+            //    IconCssClass = item.IconCssClass,
+            //    HasChildren = item.HasChildren
+            //} );
         }
 
         #endregion

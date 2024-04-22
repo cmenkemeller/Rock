@@ -1,7 +1,8 @@
 <!-- Copyright by the Spark Development Network; Licensed under the Rock Community License -->
 <template>
-    <div id="pnlAssetManager" class="picker-wrapper">
-        <div class="picker-folders d-flex flex-column h-100 mh-100 bg-body p-2 mr-2">
+    <div id="pnlAssetManager" class="picker-wrapper align-items-stretch" :style="wrapperStyles">
+        <div class="picker-folders d-flex flex-column bg-body p-2 mr-2 mh-100 position-relative">
+            <!-- TODO What to do with these? -->
             <input type="hidden" name="hfScriptInitialized" id="hfScriptInitialized" value="True">
             <input type="hidden" name="hfSelectedValue" id="hfSelectedValue">
             <input class="js-assetstorage-id" type="hidden" name="hfAssetStorageId" id="hfAssetStorageId" value="1">
@@ -17,9 +18,16 @@
                     <!-- TODO -->
                     <i class="fa fa-sync"></i>
                 </RockButton>
-                <RockButton type="button" btnSize="xs" title="Additional Actions" isSquare :disabled="!isFolderSelected">
-                    <i class="fa fa-ellipsis-v"></i>
-                </RockButton>
+                <div class="position-relative">
+                    <RockButton type="button" btnSize="xs" title="Additional Actions" isSquare :disabled="!isFolderSelected" style="position:relative" data-toggle="dropdown">
+                        <i class="fa fa-ellipsis-v"></i>
+                    </RockButton>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                        <li><a href="#" @click.prevent="">Rename</a></li>
+                        <li><a href="#" @click.prevent="">Move</a></li>
+                        <li><a href="#" @click.prevent="deleteSelectedFolder" class="text-danger">Delete</a></li>
+                    </ul>
+                </div>
             </div>
 
             <div v-show="isCreateFolderFormVisible" class="mb-2 well well-sm js-createfolder-div flex-shrink-0">
@@ -36,13 +44,17 @@
             </div>
 
             <div class="overflow-y-auto overflow-x-auto mh-100" style="z-index:0">
-                <!-- TODO: disallow deselect -->
-                <TreeList v-model="selectedFolderArray" :provider="itemProvider" disableDeselect />
+                <TreeList v-model="selectedFolderArray" :provider="itemProvider" v-model:items="folders" disableDeselect autoExpand />
+                <pre>{{ folders }}</pre>
+            </div>
+
+            <div v-if="isFolderPaneActionLoading" class="d-flex flex-column justify-content-center inset-0 bg-body" style="opacity: 0.5">
+                <LoadingIndicator />
             </div>
         </div>
 
-        <div class="picker-files d-flex flex-column h-100 mh-100 p-2">
-            <div class="mb-3 d-flex">
+        <div class="picker-files d-flex flex-column p-2 mh-100">
+            <div class="mb-3 d-flex align-items-center">
                 <div class="fileupload-group" title="Upload a file to the selected location" style="display:none;">
                     <div class="js-upload-progress upload-progress-sm">
                         <!-- TODO -->
@@ -60,46 +72,49 @@
                     <!-- TODO -->
                     <input type="file" class="hidden" accept=".zip" @change="uploadZipFile">
                 </label>
-                <RockButton type="button" btnSize="xs" title="Delete selected files" class="mr-2">
+                <RockButton type="button" btnSize="xs" title="Delete selected files" class="mr-2" :disabled="selectedFiles.length < 1">
                     <i class="fa fa-trash-alt"></i> <span class="hidden-xs">Delete Selected</span>
                 </RockButton>
+                {{ selectedFiles }}
                 <RockButton type="button" btnSize="xs" title="Refresh file list" class="ml-auto">
                     <i class="fa fa-sync"></i>
                 </RockButton>
             </div>
 
             <div class="overflow-y-auto mh-100">
-                <table class="table table-responsive table-borderless assetmanager-files">
-                    <tbody>
-                        <tr v-for="file in files" :key="file.key">
-                            <td>
-                                <CheckBox label="" v-model="selectedFiles" :value="file.key" />
-                            </td>
-                            <td>
-                                <!-- TODO: Size show in Figma: 44px x 58px -->
-                                <img :src="file.previewSrc" style="max-width:60px;">
-                            </td>
-                            <td>
-                                <span v-show="shownFileRenameForm != file.key">{{ file.name }} <i class="fa fa-edit" @click="() => showRenameFileForm(file)"></i></span>
-                                <RockForm class="d-flex align-items-center" v-if="shownFileRenameForm == file.key" @submit="() => renameFile(file)" @keyup.esc="hideRenameFileForm">
-                                    <TextBox v-model="fileName" size="small" formGroupClasses="mr-2 mb-0" disableLabel id="asset-manager-current-file-rename-input" />
-                                    <RockButton type="submit" btnType="default" btnSize="xs" class="mr-2 flex-shrink-0" title="Rename File" isSquare><i class="fa fa-check"></i></RockButton>
-                                    <RockButton type="button" btnType="default" btnSize="xs" class="flex-shrink-0" title="Cancel" isSquare @click="hideRenameFileForm"><i class="fa fa-times"></i></RockButton>
-                                </RockForm>
-                            </td>
-                            <td data-priority="3">
-                                {{ file.modified }}
-                            </td>
-                            <td>
-                                {{ file.fileSize }}
-                            </td>
-                            <td>
-                                <!-- TODO -->
-                                <RockButton type="button" btnType="link" class="text-body"><i class="fa fa-ellipsis-v"></i></RockButton>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <Loading :isLoading="isLoadingFiles">
+                    <table v-if="files.length > 0" class="table table-responsive table-borderless assetmanager-files">
+                        <tbody>
+                            <tr v-for="file in files" :key="file.key">
+                                <td>
+                                    <CheckBox label="" v-model="selectedFiles" :value="file.key" />
+                                </td>
+                                <td>
+                                    <img :src="file.iconPath" style="object-fit: cover; height: 58px; width: 44px;">
+                                </td>
+                                <td>
+                                    <span v-show="shownFileRenameForm != file.key">{{ file.name }} <i class="fa fa-edit" @click="() => showRenameFileForm(file)"></i></span>
+                                    <RockForm class="d-flex align-items-center" v-if="shownFileRenameForm == file.key" @submit="() => renameFile(file)" @keyup.esc="hideRenameFileForm">
+                                        <TextBox v-model="fileName" size="small" formGroupClasses="mr-2 mb-0" disableLabel id="asset-manager-current-file-rename-input" />
+                                        <RockButton type="submit" btnType="default" btnSize="xs" class="mr-2 flex-shrink-0" title="Rename File" isSquare><i class="fa fa-check"></i></RockButton>
+                                        <RockButton type="button" btnType="default" btnSize="xs" class="flex-shrink-0" title="Cancel" isSquare @click="hideRenameFileForm"><i class="fa fa-times"></i></RockButton>
+                                    </RockForm>
+                                </td>
+                                <td data-priority="3">
+                                    {{ file.lastModifiedDateTime }}
+                                </td>
+                                <td>
+                                    {{ file.formattedFileSize }}
+                                </td>
+                                <td>
+                                    <!-- TODO -->
+                                    <RockButton type="button" btnType="link" class="text-body"><i class="fa fa-ellipsis-v"></i></RockButton>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div v-else>No files found.</div>
+                </Loading>
             </div>
         </div>
     </div>
@@ -119,21 +134,37 @@
 */
 </style>
 
+<script lang="ts">
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    declare function $(element: any): any;
+</script>
+
 <script setup lang="ts">
-    import { PropType, computed, nextTick, ref } from "vue";
+    import { PropType, computed, nextTick, ref, watch } from "vue";
     import RockButton from "./rockButton.obs";
     import RockForm from "./rockForm.obs";
     import TextBox from "./textBox.obs";
     import CheckBox from "./checkBox.obs";
     import TreeList from "./treeList.obs";
+    import Loading from "./loading.obs";
+    import LoadingIndicator from "./loadingIndicator.obs";
     import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
     import { useVModelPassthrough } from "@Obsidian/Utility/component";
     import { AssetManagerTreeItemProvider } from "@Obsidian/Utility/treeItemProviders";
+    import { AssetManagerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetChildrenOptionsBag";
+    import { useHttp } from "@Obsidian/Utility/http";
+    import { TreeItemBag } from "@Obsidian/ViewModels/Utility/treeItemBag";
+    import { sleep } from "@Obsidian/Utility/promiseUtils";
 
     const props = defineProps({
         modelValue: {
             type: Object as PropType<ListItemBag>,
         },
+
+        height: {
+            type: String as PropType<string | "flexible">,
+            default: "flexible",
+        }
     });
 
     const emit = defineEmits<{
@@ -141,14 +172,32 @@
     }>();
 
     const internalValue = useVModelPassthrough(props, "modelValue", emit);
+    const { post } = useHttp();
+
+    // #region Styles
+
+    const wrapperStyles = computed(() => {
+        if (props.height === "flexible") {
+            return {};
+        }
+        else {
+            return {
+                height: props.height,
+            };
+        }
+    });
+
+    // #endregion
 
     // #region Folder List
 
     const itemProvider = ref(new AssetManagerTreeItemProvider());
+    const folders = ref<TreeItemBag[]>([]);
     const selectedFolderArray = ref<string[]>([]);
     const selectedFolder = computed<string | null>(() => decodeURIComponent(selectedFolderArray.value[0] ?? "") || null);
     const isFolderSelected = computed(() => !!selectedFolder.value);
 
+    const isFolderPaneActionLoading = ref(false);
     const isCreateFolderFormVisible = ref(false);
     const newFolderName = ref("");
 
@@ -167,8 +216,14 @@
         newFolderName.value = "";
     }
 
-    function deleteSelectedFolder(): void {
+    async function deleteSelectedFolder(): Promise<void> {
         // TODO
+        console.log("START DELETE");
+        isFolderPaneActionLoading.value = true;
+        await sleep(2000);
+        selectedFolderArray.value = [];
+        console.log("DELETED");
+        isFolderPaneActionLoading.value = false;
     }
 
     // #endregion
@@ -178,56 +233,8 @@
     const shownFileRenameForm = ref<string | null>(null);
     const fileName = ref("");
     const selectedFiles = ref<string[]>([]);
-    const files = ref([
-        {
-            name: "favicon.ico",
-            key: "~/Content/ExternalSite/Icons/favicon.ico",
-            url: "http://localhost:6229//Content/ExternalSite/Icons/favicon.ico",
-            previewSrc: "/Content/ASM_Thumbnails/1/Content/ExternalSite/Icons/favicon.ico",
-            modified: "5/3/2022 10:50:38 AM",
-            fileSize: "8 KB"
-        },
-        {
-            name: "touch-icon-ipad-retina.png",
-            key: "~/Content/ExternalSite/Icons/touch-icon-ipad-retina.png",
-            url: "http://localhost:6229//Content/ExternalSite/Icons/touch-icon-ipad-retina.png",
-            previewSrc: "/Content/ASM_Thumbnails/1/Content/ExternalSite/Icons/touch-icon-ipad-retina.png",
-            modified: "5/3/2022 10:50:38 AM",
-            fileSize: "3 KB"
-        },
-        {
-            name: "touch-icon-ipad.png",
-            key: "~/Content/ExternalSite/Icons/touch-icon-ipad.png",
-            url: "http://localhost:6229//Content/ExternalSite/Icons/touch-icon-ipad.png",
-            previewSrc: "/Content/ASM_Thumbnails/1/Content/ExternalSite/Icons/touch-icon-ipad.png",
-            modified: "5/3/2022 10:50:38 AM",
-            fileSize: "1 KB"
-        },
-        {
-            name: "touch-icon-iphone-retina.png",
-            key: "~/Content/ExternalSite/Icons/touch-icon-iphone-retina.png",
-            url: "http://localhost:6229//Content/ExternalSite/Icons/touch-icon-iphone-retina.png",
-            previewSrc: "/Content/ASM_Thumbnails/1/Content/ExternalSite/Icons/touch-icon-iphone-retina.png",
-            modified: "5/3/2022 10:50:38 AM",
-            fileSize: "2 KB"
-        },
-        {
-            name: "touch-icon-iphone.png",
-            key: "~/Content/ExternalSite/Icons/touch-icon-iphone.png",
-            url: "http://localhost:6229//Content/ExternalSite/Icons/touch-icon-iphone.png",
-            previewSrc: "/Content/ASM_Thumbnails/1/Content/ExternalSite/Icons/touch-icon-iphone.png",
-            modified: "5/3/2022 10:50:38 AM",
-            fileSize: "1 KB"
-        },
-        {
-            name: "touch-icon-android.png",
-            key: "~/Content/ExternalSite/Icons/touch-icon-android.png",
-            url: "http://localhost:6229//Content/ExternalSite/Icons/touch-icon-iphone.png",
-            previewSrc: "/Content/ASM_Thumbnails/1/Content/ExternalSite/Icons/touch-icon-iphone.png",
-            modified: "5/8/2022 10:50:38 AM",
-            fileSize: "5 KB"
-        },
-    ]);
+    const files = ref([]);
+    const isLoadingFiles = ref(false);
 
     async function showRenameFileForm(file): Promise<void> {
         shownFileRenameForm.value = file.key;
@@ -264,6 +271,38 @@
     function deleteFile(): void {
         // TODO
     }
+
+    function resetFileState(): void {
+        shownFileRenameForm.value = null;
+        selectedFiles.value = [];
+        files.value = [];
+    }
+
+    async function fetchFiles(assetPath: string): Promise<void> {
+        resetFileState();
+        isLoadingFiles.value = true;
+
+        const options: AssetManagerGetChildrenOptionsBag = {
+            assetFolderId: assetPath
+        };
+        const url = "/api/v2/Controls/AssetManagerGetFiles";
+        const response = await post<any[]>(url, undefined, options);
+
+        if (response.isSuccess && response.data) {
+            files.value = response.data;
+        }
+
+        isLoadingFiles.value = false;
+    }
+
+    watch(selectedFolder, () => {
+        if (selectedFolder.value) {
+            fetchFiles(selectedFolder.value);
+        }
+        else {
+            files.value = [];
+        }
+    });
 
     // #endregion
 

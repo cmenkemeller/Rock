@@ -153,5 +153,23 @@ namespace Rock.Rest.Controllers
 
             return assets;
         }
+
+        /// <summary>
+        /// Gets the files.
+        /// </summary>
+        /// <param name="assetStorageProviderId">The asset storage system identifier.</param>
+        /// <param name="path">The path.</param>
+        /// <returns></returns>
+        internal static List<Asset> GetFilesForPath( int assetStorageProviderId, string path )
+        {
+            var assetStorageProviderCache = AssetStorageProviderCache.Get( assetStorageProviderId );
+
+            var component = assetStorageProviderCache.AssetStorageComponent;
+
+            List<Asset> assets = component.ListFilesInFolder( assetStorageProviderCache.ToEntity(), new Asset { Key = path } );
+
+
+            return assets;
+        }
     }
 }
