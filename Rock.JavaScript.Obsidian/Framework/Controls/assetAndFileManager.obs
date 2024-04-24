@@ -18,20 +18,17 @@
                     <!-- TODO -->
                     <i class="fa fa-sync"></i>
                 </RockButton>
-                <div class="position-relative">
-                    <RockButton type="button" btnSize="xs" title="Additional Actions" isSquare :disabled="!isFolderSelected" style="position:relative" data-toggle="dropdown">
-                        <i class="fa fa-ellipsis-v"></i>
-                    </RockButton>
-                    <ul class="dropdown-menu dropdown-menu-right">
-                        <li><a href="#" @click.prevent="">Rename</a></li>
-                        <li><a href="#" @click.prevent="">Move</a></li>
-                        <li><a href="#" @click.prevent="deleteSelectedFolder" class="text-danger">Delete</a></li>
-                    </ul>
-                </div>
+                <DropDownMenu :items="folderDropDownMenuItems" align="right">
+                    <template #anchor="anchor">
+                        <RockButton type="button" btnSize="xs" title="Additional Actions" isSquare :disabled="!isFolderSelected" v-bind="anchor">
+                            <i class="fa fa-ellipsis-v"></i>
+                        </RockButton>
+                    </template>
+                </DropDownMenu>
             </div>
 
             <div v-show="isCreateFolderFormVisible" class="mb-2 well well-sm js-createfolder-div flex-shrink-0">
-                <input name="tbCreateFolder" type="text" class="input-sm form-control mb-2">
+                <input name="tbCreateFolder" v-model="newFolderName" type="text" class="input-sm form-control mb-2">
                 <RockButton @click="addFolder" type="button" btnSize="xs" class="mr-2">
                     <i class="fa fa-check"></i> Create Folder
                 </RockButton>
@@ -45,7 +42,7 @@
 
             <div class="overflow-y-auto overflow-x-auto mh-100" style="z-index:0">
                 <TreeList v-model="selectedFolderArray" :provider="itemProvider" v-model:items="folders" disableDeselect autoExpand />
-                <pre>{{ folders }}</pre>
+                <!-- <pre>{{ folders }}</pre> -->
             </div>
 
             <div v-if="isFolderPaneActionLoading" class="d-flex flex-column justify-content-center inset-0 bg-body" style="opacity: 0.5">
@@ -81,41 +78,39 @@
                 </RockButton>
             </div>
 
-            <div class="overflow-y-auto mh-100">
-                <Loading :isLoading="isLoadingFiles">
-                    <table v-if="files.length > 0" class="table table-responsive table-borderless assetmanager-files">
-                        <tbody>
-                            <tr v-for="file in files" :key="file.key">
-                                <td>
-                                    <CheckBox label="" v-model="selectedFiles" :value="file.key" />
-                                </td>
-                                <td>
-                                    <img :src="file.iconPath" style="object-fit: cover; height: 58px; width: 44px;">
-                                </td>
-                                <td>
-                                    <span v-show="shownFileRenameForm != file.key">{{ file.name }} <i class="fa fa-edit" @click="() => showRenameFileForm(file)"></i></span>
-                                    <RockForm class="d-flex align-items-center" v-if="shownFileRenameForm == file.key" @submit="() => renameFile(file)" @keyup.esc="hideRenameFileForm">
-                                        <TextBox v-model="fileName" size="small" formGroupClasses="mr-2 mb-0" disableLabel id="asset-manager-current-file-rename-input" />
-                                        <RockButton type="submit" btnType="default" btnSize="xs" class="mr-2 flex-shrink-0" title="Rename File" isSquare><i class="fa fa-check"></i></RockButton>
-                                        <RockButton type="button" btnType="default" btnSize="xs" class="flex-shrink-0" title="Cancel" isSquare @click="hideRenameFileForm"><i class="fa fa-times"></i></RockButton>
-                                    </RockForm>
-                                </td>
-                                <td data-priority="3">
-                                    {{ file.lastModifiedDateTime }}
-                                </td>
-                                <td>
-                                    {{ file.formattedFileSize }}
-                                </td>
-                                <td>
-                                    <!-- TODO -->
-                                    <RockButton type="button" btnType="link" class="text-body"><i class="fa fa-ellipsis-v"></i></RockButton>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div v-else>No files found.</div>
-                </Loading>
-            </div>
+            <Loading :isLoading="isLoadingFiles" class="overflow-y-auto mh-100 flex-grow-1 d-flex align-items-start">
+                <table v-if="files.length > 0" class="table table-responsive table-borderless assetmanager-files">
+                    <tbody>
+                        <tr v-for="file in files" :key="file.key">
+                            <td>
+                                <CheckBox label="" v-model="selectedFiles" :value="file.key" />
+                            </td>
+                            <td>
+                                <img :src="file.iconPath" style="object-fit: cover; height: 58px; width: 44px;">
+                            </td>
+                            <td>
+                                <span v-show="shownFileRenameForm != file.key">{{ file.name }} <i class="fa fa-edit" @click="() => showRenameFileForm(file)"></i></span>
+                                <RockForm class="d-flex align-items-center" v-if="shownFileRenameForm == file.key" @submit="() => renameFile(file)" @keyup.esc="hideRenameFileForm">
+                                    <TextBox v-model="fileName" size="small" formGroupClasses="mr-2 mb-0" disableLabel id="asset-manager-current-file-rename-input" />
+                                    <RockButton type="submit" btnType="default" btnSize="xs" class="mr-2 flex-shrink-0" title="Rename File" isSquare><i class="fa fa-check"></i></RockButton>
+                                    <RockButton type="button" btnType="default" btnSize="xs" class="flex-shrink-0" title="Cancel" isSquare @click="hideRenameFileForm"><i class="fa fa-times"></i></RockButton>
+                                </RockForm>
+                            </td>
+                            <td data-priority="3">
+                                {{ file.lastModifiedDateTime }}
+                            </td>
+                            <td>
+                                {{ file.formattedFileSize }}
+                            </td>
+                            <td>
+                                <!-- TODO -->
+                                <RockButton type="button" btnType="link" class="text-body"><i class="fa fa-ellipsis-v"></i></RockButton>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div v-else class="m-auto justify-self-center text-lg text-muted" style="width:max-content;">No files found.</div>
+            </Loading>
         </div>
     </div>
 </template>
@@ -148,13 +143,16 @@
     import TreeList from "./treeList.obs";
     import Loading from "./loading.obs";
     import LoadingIndicator from "./loadingIndicator.obs";
-    import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
+    import DropDownMenu from "./dropDownMenu.obs";
     import { useVModelPassthrough } from "@Obsidian/Utility/component";
     import { AssetManagerTreeItemProvider } from "@Obsidian/Utility/treeItemProviders";
-    import { AssetManagerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetChildrenOptionsBag";
+    import { AssetManagerBaseOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerBaseOptionsBag";
+    import { AssetManagerAddFolderOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerAddFolderOptionsBag";
     import { useHttp } from "@Obsidian/Utility/http";
-    import { TreeItemBag } from "@Obsidian/ViewModels/Utility/treeItemBag";
     import { sleep } from "@Obsidian/Utility/promiseUtils";
+    import { MenuAction } from "@Obsidian/Types/Controls/dropDownMenu";
+    import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
+    import { TreeItemBag } from "@Obsidian/ViewModels/Utility/treeItemBag";
 
     const props = defineProps({
         modelValue: {
@@ -201,14 +199,60 @@
     const isCreateFolderFormVisible = ref(false);
     const newFolderName = ref("");
 
+    const folderDropDownMenuItems = computed<MenuAction[]>(() => {
+        const items: MenuAction[] = [];
+
+        // TODO: Hide these for Asset Provider Folders
+        if (true) {
+            items.push({
+                title: "Rename",
+                type: "default",
+                handler: () => console.log("RENAME")
+            }, {
+                title: "Move",
+                type: "default",
+                handler: () => console.log("MOVE")
+            });
+        }
+
+        items.push({
+            title: "Delete",
+            type: "danger",
+            handler: () => {
+                deleteSelectedFolder(); /* Explicitly don't return promise so dropdown will hide immediately */
+            }
+        });
+
+        return items;
+    });
+
     function showAddFolderForm(): void {
         isCreateFolderFormVisible.value = true;
     }
 
-    function addFolder(): void {
-        // TODO
-        //...
-        newFolderName.value = "";
+    async function addFolder(): Promise<void> {
+        // TODO: VALIDATE (input validation?)
+        isFolderPaneActionLoading.value = true;
+
+        const options: AssetManagerAddFolderOptionsBag = {
+            assetFolderId: selectedFolder.value,
+            newFolderName: newFolderName.value
+        };
+        const url = "/api/v2/Controls/AssetManagerAddFolder";
+        const response = await post<boolean>(url, undefined, options);
+
+        if (response.data) {
+            // TODO : Add to list
+            console.log("ADDED", response.data);
+            isCreateFolderFormVisible.value = false;
+            newFolderName.value = "";
+        }
+        else {
+            // TODO : Failed
+            console.log("ADD FAILED");
+        }
+
+        isFolderPaneActionLoading.value = false;
     }
 
     function cancelAddFolder(): void {
@@ -218,11 +262,24 @@
 
     async function deleteSelectedFolder(): Promise<void> {
         // TODO
-        console.log("START DELETE");
         isFolderPaneActionLoading.value = true;
-        await sleep(2000);
-        selectedFolderArray.value = [];
-        console.log("DELETED");
+
+        const options: AssetManagerBaseOptionsBag = {
+            assetFolderId: selectedFolder.value
+        };
+        const url = "/api/v2/Controls/AssetManagerDeleteFolder";
+        const response = await post<boolean>(url, undefined, options);
+
+        if (response.data) {
+            // TODO : Delete from list
+            console.log("DELETED", response.data);
+            selectedFolderArray.value = [];
+        }
+        else {
+            // TODO : Failed
+            console.log("DELETE FAILED");
+        }
+
         isFolderPaneActionLoading.value = false;
     }
 
@@ -282,7 +339,7 @@
         resetFileState();
         isLoadingFiles.value = true;
 
-        const options: AssetManagerGetChildrenOptionsBag = {
+        const options: AssetManagerBaseOptionsBag = {
             assetFolderId: assetPath
         };
         const url = "/api/v2/Controls/AssetManagerGetFiles";

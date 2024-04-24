@@ -36,7 +36,7 @@ import { ReportPickerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Con
 import { SchedulePickerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/schedulePickerGetChildrenOptionsBag";
 import { WorkflowActionTypePickerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/workflowActionTypePickerGetChildrenOptionsBag";
 import { MergeFieldPickerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/mergeFieldPickerGetChildrenOptionsBag";
-import { AssetManagerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetChildrenOptionsBag";
+import { AssetManagerBaseOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerBaseOptionsBag";
 import { flatten } from "./arrayUtils";
 import { toNumberOrNull } from "./numberUtils";
 
@@ -1105,7 +1105,7 @@ export class AssetManagerTreeItemProvider implements ITreeItemProvider {
      * @returns A collection of TreeItem objects as an asynchronous operation.
      */
     private async getItems(parentId: string | null = null): Promise<TreeItemBag[]> {
-        const options: AssetManagerGetChildrenOptionsBag = {
+        const options: AssetManagerBaseOptionsBag = {
             assetFolderId: parentId ?? "0"
         };
         const url = "/api/v2/Controls/AssetManagerGetChildren";

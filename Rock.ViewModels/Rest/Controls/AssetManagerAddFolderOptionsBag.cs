@@ -18,11 +18,11 @@
 namespace Rock.ViewModels.Rest.Controls
 {
     /// <summary>
-    /// The options that can be passed to the GetAssetStorageProviders API action of
-    /// the AssetStorageProviderPicker control.
+    /// The options that can be passed to the AddFolder API action of
+    /// the AssetManager control.
     /// </summary>
-    public class AssetManagerGetChildrenOptionsBag
+    public class AssetManagerAddFolderOptionsBag : AssetManagerBaseOptionsBag
     {
-        public string AssetFolderId { get; set; }
+        public string NewFolderName { get; set; }
     }
 }

@@ -624,24 +624,73 @@ namespace Rock.Rest.v2
         #region Asset Manager
 
         /// <summary>
-        /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
+        /// Gets the root storage providers, or a list of folders of a parent folder
         /// </summary>
         /// <param name="options">The options that describe which items to load.</param>
-        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        /// <returns>A List of <see cref="TreeItemBag"/> objects that represent the asset storage providers/folders.</returns>
         [HttpPost]
         [System.Web.Http.Route( "AssetManagerGetChildren" )]
         [Authenticate]
         [Rock.SystemGuid.RestActionGuid( "9A96E14F-99DB-4F9A-95EB-DF17D3B5EE25" )]
-        public IQueryable<TreeItemBag> AssetManagerGetChildren( [FromBody] AssetManagerGetChildrenOptionsBag options )
+        public IQueryable<TreeItemBag> AssetManagerGetChildren( [FromBody] AssetManagerBaseOptionsBag options )
         {
             return Rock.Rest.Controllers.AssetStorageProvidersController.GetAssetFolderChildren( options.AssetFolderId )
                 .Select( item => new TreeItemBag
                 {
                     Text = item.Name,
-                    Value = item.Id,
+                    Value = HttpUtility.UrlDecode( item.Id ),
                     IconCssClass = item.IconCssClass,
                     HasChildren = item.HasChildren
                 } );
+        }
+
+        /// <summary>
+        /// Gets the files present in a asset provider folder
+        /// </summary>
+        /// <param name="options">The options that describe which items to load.</param>
+        /// <returns>A List of <see cref="Asset"/> objects that represent the files.</returns>
+        [HttpPost]
+        [System.Web.Http.Route( "AssetManagerGetFiles" )]
+        [Authenticate]
+        [Rock.SystemGuid.RestActionGuid( "D45422C0-5FCA-44C4-B9E1-4BA05E8D534D" )]
+        public List<Asset> AssetManagerGetFiles( [FromBody] AssetManagerBaseOptionsBag options )
+        {
+            var (assetStorageProviderId, path) = ParseAssetId( options.AssetFolderId );
+
+            if ( assetStorageProviderId == null || path == null )
+            {
+                return new List<Asset>();
+            }
+
+            return Rock.Rest.Controllers.AssetStorageProvidersController.GetFilesForPath( assetStorageProviderId.Value, path );
+        }
+
+        /// <summary>
+        /// Delete a folder within a asset storage provider
+        /// </summary>
+        /// <param name="options">The options that describe which folder to delete.</param>
+        /// <returns>True if successful, false otherwise.</returns>
+        [HttpPost]
+        [System.Web.Http.Route( "AssetManagerDeleteFolder" )]
+        [Authenticate]
+        [Rock.SystemGuid.RestActionGuid( "7625091B-D70A-4564-97C8-ED77AE5DB738" )]
+        public bool AssetManagerDeleteFolder( [FromBody] AssetManagerBaseOptionsBag options )
+        {
+            var (assetStorageProviderId, path) = ParseAssetId( options.AssetFolderId );
+
+            if ( assetStorageProviderId == null || path == null )
+            {
+                return false;
+            }
+
+            var (provider, component) = GetAssetStorageProvider( assetStorageProviderId.Value );
+
+            if ( provider == null || component == null )
+            {
+                return false;
+            }
+
+            return component.DeleteAsset( provider.ToEntity(), new Asset { Key = path, Type = AssetType.Folder } );
         }
 
         /// <summary>
@@ -650,33 +699,92 @@ namespace Rock.Rest.v2
         /// <param name="options">The options that describe which items to load.</param>
         /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
         [HttpPost]
-        [System.Web.Http.Route( "AssetManagerGetFiles" )]
+        [System.Web.Http.Route( "AssetManagerAddFolder" )]
         [Authenticate]
-        [Rock.SystemGuid.RestActionGuid( "D45422C0-5FCA-44C4-B9E1-4BA05E8D534D" )]
-        public List<Asset> AssetManagerGetFiles( [FromBody] AssetManagerGetChildrenOptionsBag options )
+        [Rock.SystemGuid.RestActionGuid( "B90D9215-57A4-45D3-9B70-A44AA2C9FE7B" )]
+        public bool AssetManagerAddFolder( [FromBody] AssetManagerAddFolderOptionsBag options )
         {
-            var assetParts = options.AssetFolderId.Split( ',' );
+
+            if ( !IsValidAssetFolderName( options.NewFolderName ) || options.NewFolderName.IsNullOrWhiteSpace() )
+            {
+                return false;
+            }
+
+            var (assetStorageProviderId, path) = ParseAssetId( options.AssetFolderId );
+
+            if ( assetStorageProviderId == null || path == null )
+            {
+                return false;
+            }
+
+            var (provider, component) = GetAssetStorageProvider( assetStorageProviderId.Value );
+
+            if ( provider == null || component == null )
+            {
+                return false;
+            }
+
+            var asset = new Asset { Type = AssetType.Folder };
+
+            // Selecting the root does not put a value for the selected folder, so we have to make sure
+            // if it does not have a value that we use name instead of key so the root folder is used
+            // by the component.
+            if ( path.IsNotNullOrWhiteSpace() )
+            {
+                asset.Key = path + options.NewFolderName;
+            }
+            else
+            {
+                asset.Name = options.NewFolderName;
+            }
+
+            return component.CreateFolder( provider.ToEntity(), asset );
+        }
+
+        /// <summary>
+        /// Gets the asset storage provider [cache] and associated asset storage component using the ID stored in the hidden field.
+        /// </summary>
+        /// <returns>The asset storage provider and component.</returns>
+        private (AssetStorageProviderCache provider, AssetStorageComponent component) GetAssetStorageProvider( int assetStorageProviderId )
+        {
+            var provider = AssetStorageProviderCache.Get( assetStorageProviderId );
+            var component = provider?.AssetStorageComponent;
+
+            return (provider, component);
+        }
+
+        /// <summary>
+        /// Parse a string ID in the form of "${assetStorageProviderID},${path}" and pull out its individual parts.
+        /// </summary>
+        /// <param name="assetFolderId"></param>
+        /// <returns>The asset storage provider ID and the asset's path</returns>
+        private (int? assetStorageProviderId, string assetPath) ParseAssetId( string assetFolderId )
+        {
+            var assetParts = assetFolderId.Split( ',' );
             int assetStorageProviderId;
             string path;
 
             if ( assetParts.Length < 2 )
             {
-                return new List<Asset>();
+                return (null, null);
             }
             else
             {
                 assetStorageProviderId = assetParts[0].AsInteger();
                 path = assetParts[1];
+                return (assetStorageProviderId, path);
             }
+        }
 
-            return Rock.Rest.Controllers.AssetStorageProvidersController.GetFilesForPath( assetStorageProviderId, path );
-            //.Select( item => new TreeItemBag
-            //{
-            //    Text = item.Name,
-            //    Value = item.Id,
-            //    IconCssClass = item.IconCssClass,
-            //    HasChildren = item.HasChildren
-            //} );
+        /// <summary>
+        /// Determines whether the given folder name is a valid folder name.
+        /// </summary>
+        /// <param name="folderName">Name of the rename folder.</param>
+        /// <returns></returns>
+        private bool IsValidAssetFolderName( string folderName )
+        {
+            Regex regularExpression = new Regex( @"^([^*/><?\\|:,]).*$" );
+            return regularExpression.IsMatch( folderName );
         }
 
         #endregion
