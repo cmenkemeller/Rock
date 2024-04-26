@@ -20,29 +20,30 @@
                 </RockButton>
                 <DropDownMenu :items="folderDropDownMenuItems" align="right">
                     <template #anchor="anchor">
-                        <RockButton type="button" btnSize="xs" title="Additional Actions" isSquare :disabled="!isFolderSelected" v-bind="anchor">
+                        <RockButton type="button" btnSize="xs" title="Additional Actions" isSquare :disabled="!isFolderSelected || isProviderSelected" v-bind="anchor">
                             <i class="fa fa-ellipsis-v"></i>
                         </RockButton>
                     </template>
                 </DropDownMenu>
             </div>
 
-            <div v-show="isCreateFolderFormVisible" class="mb-2 well well-sm js-createfolder-div flex-shrink-0">
-                <input name="tbCreateFolder" v-model="newFolderName" type="text" class="input-sm form-control mb-2">
-                <RockButton @click="addFolder" type="button" btnSize="xs" class="mr-2">
+            <RockForm v-if="isCreateFolderFormVisible" class="mb-2 well well-sm js-createfolder-div flex-shrink-0" @submit="addFolder" @keyup.esc="hideAddFolder">
+                <NotificationBox v-if="addFolderError">
+                    {{ addFolderError }}
+                </NotificationBox>
+                <TextBox v-model="newFolderName" size="small" label="Folder Name" :rules="addFolderValidation" help="Cannot contain any of the following characters: ^ * > < ? / \ | : , ~" />
+                <!-- <input name="tbCreateFolder" v-model="newFolderName" type="text" class="input-sm form-control mb-2"> -->
+                <RockButton type="submit" btnSize="xs" class="mr-2" :disabled="!newFolderName">
                     <i class="fa fa-check"></i> Create Folder
                 </RockButton>
-                <RockButton @click="cancelAddFolder" type="button" btnSize="xs">
+                <RockButton @click="hideAddFolder" type="button" btnSize="xs">
                     <i class="fa fa-times"></i> Cancel
                 </RockButton>
-                <label class="js-createfolder-notification alert alert-warning" style="display:none;">
-                    <!-- TODO -->
-                </label>
-            </div>
+            </RockForm>
 
             <div class="overflow-y-auto overflow-x-auto mh-100" style="z-index:0">
                 <TreeList v-model="selectedFolderArray" :provider="itemProvider" v-model:items="folders" disableDeselect autoExpand />
-                <!-- <pre>{{ folders }}</pre> -->
+                <pre>{{ folders }}</pre>
             </div>
 
             <div v-if="isFolderPaneActionLoading" class="d-flex flex-column justify-content-center inset-0 bg-body" style="opacity: 0.5">
@@ -72,8 +73,8 @@
                 <RockButton type="button" btnSize="xs" title="Delete selected files" class="mr-2" :disabled="selectedFiles.length < 1">
                     <i class="fa fa-trash-alt"></i> <span class="hidden-xs">Delete Selected</span>
                 </RockButton>
-                {{ selectedFiles }}
-                <RockButton type="button" btnSize="xs" title="Refresh file list" class="ml-auto">
+                {{ selectedFolder }}
+                <RockButton type="button" btnSize="xs" title="Refresh file list" class="ml-auto" @click="SEARCHTEST">
                     <i class="fa fa-sync"></i>
                 </RockButton>
             </div>
@@ -129,11 +130,6 @@
 */
 </style>
 
-<script lang="ts">
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    declare function $(element: any): any;
-</script>
-
 <script setup lang="ts">
     import { PropType, computed, nextTick, ref, watch } from "vue";
     import RockButton from "./rockButton.obs";
@@ -144,15 +140,17 @@
     import Loading from "./loading.obs";
     import LoadingIndicator from "./loadingIndicator.obs";
     import DropDownMenu from "./dropDownMenu.obs";
+    import NotificationBox from "./notificationBox.obs";
     import { useVModelPassthrough } from "@Obsidian/Utility/component";
     import { AssetManagerTreeItemProvider } from "@Obsidian/Utility/treeItemProviders";
     import { AssetManagerBaseOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerBaseOptionsBag";
     import { AssetManagerAddFolderOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerAddFolderOptionsBag";
     import { useHttp } from "@Obsidian/Utility/http";
-    import { sleep } from "@Obsidian/Utility/promiseUtils";
+    import { findFolder } from "@Obsidian/Utility/assetProvider";
     import { MenuAction } from "@Obsidian/Types/Controls/dropDownMenu";
     import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
     import { TreeItemBag } from "@Obsidian/ViewModels/Utility/treeItemBag";
+    import { ValidationRule } from "@Obsidian/ValidationRules";
 
     const props = defineProps({
         modelValue: {
@@ -191,13 +189,22 @@
 
     const itemProvider = ref(new AssetManagerTreeItemProvider());
     const folders = ref<TreeItemBag[]>([]);
+
     const selectedFolderArray = ref<string[]>([]);
     const selectedFolder = computed<string | null>(() => decodeURIComponent(selectedFolderArray.value[0] ?? "") || null);
     const isFolderSelected = computed(() => !!selectedFolder.value);
+    const isProviderSelected = computed(() => isFolderSelected.value && selectedFolder.value?.endsWith(",True"));
 
     const isFolderPaneActionLoading = ref(false);
+
     const isCreateFolderFormVisible = ref(false);
     const newFolderName = ref("");
+    const addFolderError = ref("");
+
+    const addFolderValidation: ValidationRule[] = [
+        "required",
+        (val: unknown) => isValidFolderName(val as string) ? true : "contains invalid characters: Do not use the following characters: ^ * > < ? / \\ | : , ~",
+    ];
 
     const folderDropDownMenuItems = computed<MenuAction[]>(() => {
         const items: MenuAction[] = [];
@@ -231,7 +238,8 @@
     }
 
     async function addFolder(): Promise<void> {
-        // TODO: VALIDATE (input validation?)
+        newFolderName.value = newFolderName.value.trim();
+
         isFolderPaneActionLoading.value = true;
 
         const options: AssetManagerAddFolderOptionsBag = {
@@ -239,13 +247,13 @@
             newFolderName: newFolderName.value
         };
         const url = "/api/v2/Controls/AssetManagerAddFolder";
-        const response = await post<boolean>(url, undefined, options);
+        const response = await post<TreeItemBag>(url, undefined, options);
 
-        if (response.data) {
+        if (response.isSuccess && response.data) {
             // TODO : Add to list
             console.log("ADDED", response.data);
-            isCreateFolderFormVisible.value = false;
-            newFolderName.value = "";
+            hideAddFolder();
+
         }
         else {
             // TODO : Failed
@@ -255,9 +263,14 @@
         isFolderPaneActionLoading.value = false;
     }
 
-    function cancelAddFolder(): void {
+    function hideAddFolder(): void {
         isCreateFolderFormVisible.value = false;
         newFolderName.value = "";
+    }
+
+    function isValidFolderName(name: string): boolean {
+        // TODO: VALIDATE
+        return /^[^*/><?\\\\|:,~]+$/.test(name) && name.trim() !== "";
     }
 
     async function deleteSelectedFolder(): Promise<void> {
@@ -281,6 +294,10 @@
         }
 
         isFolderPaneActionLoading.value = false;
+    }
+
+    function SEARCHTEST() {
+        console.log(findFolder(folders.value, "3,Test Sort Folder/test/"));
     }
 
     // #endregion

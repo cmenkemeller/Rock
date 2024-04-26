@@ -702,26 +702,26 @@ namespace Rock.Rest.v2
         [System.Web.Http.Route( "AssetManagerAddFolder" )]
         [Authenticate]
         [Rock.SystemGuid.RestActionGuid( "B90D9215-57A4-45D3-9B70-A44AA2C9FE7B" )]
-        public bool AssetManagerAddFolder( [FromBody] AssetManagerAddFolderOptionsBag options )
+        public TreeItemBag AssetManagerAddFolder( [FromBody] AssetManagerAddFolderOptionsBag options )
         {
 
             if ( !IsValidAssetFolderName( options.NewFolderName ) || options.NewFolderName.IsNullOrWhiteSpace() )
             {
-                return false;
+                return null;
             }
 
             var (assetStorageProviderId, path) = ParseAssetId( options.AssetFolderId );
 
             if ( assetStorageProviderId == null || path == null )
             {
-                return false;
+                return null;
             }
 
             var (provider, component) = GetAssetStorageProvider( assetStorageProviderId.Value );
 
             if ( provider == null || component == null )
             {
-                return false;
+                return null;
             }
 
             var asset = new Asset { Type = AssetType.Folder };
@@ -738,7 +738,18 @@ namespace Rock.Rest.v2
                 asset.Name = options.NewFolderName;
             }
 
-            return component.CreateFolder( provider.ToEntity(), asset );
+            if ( component.CreateFolder( provider.ToEntity(), asset ) )
+            {
+                return new TreeItemBag
+                {
+                    Text = asset.Name,
+                    Value = $"{provider.Id},{asset.Key}",
+                    IconCssClass = "fa fa-folder",
+                    HasChildren = false
+                };
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -783,7 +794,7 @@ namespace Rock.Rest.v2
         /// <returns></returns>
         private bool IsValidAssetFolderName( string folderName )
         {
-            Regex regularExpression = new Regex( @"^([^*/><?\\|:,]).*$" );
+            Regex regularExpression = new Regex( @"^[^*/><?\\\\|:,~]+$" );
             return regularExpression.IsMatch( folderName );
         }
 
