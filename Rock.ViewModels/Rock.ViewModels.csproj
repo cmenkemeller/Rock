@@ -75,6 +75,7 @@
     <Compile Include="Blocks\Cms\ContentChannelTypeDetail\ContentChannelTypeDetailOptionsBag.cs" />
     <Compile Include="Blocks\Cms\MediaAccountList\MediaAccountListOptionsBag.cs" />
     <Compile Include="Blocks\Cms\MediaFolderList\MediaFolderListOptionsBag.cs" />
+    <Compile Include="Blocks\Crm\DocumentTypeList\DocumentTypeListOptionsBag.cs" />
     <Compile Include="Blocks\Event\RegistrationInstanceActiveList\RegistrationInstanceListOptionsBag.cs" />
     <Compile Include="Blocks\Core\ScheduledJobHistoryList\ScheduledJobHistoryListOptionsBag.cs" />
     <Compile Include="Blocks\Example\ControlGallery\ControlGalleryInitializationBox.cs" />
@@ -88,6 +89,8 @@
     <Compile Include="Blocks\Cms\PersonalLinkList\SavePersonalLinkRequestBag.cs" />
     <Compile Include="Blocks\Cms\PersonalLinkSectionList\PersonalLinkSectionListOptionsBag.cs" />
     <Compile Include="Blocks\Cms\PageRouteList\PageRouteListOptionsBag.cs" />
+    <Compile Include="Blocks\Core\PersonSignalList\PersonSignalBag.cs" />
+    <Compile Include="Blocks\Core\PersonSignalList\PersonSignalListOptionsBag.cs" />
     <Compile Include="Blocks\Core\RestActionList\RestActionListOptionsBag.cs" />
     <Compile Include="Blocks\Crm\PersonMergeRequestList\PersonMergeRequestListOptionsBag.cs" />
     <Compile Include="Blocks\Event\RegistrationInstanceFeeList\RegistrationInstanceFeeListOptionsBag.cs" />
@@ -139,6 +142,7 @@
     <Compile Include="Blocks\Core\SignatureDocumentTemplateList\SignatureDocumentTemplateListOptionsBag.cs" />
     <Compile Include="Blocks\Core\TagList\TagListOptionsBag.cs" />
     <Compile Include="Blocks\Crm\AssessmentTypeList\AssessmentTypeListOptionsBag.cs" />
+    <Compile Include="Blocks\Crm\BadgeList\BadgeListOptionsBag.cs" />
     <Compile Include="Blocks\Crm\NamelessPersonList\NamelessPersonListOptionsBag.cs" />
     <Compile Include="Blocks\Crm\SignalTypeDetail\SignalTypeBag.cs" />
     <Compile Include="Blocks\Crm\SignalTypeDetail\SignalTypeDetailOptionsBag.cs" />
@@ -171,6 +175,12 @@
     <Compile Include="Blocks\Engagement\StepProgramDetail\StepStatusBag.cs" />
     <Compile Include="Blocks\Engagement\StepProgramDetail\StepProgramWorkflowTriggerBag.cs" />
     <Compile Include="Blocks\Finance\FinancialAccountList\FinancialAccountListOptionsBag.cs" />
+    <Compile Include="Blocks\Event\RegistrationEntry\ExtensionMethods.cs" />
+    <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntryBlockArgs.cs" />
+    <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntryBlockSession.cs" />
+    <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntryBlockSuccessViewModel.cs" />
+    <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntryBlockViewModel.cs" />
+    <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntryPaymentPlanBag.cs" />
     <Compile Include="Blocks\Finance\BusinessContactList\BusinessContactBag.cs" />
     <Compile Include="Blocks\Event\RegistrationEntry\ExtensionMethods.cs" />
     <Compile Include="Blocks\Event\RegistrationEntry\RegistrantBag.cs" />
@@ -184,6 +194,7 @@
     <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntryFormFieldBag.cs" />
     <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntryInitializationBox.cs" />
     <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntryLineItemBag.cs" />
+    <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntryCreatePaymentPlanRequestBag.cs" />
     <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntrySessionBag.cs" />
     <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntrySignatureDocumentBag.cs" />
     <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntrySuccessBag.cs" />
@@ -248,6 +259,7 @@
     <Compile Include="Blocks\Reporting\InteractionComponentDetail\InteractionComponentDetailInitializationBox.cs" />
     <Compile Include="Blocks\Internal\IBlockBox.cs" />
     <Compile Include="Blocks\Internal\IDetailBlockBox.cs" />
+    <Compile Include="Blocks\Prayer\PrayerCommentList\PrayerCommentListOptionsBag.cs" />
     <Compile Include="Blocks\Prayer\PrayerRequestList\PrayerRequestListOptionsBag.cs" />
     <Compile Include="Blocks\Reporting\MergeTemplateDetail\MergeTemplateFileValidationBag.cs" />
     <Compile Include="Blocks\Finance\FinancialPledgeDetail\FinancialPledgeBag.cs" />
@@ -514,11 +526,6 @@
     <Compile Include="Blocks\Event\InteractiveExperiences\InteractiveExperienceDetail\InteractiveExperienceVisualizerTypeBag.cs" />
     <Compile Include="Blocks\Event\InteractiveExperiences\LiveExperienceOccurrences\LiveExperiencesOccurrencesInitializationBox.cs" />
     <Compile Include="Blocks\Event\InteractiveExperiences\LiveExperience\LiveExperienceInitializationBox.cs" />
-    <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntryBlockArgs.cs" />
-    <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntryBlockSession.cs" />
-    <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntryBlockSuccessViewModel.cs" />
-    <Compile Include="Blocks\Event\RegistrationEntry\RegistrationEntryBlockViewModel.cs" />
-    <Compile Include="Blocks\Event\RegistrationEntry\SessionRenewalResult.cs" />
     <Compile Include="Blocks\Group\GroupSchedulePreference\AssignmentScheduleAndLocationBag.cs" />
     <Compile Include="Blocks\Group\GroupScheduleSignup\PersonScheduleSignupDataBag.cs" />
     <Compile Include="Blocks\Group\GroupScheduleSignup\PersonScheduleSignupBag.cs" />
