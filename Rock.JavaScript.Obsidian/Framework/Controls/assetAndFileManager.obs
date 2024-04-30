@@ -18,9 +18,9 @@
                     <!-- TODO -->
                     <i class="fa fa-sync"></i>
                 </RockButton>
-                <DropDownMenu :items="folderDropDownMenuItems" align="right">
-                    <template #anchor="anchor">
-                        <RockButton type="button" btnSize="xs" title="Additional Actions" isSquare :disabled="!isFolderSelected || isProviderSelected" v-bind="anchor">
+                <DropDownMenu :items="folderDropDownMenuItems" align="right" class="d-flex">
+                    <template #anchor="anchorAttrs">
+                        <RockButton type="button" btnSize="xs" title="Additional Actions" isSquare :disabled="!isFolderSelected || isProviderSelected" v-bind="anchorAttrs">
                             <i class="fa fa-ellipsis-v"></i>
                         </RockButton>
                     </template>
@@ -28,7 +28,7 @@
             </div>
 
             <RockForm v-if="isCreateFolderFormVisible" class="mb-2 well well-sm js-createfolder-div flex-shrink-0" @submit="addFolder" @keyup.esc="hideAddFolder">
-                <NotificationBox v-if="addFolderError">
+                <NotificationBox v-if="addFolderError" alertType="danger" heading="Error Creating Folder" #details>
                     {{ addFolderError }}
                 </NotificationBox>
                 <TextBox v-model="newFolderName" size="small" label="Folder Name" :rules="addFolderValidation" help="Cannot contain any of the following characters: ^ * > < ? / \ | : , ~" />
@@ -42,8 +42,11 @@
             </RockForm>
 
             <div class="overflow-y-auto overflow-x-auto mh-100" style="z-index:0">
-                <TreeList v-model="selectedFolderArray" :provider="itemProvider" v-model:items="folders" disableDeselect autoExpand />
-                <pre>{{ folders }}</pre>
+                <NotificationBox v-if="deleteFolderError" alertType="danger" heading="Error Deleting Folder" dismissible @dismiss="deleteFolderError = ''" #details>
+                    {{ deleteFolderError }}
+                </NotificationBox>
+                <TreeList v-model="selectedFolderArray" :provider="itemProvider" v-model:items="folders" disableDeselect autoExpand @treeitem-expanded="onTreeItemExpanded" @treeitem-collapsed="onTreeItemCollapsed" />
+                <!-- <pre>{{ folders }}</pre> -->
             </div>
 
             <div v-if="isFolderPaneActionLoading" class="d-flex flex-column justify-content-center inset-0 bg-body" style="opacity: 0.5">
@@ -98,7 +101,7 @@
                                 </RockForm>
                             </td>
                             <td data-priority="3">
-                                {{ file.lastModifiedDateTime }}
+                                {{ formatDate(file.lastModifiedDateTime) }}
                             </td>
                             <td>
                                 {{ file.formattedFileSize }}
@@ -146,15 +149,21 @@
     import { AssetManagerBaseOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerBaseOptionsBag";
     import { AssetManagerAddFolderOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerAddFolderOptionsBag";
     import { useHttp } from "@Obsidian/Utility/http";
-    import { findFolder } from "@Obsidian/Utility/assetProvider";
+    import { findFolder, folderNameComparator, isValidFolderName } from "@Obsidian/Utility/assetProvider";
     import { MenuAction } from "@Obsidian/Types/Controls/dropDownMenu";
     import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
     import { TreeItemBag } from "@Obsidian/ViewModels/Utility/treeItemBag";
+    import { RockDateTime, DateTimeFormat } from "@Obsidian/Utility/rockDateTime";
     import { ValidationRule } from "@Obsidian/ValidationRules";
 
     const props = defineProps({
         modelValue: {
             type: Object as PropType<ListItemBag>,
+        },
+
+        openFolders: {
+            type: Array as PropType<string[]>,
+            default: () => [],
         },
 
         height: {
@@ -165,6 +174,7 @@
 
     const emit = defineEmits<{
         (e: "update:modelValue", value: ListItemBag): void
+        (e: "update:openFolders", value: string[]): void
     }>();
 
     const internalValue = useVModelPassthrough(props, "modelValue", emit);
@@ -188,6 +198,7 @@
     // #region Folder List
 
     const itemProvider = ref(new AssetManagerTreeItemProvider());
+    itemProvider.value.openFolders = new Set(props.openFolders);
     const folders = ref<TreeItemBag[]>([]);
 
     const selectedFolderArray = ref<string[]>([]);
@@ -201,36 +212,32 @@
     const newFolderName = ref("");
     const addFolderError = ref("");
 
+    const deleteFolderError = ref("");
+
     const addFolderValidation: ValidationRule[] = [
         "required",
         (val: unknown) => isValidFolderName(val as string) ? true : "contains invalid characters: Do not use the following characters: ^ * > < ? / \\ | : , ~",
     ];
 
     const folderDropDownMenuItems = computed<MenuAction[]>(() => {
-        const items: MenuAction[] = [];
-
-        // TODO: Hide these for Asset Provider Folders
-        if (true) {
-            items.push({
-                title: "Rename",
-                type: "default",
-                handler: () => console.log("RENAME")
-            }, {
-                title: "Move",
-                type: "default",
-                handler: () => console.log("MOVE")
-            });
-        }
-
-        items.push({
+        return [{
+            title: "Rename",
+            type: "default",
+            handler: () => console.log("RENAME"), // TODO
+            disabled: true // TODO
+        }, {
+            title: "Move",
+            type: "default",
+            handler: () => console.log("MOVE"), // TODO
+            disabled: true // TODO
+        },
+        {
             title: "Delete",
             type: "danger",
             handler: () => {
                 deleteSelectedFolder(); /* Explicitly don't return promise so dropdown will hide immediately */
             }
-        });
-
-        return items;
+        }];
     });
 
     function showAddFolderForm(): void {
@@ -239,6 +246,7 @@
 
     async function addFolder(): Promise<void> {
         newFolderName.value = newFolderName.value.trim();
+        addFolderError.value = "";
 
         isFolderPaneActionLoading.value = true;
 
@@ -250,14 +258,21 @@
         const response = await post<TreeItemBag>(url, undefined, options);
 
         if (response.isSuccess && response.data) {
-            // TODO : Add to list
-            console.log("ADDED", response.data);
             hideAddFolder();
-
+            const { folder } = findFolder(folders.value, selectedFolder.value);
+            if (folder) {
+                if (!folder.children) {
+                    folder.children = [];
+                }
+                folder.hasChildren = true;
+                folder.children.push(response.data);
+                folder.children.sort(folderNameComparator);
+                // Reassign so Vue sees the change (push and sort didn't trigger reactivity)
+                folder.children = folder.children; // eslint-disable-line no-self-assign
+            }
         }
         else {
-            // TODO : Failed
-            console.log("ADD FAILED");
+            addFolderError.value = response.errorMessage || "An unknown error occurred while adding the folder.";
         }
 
         isFolderPaneActionLoading.value = false;
@@ -266,15 +281,10 @@
     function hideAddFolder(): void {
         isCreateFolderFormVisible.value = false;
         newFolderName.value = "";
-    }
-
-    function isValidFolderName(name: string): boolean {
-        // TODO: VALIDATE
-        return /^[^*/><?\\\\|:,~]+$/.test(name) && name.trim() !== "";
+        addFolderError.value = "";
     }
 
     async function deleteSelectedFolder(): Promise<void> {
-        // TODO
         isFolderPaneActionLoading.value = true;
 
         const options: AssetManagerBaseOptionsBag = {
@@ -284,21 +294,55 @@
         const response = await post<boolean>(url, undefined, options);
 
         if (response.data) {
-            // TODO : Delete from list
-            console.log("DELETED", response.data);
+            const { parent, index } = findFolder(folders.value, selectedFolder.value);
+
+            if (parent && parent.children && index !== -1) {
+                parent.children.splice(index, 1);
+                parent.hasChildren = parent.children.length > 0;
+            }
+
             selectedFolderArray.value = [];
         }
         else {
-            // TODO : Failed
-            console.log("DELETE FAILED");
+            deleteFolderError.value = response.errorMessage || "An unknown error occurred while deleting the folder.";
         }
 
         isFolderPaneActionLoading.value = false;
     }
 
-    function SEARCHTEST() {
-        console.log(findFolder(folders.value, "3,Test Sort Folder/test/"));
+    function onTreeItemExpanded(item: TreeItemBag): void {
+        itemProvider.value.openFolders.add(item.value ?? "");
     }
+
+    function onTreeItemCollapsed(item: TreeItemBag): void {
+        itemProvider.value.openFolders.delete(item.value ?? "");
+    }
+
+    function areSetsEqual(as, bs): boolean {
+        if (as.size !== bs.size) {
+            return false;
+        }
+        for (const a of as) {
+            if (!bs.has(a)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    watch(() => props.openFolders, () => {
+        console.log("OPEN FOLDERS PROP CHANGE");
+        const newList = new Set(props.openFolders);
+
+        if (!areSetsEqual(newList, itemProvider.value.openFolders)) {
+            itemProvider.value.openFolders = newList;
+        }
+    });
+
+    watch(itemProvider, () => {
+        console.log("PROVIDER OPEN FOLDERS CHANGE");
+        emit("update:openFolders", Array.from(itemProvider.value.openFolders));
+    }, { deep: true });
 
     // #endregion
 
@@ -377,6 +421,32 @@
             files.value = [];
         }
     });
+
+    // #endregion
+
+    // #region Date/Time
+
+    const dateCache: { [key: string]: string } = {};
+
+    function formatDate(date: string): string {
+        if (!date) {
+            return "";
+        }
+
+        if (dateCache[date]) {
+            return dateCache[date];
+        }
+
+        const formattedDate = RockDateTime
+            .parseISO(date)
+            ?.toLocaleString(DateTimeFormat.DateTimeShort);
+
+        if (formattedDate) {
+            dateCache[date] = formattedDate;
+        }
+
+        return formattedDate ?? "";
+    }
 
     // #endregion
 

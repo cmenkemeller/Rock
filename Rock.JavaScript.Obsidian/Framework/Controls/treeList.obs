@@ -14,7 +14,8 @@
                               disableDeselect
                           }"
                           @update:modelValue="onUpdateSelectedValues"
-                          @treeitem-expanded="onItemExpanded" />
+                          @treeitem-expanded="onItemExpanded"
+                          @treeitem-collapsed="onItemCollapsed" />
         </ul>
     </div>
 </template>
@@ -80,6 +81,7 @@
         (e: "update:modelValue", value: string[]): void;
         (e: "update:items", value: TreeItemBag[]): void;
         (e: "treeitem-expanded", value: TreeItemBag): void;
+        (e: "treeitem-collapsed", value: TreeItemBag): void;
     }>();
 
     /** The list of items currently being displayed in the tree list. */
@@ -132,6 +134,10 @@
      * @param item The item that was expanded.
      */
     const onItemExpanded = async (item: TreeItemBag): Promise<void> => {
+        // Pass the event up to the parent so it knows about the expansion and can
+        // handle it if there's provider
+        emit("treeitem-expanded", item);
+
         if (props.provider) {
             // We have a provider, check if the item needs it's children loaded still.
             if (item.hasChildren && item.children === null) {
@@ -160,11 +166,17 @@
                 emit("update:items", internalItems.value);
             }
         }
-        else {
-            // No provider, simply pass the event to the parent in case it
-            // wants to make any changes to the tree.
-            emit("treeitem-expanded", item);
-        }
+    };
+
+    /**
+     * Event handler for when an item has been collapsed.
+     *
+     * @param item The item that was collapsed.
+     */
+    const onItemCollapsed = async (item: TreeItemBag): Promise<void> => {
+        // Pass the event up to the parent so it knows about the collapse and can
+        // handle it if there's no provider
+        emit("treeitem-collapsed", item);
     };
 
     // Watch for a change in our passed items and update our internal list.

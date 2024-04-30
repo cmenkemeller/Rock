@@ -36,7 +36,7 @@ import { ReportPickerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Con
 import { SchedulePickerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/schedulePickerGetChildrenOptionsBag";
 import { WorkflowActionTypePickerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/workflowActionTypePickerGetChildrenOptionsBag";
 import { MergeFieldPickerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/mergeFieldPickerGetChildrenOptionsBag";
-import { AssetManagerBaseOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerBaseOptionsBag";
+import { AssetManagerGetChildrenOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetChildrenOptionsBag";
 import { flatten } from "./arrayUtils";
 import { toNumberOrNull } from "./numberUtils";
 
@@ -1097,6 +1097,10 @@ export class MergeFieldTreeItemProvider implements ITreeItemProvider {
  * them inside a tree list.
  */
 export class AssetManagerTreeItemProvider implements ITreeItemProvider {
+
+    /** List of folders that are currently expanded in the tree list. */
+    public openFolders: Set<string> = new Set();
+
     /**
      * Gets the child items from the server.
      *
@@ -1105,8 +1109,9 @@ export class AssetManagerTreeItemProvider implements ITreeItemProvider {
      * @returns A collection of TreeItem objects as an asynchronous operation.
      */
     private async getItems(parentId: string | null = null): Promise<TreeItemBag[]> {
-        const options: AssetManagerBaseOptionsBag = {
-            assetFolderId: parentId ?? "0"
+        const options: AssetManagerGetChildrenOptionsBag = {
+            assetFolderId: parentId ?? "0",
+            expandedFolders: this.openFolders.size > 0 ? Array.from(this.openFolders) : null,
         };
         const url = "/api/v2/Controls/AssetManagerGetChildren";
         const response = await post<TreeItemBag[]>(url, undefined, options);
@@ -1124,6 +1129,7 @@ export class AssetManagerTreeItemProvider implements ITreeItemProvider {
      * @inheritdoc
      */
     async getRootItems(): Promise<TreeItemBag[]> {
+        console.debug("Getting root items; open folders:", this.openFolders);
         return await this.getItems(null);
     }
 

@@ -1,7 +1,11 @@
 <template>
     <GalleryAndResult :importCode="importCode" :exampleCode="exampleCode">
 
-        <AssetAndFileManager :height="height" />
+        <AssetAndFileManager :height="height" v-model:openFolders="openFolders" />
+
+        <div class="my-5">
+            {{ openFolders }}
+        </div>
 
         <template #settings>
             <div class="row">
@@ -21,6 +25,7 @@
     import { getSfcControlImportPath } from "./utils.partial";
 
     const value = ref([]);
+    const openFolders = ref<string[]>(["1,~/Content/,True", "1,~/Content/ExternalSite/"]);
     const someBool = ref(false);
 
     const isStaticHeight = ref(true);

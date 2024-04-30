@@ -632,16 +632,14 @@ namespace Rock.Rest.v2
         [System.Web.Http.Route( "AssetManagerGetChildren" )]
         [Authenticate]
         [Rock.SystemGuid.RestActionGuid( "9A96E14F-99DB-4F9A-95EB-DF17D3B5EE25" )]
-        public IQueryable<TreeItemBag> AssetManagerGetChildren( [FromBody] AssetManagerBaseOptionsBag options )
+        public List<TreeItemBag> AssetManagerGetChildren( [FromBody] AssetManagerGetChildrenOptionsBag options )
         {
-            return Rock.Rest.Controllers.AssetStorageProvidersController.GetAssetFolderChildren( options.AssetFolderId )
-                .Select( item => new TreeItemBag
-                {
-                    Text = item.Name,
-                    Value = HttpUtility.UrlDecode( item.Id ),
-                    IconCssClass = item.IconCssClass,
-                    HasChildren = item.HasChildren
-                } );
+            if ( options.AssetFolderId == "0" )
+            {
+                return GetAssetStorageProviders( options.ExpandedFolders );
+            }
+
+            return GetChildrenOfAsset( options.AssetFolderId, options.ExpandedFolders );
         }
 
         /// <summary>
@@ -742,8 +740,8 @@ namespace Rock.Rest.v2
             {
                 return new TreeItemBag
                 {
-                    Text = asset.Name,
-                    Value = $"{provider.Id},{asset.Key}",
+                    Text = options.NewFolderName,
+                    Value = $"{provider.Id},{path + options.NewFolderName}/",
                     IconCssClass = "fa fa-folder",
                     HasChildren = false
                 };
@@ -782,16 +780,116 @@ namespace Rock.Rest.v2
             else
             {
                 assetStorageProviderId = assetParts[0].AsInteger();
-                path = assetParts[1];
+                path = assetParts[1].Trim();
+
+                if ( path.Length > 0 )
+                {
+                    var scrubbedFileName = Regex.Replace( path, "[" + Regex.Escape( string.Concat( System.IO.Path.GetInvalidPathChars() ) ) + "]", string.Empty, RegexOptions.CultureInvariant );
+                    var scrubbedFilePath = System.IO.Path.GetDirectoryName( scrubbedFileName ).Replace( '\\', '/' );
+                    scrubbedFileName = System.IO.Path.GetFileName( scrubbedFileName );
+                    scrubbedFileName = Regex.Replace( scrubbedFileName, "[" + Regex.Escape( string.Concat( System.IO.Path.GetInvalidFileNameChars() ) ) + "]", string.Empty, RegexOptions.CultureInvariant );
+
+                    path = $"{scrubbedFilePath}/{scrubbedFileName}";
+                }
+
                 return (assetStorageProviderId, path);
             }
+        }
+
+        /// <summary>
+        /// Get a tree of all the asset storage providers
+        /// </summary>
+        /// <returns>A tree of all the asset storage providers</returns>
+        private List<TreeItemBag> GetAssetStorageProviders( List<string> expandedFolders )
+        {
+            var providers = AssetStorageProviderCache.All()
+                .Where( a => a.EntityTypeId.HasValue && a.IsActive );
+            var tree = new List<TreeItemBag>();
+
+            foreach ( var provider in providers )
+            {
+                var component = provider.AssetStorageComponent;
+                var rootFolder = component.GetRootFolder( provider.ToEntity() );
+
+                var providerBag = new TreeItemBag
+                {
+                    Text = provider.Name,
+                    Value = $"{provider.Id},{rootFolder},{true}",
+                    IconCssClass = component.IconCssClass,
+                    HasChildren = true
+                };
+
+                if ( expandedFolders?.Contains( providerBag.Value ) ?? false )
+                {
+                    providerBag.Children = GetChildrenOfAsset( providerBag.Value, expandedFolders );
+                    providerBag.ChildCount = providerBag.Children?.Count ?? 0;
+
+                    if ( providerBag.ChildCount == 0 )
+                    {
+                        providerBag.HasChildren = false;
+                    }
+                }
+
+                tree.Add( providerBag );
+            }
+
+            return tree;
+        }
+
+        private List<TreeItemBag> GetChildrenOfAsset( string assetFolderId, List<string> expandedFolders )
+        {
+            var (assetStorageProviderId, path) = ParseAssetId( assetFolderId );
+
+            if ( assetStorageProviderId == null || path == null )
+            {
+                return null;
+            }
+
+            var (provider, component) = GetAssetStorageProvider( assetStorageProviderId.Value );
+
+            if ( provider == null || component == null )
+            {
+                return null;
+            }
+
+            var tree = new List<TreeItemBag>();
+            var asset = new Asset { Type = AssetType.Folder, Key = path ?? string.Empty };
+            var folders = component.ListFoldersInFolder( provider.ToEntity(), asset );
+
+            foreach ( Asset folder in folders )
+            {
+                var folderBag = new TreeItemBag
+                {
+                    Text = folder.Name,
+                    Value = $"{provider.Id},{folder.Key}",
+                    IconCssClass = "fa fa-folder",
+                    // Verifying if it has any children is slow, so we just say true and it gets fixed
+                    // on the client when attempting to expand children
+                    HasChildren = true
+                };
+
+                if ( expandedFolders?.Contains( folderBag.Value ) ?? false )
+                {
+                    folderBag.Children = GetChildrenOfAsset( folderBag.Value, expandedFolders );
+                    folderBag.ChildCount = folderBag.Children?.Count ?? 0;
+
+                    if ( folderBag.ChildCount == 0 )
+                    {
+                        folderBag.HasChildren = false;
+                    }
+                }
+
+                tree.Add( folderBag );
+            }
+
+            return tree;
         }
 
         /// <summary>
         /// Determines whether the given folder name is a valid folder name.
         /// </summary>
         /// <param name="folderName">Name of the rename folder.</param>
-        /// <returns></returns>
+        /// <returns>True if folderName is valid, false otherwise</returns>
         private bool IsValidAssetFolderName( string folderName )
         {
             Regex regularExpression = new Regex( @"^[^*/><?\\\\|:,~]+$" );

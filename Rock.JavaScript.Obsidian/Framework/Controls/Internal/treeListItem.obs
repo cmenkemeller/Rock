@@ -11,6 +11,7 @@
             <treeListItem v-for="child in children"
                           @update:modelValue="onUpdateSelectedValues"
                           @treeitem-expanded="onChildItemExpanded"
+                          @treeitem-collapsed="onChildItemCollapsed"
                           :item="child"
                           v-bind="{ modelValue, multiple, disableFolderSelection, disableDeselect, autoExpand, showChildCount }" />
         </ul>
@@ -75,6 +76,7 @@
     const emit = defineEmits<{
         (e: "update:modelValue", value: string[]): void;
         (e: "treeitem-expanded", value: TreeItemBag): void;
+        (e: "treeitem-collapsed", value: TreeItemBag): void;
     }>();
 
     /** The list of child items to this item. */
@@ -173,6 +175,9 @@
         if (showChildren.value) {
             emit("treeitem-expanded", props.item);
         }
+        else {
+            emit("treeitem-collapsed", props.item);
+        }
     }
 
     /**
@@ -192,6 +197,15 @@
      */
     function onChildItemExpanded(item: TreeItemBag): void {
         emit("treeitem-expanded", item);
+    }
+
+    /**
+     * Event handler for when a child item is expanded.
+     *
+     * @param item The item that was expanded.
+     */
+    function onChildItemCollapsed(item: TreeItemBag): void {
+        emit("treeitem-collapsed", item);
     }
 
     /**

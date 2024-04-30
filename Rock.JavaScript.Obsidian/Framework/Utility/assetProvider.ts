@@ -79,7 +79,11 @@ const assetProviderSuffixRegex = /,True$/;
  *
  * @returns {Object} An object containing the TreeItemBag of the folder, the TreeItemBag of the parent, and the index of the folder in the parent's `children` array.
  */
-export function findFolder(tree: Array<TreeItemBag>, searchName: string, parent: TreeItemBag | null = null): { folder: TreeItemBag | null, parent: TreeItemBag | null, index: number } {
+export function findFolder(tree: Array<TreeItemBag>, searchName: string | null, parent: TreeItemBag | null = null): { folder: TreeItemBag | null, parent: TreeItemBag | null, index: number } {
+    if (!searchName || !searchName.trim()) {
+        return { folder: null, parent: null, index: -1 };
+    }
+
     let folder: TreeItemBag | null = null;
     let index = -1;
 
@@ -114,7 +118,7 @@ export function findFolder(tree: Array<TreeItemBag>, searchName: string, parent:
  * Comparator function for sorting an array of TreeItemBags by the folder name
  * in a case insensitive manner.
  */
-function folderNameComparator(a: TreeItemBag, b: TreeItemBag): number {
+export function folderNameComparator(a: TreeItemBag, b: TreeItemBag): number {
     if (a.text!.toLocaleLowerCase() < b.text!.toLocaleLowerCase()) {
         return -1;
     }
@@ -128,4 +132,11 @@ function folderNameComparator(a: TreeItemBag, b: TreeItemBag): number {
         return 1;
     }
     return 0;
+}
+
+/**
+ * Verify that a folder name is valid.
+ */
+export function isValidFolderName(name: string): boolean {
+    return /^[^*/><?\\\\|:,~]+$/.test(name) && name.trim() !== "";
 }
