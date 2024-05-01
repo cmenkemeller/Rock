@@ -291,7 +291,7 @@ namespace Rock.DownhillCss
         /// <summary>
         /// Whether or not legacy colors are supported.
         /// </summary>
-        public bool EnableLegacyStyles { get; set; } = true;
+        public bool EnableLegacyStyles { get; set; } = false;
     }
 
     /// <summary>

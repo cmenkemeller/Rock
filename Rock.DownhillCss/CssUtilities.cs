@@ -2377,9 +2377,6 @@ formfield .required-indicator {
     font-style: bold;
 }
 
-
-
-
 /*** Connection Opportunity List block ***/
 .connection-opportunity-list-layout .connection-opportunities {
     margin: 0, 12, 0, 0;
