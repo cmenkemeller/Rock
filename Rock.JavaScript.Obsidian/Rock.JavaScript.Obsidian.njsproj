@@ -333,6 +333,7 @@
     <Folder Include="Framework\ViewModels\Blocks\Core\CategoryDetail\" />
     <Folder Include="Framework\ViewModels\Blocks\Core\FollowingEventTypeDetail\" />
     <Folder Include="Framework\ViewModels\Blocks\Core\InteractionChannelDetail\" />
+    <Folder Include="Framework\ViewModels\Blocks\Core\PersonSignalList\" />
     <Folder Include="Framework\ViewModels\Blocks\Core\RestControllerList\" />
     <Folder Include="Framework\ViewModels\Blocks\Core\ScheduleDetail\" />
     <Folder Include="Framework\ViewModels\Blocks\Core\ScheduledJobList\" />
@@ -378,6 +379,7 @@
     <Folder Include="Framework\ViewModels\Blocks\Event\RegistrationEntry\" />
     <Folder Include="Framework\ViewModels\Blocks\Event\RegistrationInstanceFeeList\" />
     <Folder Include="Framework\ViewModels\Blocks\Finance\" />
+    <Folder Include="Framework\ViewModels\Blocks\Finance\BenevolenceRequestList\" />
     <Folder Include="Framework\ViewModels\Blocks\Finance\BusinessContactList\" />
     <Folder Include="Framework\ViewModels\Blocks\Finance\BusinessDetail\" />
     <Folder Include="Framework\ViewModels\Blocks\Finance\FinancialBatchDetail\" />
@@ -399,6 +401,7 @@
     <Folder Include="Framework\ViewModels\Blocks\Group\Scheduling\GroupScheduler\" />
     <Folder Include="Framework\ViewModels\Blocks\Group\Scheduling\GroupScheduleToolbox\" />
     <Folder Include="Framework\ViewModels\Blocks\Prayer\" />
+    <Folder Include="Framework\ViewModels\Blocks\Prayer\PrayerCommentList\" />
     <Folder Include="Framework\ViewModels\Blocks\Prayer\PrayerRequestDetail\" />
     <Folder Include="Framework\ViewModels\Blocks\Prayer\PrayerRequestEntry\" />
     <Folder Include="Framework\ViewModels\Blocks\Group\GroupRegistration\" />
@@ -492,12 +495,14 @@
     <TypeScriptCompile Include="Framework\Enums\Blocks\Security\Login\loginMethod.ts" />
     <TypeScriptCompile Include="Framework\Enums\Blocks\Security\Login\passwordlessLoginStep.ts" />
     <TypeScriptCompile Include="Framework\Enums\Cms\blockLocation.ts" />
+    <TypeScriptCompile Include="Framework\Enums\Cms\blockReloadMode.ts" />
     <TypeScriptCompile Include="Framework\Enums\Cms\botGuardianLevel.ts" />
     <TypeScriptCompile Include="Framework\Enums\Cms\contentChannelDateType.ts" />
     <TypeScriptCompile Include="Framework\Enums\Cms\contentChannelItemStatus.ts" />
     <TypeScriptCompile Include="Framework\Enums\Cms\contentCollectionFilterControl.ts" />
     <TypeScriptCompile Include="Framework\Enums\Cms\contentControlType.ts" />
     <TypeScriptCompile Include="Framework\Enums\Cms\displayInNavWhen.ts" />
+    <TypeScriptCompile Include="Framework\Enums\Cms\mobilePageType.ts" />
     <TypeScriptCompile Include="Framework\Enums\Cms\persistedDatasetDataFormat.ts" />
     <TypeScriptCompile Include="Framework\Enums\Cms\persistedDatasetScriptType.ts" />
     <TypeScriptCompile Include="Framework\Enums\Cms\siteType.ts" />
@@ -837,6 +842,8 @@
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\CategoryDetail\customSettingsOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\FollowingEventTypeDetail\followingEventTypeBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\FollowingEventTypeDetail\followingEventTypeDetailOptionsBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\PersonSignalList\personSignalBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\PersonSignalList\personSignalListOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\RestControllerList\restControllerListBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\RestControllerList\restControllerListOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Core\ScheduleDetail\scheduleExclusionBag.d.ts" />
@@ -928,7 +935,11 @@
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Event\InteractiveExperiences\InteractiveExperienceDetail\interactiveExperienceVisualizerTypeBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Event\InteractiveExperiences\LiveExperienceOccurrences\liveExperienceOccurrencesInitializationBox.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Event\InteractiveExperiences\LiveExperience\liveExperienceInitializationBox.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Event\RegistrationEntry\registrationEntryCreatePaymentPlanRequestBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Event\RegistrationInstanceFeeList\registrationInstanceFeeListOptionsBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Finance\BenevolenceRequestList\benevolenceRequestListOptionsBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Finance\BenevolenceRequestList\benevolenceResultBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Finance\BenevolenceRequestList\resultTypeValueBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Finance\BusinessContactList\businessContactBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Finance\BusinessContactList\businessContactListOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Event\RegistrationEntry\registrantBag.d.ts" />
@@ -1059,6 +1070,7 @@
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\VolunteerGenerosityAnalysis\volunteerGenerosityDonationBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\VolunteerGenerosityAnalysis\volunteerGenerosityGivingDataItemBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\VolunteerGenerosityAnalysis\volunteerGenerosityGroupDataBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\VolunteerGenerosityAnalysis\volunteerGenerosityInitializationBox.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\VolunteerGenerosityAnalysis\volunteerGenerosityMonthlyGivingDataBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\VolunteerGenerosityAnalysis\volunteerGenerosityPersonBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\VolunteerGenerosityAnalysis\volunteerGenerosityPersonDataBag.d.ts" />

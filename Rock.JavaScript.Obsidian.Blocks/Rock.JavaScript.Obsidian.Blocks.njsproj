@@ -60,6 +60,7 @@
     <Content Include="src\Core\CategoryDetail\editPanel.partial.vue" />
     <Content Include="src\Core\CategoryDetail\viewPanel.partial.vue" />
     <Content Include="src\Core\definedValueList.obs" />
+    <Content Include="src\Core\personSignalList.obs" />
     <Content Include="src\Crm\personMergeRequestList.obs" />
     <Content Include="src\Core\followingEventTypeDetail.obs" />
     <Content Include="src\Core\FollowingEventTypeDetail\editPanel.partial.obs" />
@@ -131,6 +132,7 @@
     <Content Include="src\Event\RegistrationEntry\sessionRenewal.partial.obs" />
     <Content Include="src\Event\RegistrationEntry\success.partial.obs" />
     <Content Include="src\Event\RegistrationEntry\summary.partial.obs" />
+    <Content Include="src\Finance\benevolenceRequestList.obs" />
     <Content Include="src\Finance\businessDetail.obs" />
     <Content Include="src\Finance\BusinessDetail\editPanel.partial.obs" />
     <Content Include="src\Finance\BusinessDetail\viewPanel.partial.obs" />
@@ -318,6 +320,7 @@
     <Folder Include="src\Core\CampusDetail\" />
     <Folder Include="src\Core\CategoryDetail\" />
     <Folder Include="src\Core\DefinedValueList\" />
+    <Folder Include="src\Core\PersonSignalList\" />
     <Folder Include="src\Crm\PersonMergeRequestList\" />
     <Folder Include="src\Core\FollowingEventTypeDetail\" />
     <Folder Include="src\Core\InteractionChannelDetail\" />
@@ -348,6 +351,7 @@
     <Folder Include="src\Event\EventCalendarDetail\" />
     <Folder Include="src\Event\EventItemDetail\" />
     <Folder Include="src\Event\RegistrationInstanceFeeList\" />
+    <Folder Include="src\Finance\BenevolenceRequestList\" />
     <Folder Include="src\Finance\BusinessDetail\" />
     <Folder Include="src\Finance\FinancialBatchDetail\" />
     <Folder Include="src\Finance\FinancialBatchList\" />
@@ -476,6 +480,7 @@
     <TypeScriptCompile Include="src\Core\CampusDetail\viewPanel.partial.ts" />
     <TypeScriptCompile Include="src\Core\CategoryDetail\types.partial.ts" />
     <TypeScriptCompile Include="src\Core\DefinedValueList\types.partial.ts" />
+    <TypeScriptCompile Include="src\Core\PersonSignalList\types.partial.ts" />
     <TypeScriptCompile Include="src\Crm\PersonMergeRequestList\types.partial.ts" />
     <TypeScriptCompile Include="src\Core\FollowingEventTypeDetail\types.partial.ts" />
     <TypeScriptCompile Include="src\Core\InteractionChannelDetail\types.partial.ts" />
@@ -516,6 +521,7 @@
     <TypeScriptCompile Include="src\Event\EventCalendarDetail\types.partial.ts" />
     <TypeScriptCompile Include="src\Event\EventItemDetail\types.partial.ts" />
     <TypeScriptCompile Include="src\Event\RegistrationInstanceFeeList\types.partial.ts" />
+    <TypeScriptCompile Include="src\Finance\BenevolenceRequestList\types.partial.ts" />
     <TypeScriptCompile Include="src\Finance\BusinessDetail\types.partial.ts" />
     <TypeScriptCompile Include="src\Finance\FinancialBatchList\types.partial.ts" />
     <TypeScriptCompile Include="src\Finance\FinancialGatewayDetail\types.partial.ts" />

@@ -21,14 +21,32 @@
 // </copyright>
 //
 
-/** Bag for donation data within the Volunteer Generosity Analysis block. */
-export type VolunteerGenerosityDonationBag = {
-    /** Gets or sets the month. */
-    month?: string | null;
+import { Guid } from "@Obsidian/Types";
+import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
 
-    /** Gets or sets the month name. */
-    monthNameAbbreviated?: string | null;
+/**
+ * Describes the data sent to and from remote systems to allow editing
+ * of Person Signal.
+ */
+export type PersonSignalBag = {
+    /** Gets or sets the expiration date of the person signal. */
+    expirationDate?: string | null;
 
-    /** Gets or sets the year. */
-    year?: string | null;
+    /**
+     * Gets or sets the unique identifier of the existing person signal. If
+     * this is a new attribute the value should be null.
+     */
+    guid?: Guid | null;
+
+    /** Gets or sets the key that identifies the person signal. */
+    idKey?: string | null;
+
+    /** Gets or sets the note on the person signal. */
+    note?: string | null;
+
+    /** Gets or sets the owner of the person signal. */
+    owner?: ListItemBag | null;
+
+    /** Gets or sets the signal type of the person signal. */
+    signalType?: ListItemBag | null;
 };
