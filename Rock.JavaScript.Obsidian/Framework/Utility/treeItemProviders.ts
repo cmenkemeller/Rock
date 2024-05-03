@@ -1129,7 +1129,6 @@ export class AssetManagerTreeItemProvider implements ITreeItemProvider {
      * @inheritdoc
      */
     async getRootItems(): Promise<TreeItemBag[]> {
-        console.debug("Getting root items; open folders:", this.openFolders);
         return await this.getItems(null);
     }
 

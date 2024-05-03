@@ -3,6 +3,7 @@
     <div style="overflow-x: hidden; max-width: 100%;">
         <ul class="rocktree">
             <TreeListItem v-for="child in internalItems"
+                          :key="child.value ?? ''"
                           :item="child"
                           v-bind="{
                               modelValue,
@@ -11,7 +12,8 @@
                               autoExpand,
                               showChildCount,
                               provider,
-                              disableDeselect
+                              disableDeselect,
+                              initiallyExpanded
                           }"
                           @update:modelValue="onUpdateSelectedValues"
                           @treeitem-expanded="onItemExpanded"
@@ -50,6 +52,15 @@
         disableFolderSelection: {
             type: Boolean as PropType<boolean>,
             default: false
+        },
+
+        /**
+         * List of items (by their `value` property) that should be expanded when the tree list is first loaded
+         * (after root is loaded).
+         */
+        initiallyExpanded: {
+            type: Array as PropType<string[]>,
+            default: []
         },
 
         /**

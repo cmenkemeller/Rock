@@ -1,7 +1,7 @@
 <!-- Copyright by the Spark Development Network; Licensed under the Rock Community License -->
 <template>
     <div id="pnlAssetManager" class="picker-wrapper align-items-stretch" :style="wrapperStyles">
-        <div class="picker-folders d-flex flex-column bg-body p-2 mr-2 mh-100 position-relative">
+        <div class="picker-folders d-flex flex-column bg-body p-3 mh-100 position-relative">
             <!-- TODO What to do with these? -->
             <input type="hidden" name="hfScriptInitialized" id="hfScriptInitialized" value="True">
             <input type="hidden" name="hfSelectedValue" id="hfSelectedValue">
@@ -10,11 +10,11 @@
             <input class="js-expandedFolders" type="hidden" name="hfExpandedFolders" id="hfExpandedFolders" value="1,~/Content/,True||1,~/Content/ExternalSite/">
             <input class="js-isroot" type="hidden" name="hfIsRoot" id="hfIsRoot" value="false">
 
-            <div class="mb-2 d-flex flex-shrink-0">
+            <div class="mb-3 d-flex flex-shrink-0">
                 <RockButton type="button" btnSize="xs" class="mr-2" title="Create a new folder in the selected folder" @click="showAddFolderForm" :disabled="!isFolderSelected">
                     <i class="fa fa-folder-plus"></i> <span class="hidden-xs">Add Folder</span>
                 </RockButton>
-                <RockButton type="button" btnSize="xs" title="Refresh folder list" isSquare class="ml-auto mr-2">
+                <RockButton type="button" btnSize="xs" title="Refresh folder list" isSquare class="ml-auto mr-2" @click="onRefreshFolders">
                     <!-- TODO -->
                     <i class="fa fa-sync"></i>
                 </RockButton>
@@ -27,12 +27,11 @@
                 </DropDownMenu>
             </div>
 
-            <RockForm v-if="isCreateFolderFormVisible" class="mb-2 well well-sm js-createfolder-div flex-shrink-0" @submit="addFolder" @keyup.esc="hideAddFolder">
+            <RockForm v-if="isCreateFolderFormVisible" class="mb-3 well well-sm js-createfolder-div flex-shrink-0" @submit="addFolder" @keyup.esc="hideAddFolder">
                 <NotificationBox v-if="addFolderError" alertType="danger" heading="Error Creating Folder" #details>
                     {{ addFolderError }}
                 </NotificationBox>
                 <TextBox v-model="newFolderName" size="small" label="Folder Name" :rules="addFolderValidation" help="Cannot contain any of the following characters: ^ * > < ? / \ | : , ~" />
-                <!-- <input name="tbCreateFolder" v-model="newFolderName" type="text" class="input-sm form-control mb-2"> -->
                 <RockButton type="submit" btnSize="xs" class="mr-2" :disabled="!newFolderName">
                     <i class="fa fa-check"></i> Create Folder
                 </RockButton>
@@ -41,12 +40,21 @@
                 </RockButton>
             </RockForm>
 
-            <div class="overflow-y-auto overflow-x-auto mh-100" style="z-index:0">
+            <div v-if="folderListScrolled" class="scroll-shadow"></div>
+
+            <div ref="folderScrollContainer" class="overflow-y-auto overflow-x-auto mh-100" style="z-index:0">
                 <NotificationBox v-if="deleteFolderError" alertType="danger" heading="Error Deleting Folder" dismissible @dismiss="deleteFolderError = ''" #details>
                     {{ deleteFolderError }}
                 </NotificationBox>
-                <TreeList v-model="selectedFolderArray" :provider="itemProvider" v-model:items="folders" disableDeselect autoExpand @treeitem-expanded="onTreeItemExpanded" @treeitem-collapsed="onTreeItemCollapsed" />
-                <!-- <pre>{{ folders }}</pre> -->
+                <TreeList v-model="selectedFolderArray"
+                          :provider="itemProvider"
+                          v-model:items="folders"
+                          disableDeselect
+                          autoExpand
+                          @treeitem-expanded="onTreeItemExpanded"
+                          @treeitem-collapsed="onTreeItemCollapsed"
+                          :initiallyExpanded="openFolders"
+                          :key="treeRefreshKey" />
             </div>
 
             <div v-if="isFolderPaneActionLoading" class="d-flex flex-column justify-content-center inset-0 bg-body" style="opacity: 0.5">
@@ -54,7 +62,7 @@
             </div>
         </div>
 
-        <div class="picker-files d-flex flex-column p-2 mh-100">
+        <div class="picker-files d-flex flex-column p-3 mh-100">
             <div class="mb-3 d-flex align-items-center">
                 <div class="fileupload-group" title="Upload a file to the selected location" style="display:none;">
                     <div class="js-upload-progress upload-progress-sm">
@@ -68,53 +76,60 @@
                     <!-- TODO -->
                     <input type="file" class="hidden" multiple @change="uploadFile">
                 </label>
-                <label class="btn btn-xs btn-default mr-2">
+                <label class="btn btn-xs btn-default mr-2" v-if="enableLocalFileBrowser && enableZipUpload" :disabled="true/*TODO*/">
                     <i class="fa fa-archive"></i> <span class="hidden-xs">Upload Package</span>
                     <!-- TODO -->
-                    <input type="file" class="hidden" accept=".zip" @change="uploadZipFile">
+                    <input type="file" class="hidden" accept=".zip" @change="uploadZipFile" :disabled="true/*TODO*/">
                 </label>
                 <RockButton type="button" btnSize="xs" title="Delete selected files" class="mr-2" :disabled="selectedFiles.length < 1">
                     <i class="fa fa-trash-alt"></i> <span class="hidden-xs">Delete Selected</span>
                 </RockButton>
-                {{ selectedFolder }}
-                <RockButton type="button" btnSize="xs" title="Refresh file list" class="ml-auto" @click="SEARCHTEST">
+                <RockButton type="button" btnSize="xs" title="Refresh file list" class="ml-auto" @click="refreshFiles">
                     <i class="fa fa-sync"></i>
                 </RockButton>
             </div>
 
-            <Loading :isLoading="isLoadingFiles" class="overflow-y-auto mh-100 flex-grow-1 d-flex align-items-start">
-                <table v-if="files.length > 0" class="table table-responsive table-borderless assetmanager-files">
-                    <tbody>
-                        <tr v-for="file in files" :key="file.key">
-                            <td>
-                                <CheckBox label="" v-model="selectedFiles" :value="file.key" />
-                            </td>
-                            <td>
-                                <img :src="file.iconPath" style="object-fit: cover; height: 58px; width: 44px;">
-                            </td>
-                            <td>
-                                <span v-show="shownFileRenameForm != file.key">{{ file.name }} <i class="fa fa-edit" @click="() => showRenameFileForm(file)"></i></span>
-                                <RockForm class="d-flex align-items-center" v-if="shownFileRenameForm == file.key" @submit="() => renameFile(file)" @keyup.esc="hideRenameFileForm">
-                                    <TextBox v-model="fileName" size="small" formGroupClasses="mr-2 mb-0" disableLabel id="asset-manager-current-file-rename-input" />
-                                    <RockButton type="submit" btnType="default" btnSize="xs" class="mr-2 flex-shrink-0" title="Rename File" isSquare><i class="fa fa-check"></i></RockButton>
-                                    <RockButton type="button" btnType="default" btnSize="xs" class="flex-shrink-0" title="Cancel" isSquare @click="hideRenameFileForm"><i class="fa fa-times"></i></RockButton>
-                                </RockForm>
-                            </td>
-                            <td data-priority="3">
-                                {{ formatDate(file.lastModifiedDateTime) }}
-                            </td>
-                            <td>
-                                {{ file.formattedFileSize }}
-                            </td>
-                            <td>
-                                <!-- TODO -->
-                                <RockButton type="button" btnType="link" class="text-body"><i class="fa fa-ellipsis-v"></i></RockButton>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div v-else class="m-auto justify-self-center text-lg text-muted" style="width:max-content;">No files found.</div>
-            </Loading>
+            <div v-if="fileListScrolled" class="scroll-shadow"></div>
+
+            <div class="overflow-y-auto mh-100 flex-grow-1 d-flex" ref="fileScrollContainer">
+                <Loading :isLoading="isLoadingFiles" class="flex-grow-1">
+                    <table v-if="files.length > 0" class="table table-responsive table-borderless assetmanager-files">
+                        <tbody>
+                            <tr v-for="file in files" :key="file.key">
+                                <td>
+                                    <CheckBox label="" v-model="selectedFiles" :value="file.key" />
+                                </td>
+                                <td>
+                                    <img :src="file.iconPath" style="object-fit: cover; height: 58px; width: 44px;">
+                                </td>
+                                <td>
+                                    <span v-show="shownFileRenameForm != file.key">{{ file.name }}</span>
+                                    <RockForm class="d-flex align-items-center" v-if="shownFileRenameForm == file.key" @submit="() => renameFile(file)" @keyup.esc="hideRenameFileForm">
+                                        <TextBox v-model="renameFileName" size="small" formGroupClasses="mr-2 mb-0" disableLabel id="asset-manager-current-file-rename-input" />
+                                        <RockButton type="submit" btnType="default" btnSize="xs" class="mr-2 flex-shrink-0" title="Rename File" isSquare><i class="fa fa-check"></i></RockButton>
+                                        <RockButton type="button" btnType="default" btnSize="xs" class="flex-shrink-0" title="Cancel" isSquare @click="hideRenameFileForm"><i class="fa fa-times"></i></RockButton>
+                                    </RockForm>
+                                </td>
+                                <td data-priority="3">
+                                    {{ formatDate(file.lastModifiedDateTime) }}
+                                </td>
+                                <td>
+                                    {{ file.formattedFileSize }}
+                                </td>
+                                <td>
+                                    <!-- TODO -->
+                                    <DropDownMenu :items="getFileDropDownMenuItems(file)" align="right" class="d-flex">
+                                        <template #anchor="anchorAttrs">
+                                            <RockButton type="button" btnType="link" class="text-body" v-bind="anchorAttrs"><i class="fa fa-ellipsis-v"></i></RockButton>
+                                        </template>
+                                    </DropDownMenu>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div v-else class="m-auto justify-self-center text-lg text-muted" style="width:max-content;">No files found.</div>
+                </Loading>
+            </div>
         </div>
     </div>
 </template>
@@ -125,12 +140,20 @@
     vertical-align: middle;
 }
 
-/*
+.scroll-shadow {
+    height: 1px;
+    background: transparent;
+    box-shadow: 0 0 7px black;
+    clip-path: rect(0 0 10px 100%);
+    flex-shrink: 0;
+    /* Prevents hover highlights of list items from going over the shadow */
+    z-index: 1;
+}
+
 .table-borderless th,
 .table-borderless td {
     border: 0;
 }
-*/
 </style>
 
 <script setup lang="ts">
@@ -169,6 +192,21 @@
         height: {
             type: String as PropType<string | "flexible">,
             default: "flexible",
+        },
+
+        enableAssetProviders: {
+            type: Boolean,
+            default: false
+        },
+
+        enableLocalFileBrowser: {
+            type: Boolean,
+            default: false
+        },
+
+        enableZipUpload: {
+            type: Boolean,
+            default: false
         }
     });
 
@@ -199,6 +237,7 @@
 
     const itemProvider = ref(new AssetManagerTreeItemProvider());
     itemProvider.value.openFolders = new Set(props.openFolders);
+    const openFolders = computed(() => Array.from(itemProvider.value.openFolders));
     const folders = ref<TreeItemBag[]>([]);
 
     const selectedFolderArray = ref<string[]>([]);
@@ -207,12 +246,15 @@
     const isProviderSelected = computed(() => isFolderSelected.value && selectedFolder.value?.endsWith(",True"));
 
     const isFolderPaneActionLoading = ref(false);
+    const folderScrollContainer = ref<HTMLElement | null>(null);
+    const folderListScrolled = ref(false);
 
     const isCreateFolderFormVisible = ref(false);
     const newFolderName = ref("");
     const addFolderError = ref("");
 
     const deleteFolderError = ref("");
+    const treeRefreshKey = ref(1);
 
     const addFolderValidation: ValidationRule[] = [
         "required",
@@ -318,7 +360,7 @@
         itemProvider.value.openFolders.delete(item.value ?? "");
     }
 
-    function areSetsEqual(as, bs): boolean {
+    function areSetsEqual(as: Set<any>, bs: Set<any>): boolean { // eslint-disable-line @typescript-eslint/no-explicit-any
         if (as.size !== bs.size) {
             return false;
         }
@@ -330,8 +372,12 @@
         return true;
     }
 
+    function onRefreshFolders() {
+        itemProvider.value.getRootItems();
+        treeRefreshKey.value++;
+    }
+
     watch(() => props.openFolders, () => {
-        console.log("OPEN FOLDERS PROP CHANGE");
         const newList = new Set(props.openFolders);
 
         if (!areSetsEqual(newList, itemProvider.value.openFolders)) {
@@ -340,42 +386,62 @@
     });
 
     watch(itemProvider, () => {
-        console.log("PROVIDER OPEN FOLDERS CHANGE");
         emit("update:openFolders", Array.from(itemProvider.value.openFolders));
     }, { deep: true });
+
+    /**
+     * Show a shadow at the top of the file list when it is scrolled, making it looks like it's
+     * sitting underneath the action bar.
+     */
+    watch(folderScrollContainer, () => {
+        if (folderScrollContainer.value) {
+            folderScrollContainer.value.addEventListener("scroll", () => {
+                folderListScrolled.value = (folderScrollContainer.value?.scrollTop ?? 0) > 0;
+            });
+        }
+        else {
+            folderListScrolled.value = false;
+        }
+    });
 
     // #endregion
 
     // #region File List
 
-    const shownFileRenameForm = ref<string | null>(null);
-    const fileName = ref("");
     const selectedFiles = ref<string[]>([]);
-    const files = ref([]);
+    const files = ref<any[]>([]);
     const isLoadingFiles = ref(false);
 
-    async function showRenameFileForm(file): Promise<void> {
-        shownFileRenameForm.value = file.key;
-        fileName.value = file.name;
+    const fileScrollContainer = ref<HTMLElement | null>(null);
+    const fileListScrolled = ref(false);
 
-        await nextTick();
+    const shownFileRenameForm = ref<string | null>(null);
+    const renameFileName = ref("");
 
-        const inputField = document.querySelector(`#asset-manager-current-file-rename-input`);
+    const
 
-        if (inputField) {
-            (inputField as HTMLElement).focus();
+        async function showRenameFileForm(file: any): Promise<void> {
+            shownFileRenameForm.value = file.key;
+            renameFileName.value = file.name;
+
+            await nextTick();
+
+            const inputField = document.querySelector(`#asset-manager-current-file-rename-input`);
+
+            if (inputField) {
+                (inputField as HTMLElement).focus();
+            }
         }
-    }
 
     function renameFile(file): void {
         // TODO: Save file changes to server, update local version, show loading spinner
-        console.debug("RENAME FILE", file, fileName.value);
+        console.debug("RENAME FILE", file, renameFileName.value);
         hideRenameFileForm();
     }
 
     function hideRenameFileForm(): void {
         shownFileRenameForm.value = null;
-        fileName.value = "";
+        renameFileName.value = "";
     }
 
     function uploadFile(): void {
@@ -386,8 +452,13 @@
         // TODO
     }
 
-    function deleteFile(): void {
+    function deleteFile(fileKey: string): void {
         // TODO
+        console.log("DELETE FILE", fileKey);
+    }
+
+    function refreshFiles(): void {
+        fetchFiles();
     }
 
     function resetFileState(): void {
@@ -396,12 +467,12 @@
         files.value = [];
     }
 
-    async function fetchFiles(assetPath: string): Promise<void> {
+    async function fetchFiles(): Promise<void> {
         resetFileState();
         isLoadingFiles.value = true;
 
         const options: AssetManagerBaseOptionsBag = {
-            assetFolderId: assetPath
+            assetFolderId: selectedFolder.value
         };
         const url = "/api/v2/Controls/AssetManagerGetFiles";
         const response = await post<any[]>(url, undefined, options);
@@ -413,12 +484,54 @@
         isLoadingFiles.value = false;
     }
 
+    function getFileDropDownMenuItems(file: any): MenuAction[] {
+        /** TODO: Detect file type and return appropriate menu items */
+
+        return [{
+            title: "Edit",
+            type: "default",
+            handler: () => console.log("Edit"), // TODO
+            disabled: false // TODO
+        }, {
+            title: "Download",
+            type: "default",
+            handler: () => console.log("DOWNLOAD"), // TODO
+            disabled: false // TODO
+        }, {
+            title: "Rename",
+            type: "default",
+            handler: () => showRenameFileForm(file), // TODO
+            disabled: false // TODO
+        }, {
+            title: "Delete",
+            type: "danger",
+            handler: () => {
+                deleteFile(file.key); /* Explicitly don't return promise so dropdown will hide immediately */
+            }
+        }];
+    }
+
     watch(selectedFolder, () => {
         if (selectedFolder.value) {
-            fetchFiles(selectedFolder.value);
+            fetchFiles();
         }
         else {
             files.value = [];
+        }
+    });
+
+    /**
+     * Show a shadow at the top of the file list when it is scrolled, making it looks like it's
+     * sitting underneath the action bar.
+     */
+    watch(fileScrollContainer, () => {
+        if (fileScrollContainer.value) {
+            fileScrollContainer.value.addEventListener("scroll", () => {
+                fileListScrolled.value = (fileScrollContainer.value?.scrollTop ?? 0) > 0;
+            });
+        }
+        else {
+            fileListScrolled.value = false;
         }
     });
 
