@@ -21,14 +21,23 @@
 // </copyright>
 //
 
-/** Bag for donation data within the Volunteer Generosity Analysis block. */
-export type VolunteerGenerosityDonationBag = {
-    /** Gets or sets the month. */
-    month?: string | null;
+import { CurrencyInfoBag } from "@Obsidian/ViewModels/Utility/currencyInfoBag";
+import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
 
-    /** Gets or sets the month name. */
-    monthNameAbbreviated?: string | null;
+/** Additional Configuration for the Benevolence Request List Block. */
+export type BenevolenceRequestListOptionsBag = {
+    /** Gets or sets the benevolence types for the benevolence type filter dropdown. */
+    benevolenceTypes?: ListItemBag[] | null;
 
-    /** Gets or sets the year. */
-    year?: string | null;
+    /** Gets or sets a value indicating whether the current user has the administrate permission. */
+    canAdministrate: boolean;
+
+    /** Gets or sets the case workers for the case worker filter dropdown. */
+    caseWorkers?: ListItemBag[] | null;
+
+    /** Gets or sets the columns to hide. */
+    columnsToHide?: string[] | null;
+
+    /** Gets or sets the currency information. */
+    currencyInfo?: CurrencyInfoBag | null;
 };

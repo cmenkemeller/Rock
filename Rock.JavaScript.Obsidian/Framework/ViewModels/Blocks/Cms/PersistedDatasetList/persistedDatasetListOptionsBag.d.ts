@@ -21,6 +21,6 @@
 // </copyright>
 //
 
-/** The additional configuration options for the Persisted Dataset List block. */
+/** Class PersistedDatasetDetailOptionsBag. */
 export type PersistedDatasetListOptionsBag = {
 };

@@ -21,20 +21,19 @@
 // </copyright>
 //
 
-/** A bag that contains all data for the Volunteer Generosity Analysis block. */
-export type VolunteerGenerositySetupBag = {
-    /** Gets or sets the estimated refresh time of the persisted dataset.  */
-    estimatedRefreshTime: number;
+import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
 
-    /** Gets or sets the last updated date time.  */
-    lastUpdated?: string | null;
+/** The additional configuration options for the Registration Instance Linkage List block. */
+export type RegistrationInstanceLinkageListOptionsBag = {
+    /** Gets or sets the campus items. */
+    campusItems?: ListItemBag[] | null;
 
-    /** Gets or sets the bool that shows/hides the campus filter. */
-    showCampusFilter: boolean;
+    /** Gets or sets the name for the exported excel or csv file. */
+    exportFileName?: string | null;
 
-    /** Gets or sets the list of unique campuses. */
-    uniqueCampuses?: string[] | null;
+    /** Gets or sets the title for the exported excel or csv file. */
+    exportTitle?: string | null;
 
-    /** Gets or sets the list of unique groups  */
-    uniqueGroups?: string[] | null;
+    /** Gets or sets the registration template identifier key. */
+    registrationTemplateIdKey?: string | null;
 };
