@@ -18,12 +18,15 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Http;
+using System.Web.Http.Results;
 
 using Rock.Attribute;
 using Rock.Badge;
@@ -660,7 +663,14 @@ namespace Rock.Rest.v2
                 return new List<Asset>();
             }
 
-            return Rock.Rest.Controllers.AssetStorageProvidersController.GetFilesForPath( assetStorageProviderId.Value, path );
+            var assetStorageProviderCache = AssetStorageProviderCache.Get( assetStorageProviderId.Value );
+
+            var component = assetStorageProviderCache.AssetStorageComponent;
+
+            List<Asset> assets = component.ListFilesInFolder( assetStorageProviderCache.ToEntity(), new Asset { Key = path, Type = AssetType.Folder, AssetStorageProviderId = assetStorageProviderId.Value } );
+
+
+            return assets;
         }
 
         /// <summary>
@@ -748,6 +758,74 @@ namespace Rock.Rest.v2
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
+        /// </summary>
+        /// <param name="options">The options that describe which items to load.</param>
+        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        [HttpPost]
+        [System.Web.Http.Route( "AssetManagerDeleteFiles" )]
+        [Authenticate]
+        [Rock.SystemGuid.RestActionGuid( "55ADD16B-0FC1-4F33-BB0A-03C29018866F" )]
+        public Boolean AssetManagerDeleteFiles( [FromBody] AssetManagerDeleteFilesOptionsBag options )
+        {
+            var (provider, component) = GetAssetStorageProvider( options.AssetStorageProviderId );
+
+            if ( provider == null || component == null )
+            {
+                return false;
+            }
+
+            foreach ( string file in options.Files )
+            {
+                component.DeleteAsset( provider.ToEntity(), new Asset { Key = file, Type = AssetType.File } );
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
+        /// </summary>
+        /// <param name="options">The options that describe which items to load.</param>
+        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        [HttpGet]
+        [System.Web.Http.Route( "AssetManagerDownloadFile" )]
+        [Authenticate]
+        [Rock.SystemGuid.RestActionGuid( "C810774B-8B15-42D0-BAC2-85503AB23BC0" )]
+        public IHttpActionResult AssetManagerDownloadFile( [FromUri] AssetManagerDownloadFileOptionsBag options )
+        {
+            var (provider, component) = GetAssetStorageProvider( options.AssetStorageProviderId );
+            var fileKey = options.File.Trim();
+
+            if ( provider == null || component == null || fileKey.IsNullOrWhiteSpace() )
+            {
+                return BadRequest( "Invalid Asset Storage Provider ID or file key." );
+            }
+
+            Asset asset = component.GetObject( provider.ToEntity(), new Asset { Key = fileKey, Type = AssetType.File }, false );
+
+            byte[] bytes = asset.AssetStream.ReadBytesToEnd();
+
+            //var a = new System.Web.Http.Results.OkResult(Request);
+            //var stream = new MemoryStream( bytes );
+
+            var result = new System.Net.Http.HttpResponseMessage( System.Net.HttpStatusCode.OK )
+            {
+                Content = new System.Net.Http.StreamContent( new MemoryStream( bytes ) )
+            };
+
+            result.Content.Headers.ContentType = new MediaTypeHeaderValue( "application/octet-stream" );
+            result.Content.Headers.Add( "content-disposition", "attachment; filename=" + asset.Name );
+
+            //result.Content.Headers.BufferOutput = true;
+            //result.Content.Headers.Flush();
+            //result.Content.Headers.SuppressContent = true;
+            //System.Web.HttpContext.Current.ApplicationInstance.CompleteRequest();
+
+            return new ResponseMessageResult( result );
         }
 
         /// <summary>

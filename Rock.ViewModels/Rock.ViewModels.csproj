@@ -566,6 +566,8 @@
     <Compile Include="Controls\DatePartsPickerValueBag.cs" />
     <Compile Include="Controls\PhoneNumberBoxWithSmsControlBag.cs" />
     <Compile Include="Controls\NoteMentionItemBag.cs" />
+    <Compile Include="Rest\Controls\AssetManagerDownloadFileOptionsBag.cs" />
+    <Compile Include="Rest\Controls\AssetManagerDeleteFilesOptionsBag.cs" />
     <Compile Include="Rest\Controls\AssetManagerGetChildrenOptionsBag.cs" />
     <Compile Include="Rest\Controls\AssetManagerAddFolderOptionsBag.cs" />
     <Compile Include="Rest\Controls\AssetManagerBaseOptionsBag.cs" />

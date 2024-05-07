@@ -126,7 +126,7 @@ li.disabled > button {
      * Event handler for when the drop down anchor element has been clicked.
      */
     function onDropDownClick(): void {
-        isDropDownOpen.value = true;
+        isDropDownOpen.value = !isDropDownOpen.value;
     }
 
     /**

@@ -261,6 +261,37 @@ export async function uploadContentFile(file: File, encryptedRootFolder: string,
 }
 
 /**
+ * Uploads a file to an asset storage provider.
+ *
+ * @param file The file to be uploaded to the server.
+ * @param folderPath The additional sub-folder path to use inside the root folder.
+ * @param assetStorageId The ID of the asset storage provider that the file is being uploaded to
+ * @param options The options to use when uploading the file.
+ *
+ * @returns A ListItemBag that contains the scrubbed filename that was uploaded.
+ */
+export async function uploadAssetProviderFile(file: File, folderPath: string, assetStorageId: string, options?: UploadOptions): Promise<ListItemBag> {
+    const url = `${options?.baseUrl ?? "/FileUploader.ashx"}?rootFolder=`;
+    const formData = new FormData();
+
+    if (!assetStorageId) {
+        throw "Asset Storage Id and Key are required.";
+    }
+
+    formData.append("file", file);
+        formData.append("StorageId", assetStorageId);
+        formData.append("Key", folderPath);
+        formData.append("IsAssetStorageProviderAsset", "true");
+
+    const result = await uploadFile(url, formData, options?.progress);
+
+    return {
+        value: "",
+        text: result.FileName
+    };
+}
+
+/**
  * Uploads a BinaryFile into Rock. The specific storage location is defined by
  * the file type.
  *
