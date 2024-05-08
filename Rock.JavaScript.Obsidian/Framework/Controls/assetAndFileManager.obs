@@ -197,6 +197,8 @@
     import { AssetManagerBaseOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerBaseOptionsBag";
     import { AssetManagerAddFolderOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerAddFolderOptionsBag";
     import { AssetManagerDeleteFilesOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerDeleteFilesOptionsBag";
+    import { AssetManagerRenameFileOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerRenameFileOptionsBag";
+    import { FileAsset } from "@Obsidian/ViewModels/Controls/fileAsset";
     import { useHttp } from "@Obsidian/Utility/http";
     import { findFolder, folderNameComparator, isValidFolderName } from "@Obsidian/Utility/assetProvider";
     import { MenuAction } from "@Obsidian/Types/Controls/dropDownMenu";
@@ -453,7 +455,7 @@
     // #region File List
 
     const selectedFiles = ref<string[]>([]);
-    const files = ref<any[]>([]);
+    const files = ref<FileAsset[]>([]);
     const isLoadingFiles = ref(false);
 
     const fileScrollContainer = ref<HTMLElement | null>(null);
@@ -471,23 +473,53 @@
     const fileListErrorMessage = ref("");
     const fileListErrorAction = ref("");
 
-    async function showRenameFileForm(file: any): Promise<void> {
+    async function showRenameFileForm(file: FileAsset): Promise<void> {
         shownFileRenameForm.value = file.key;
         renameFileName.value = file.name;
 
         await nextTick();
 
-        const inputField = document.querySelector(`#asset-manager-current-file-rename-input`);
+        const inputField = document.querySelector(`#asset-manager-current-file-rename-input`) as HTMLInputElement;
 
         if (inputField) {
-            (inputField as HTMLElement).focus();
+            inputField.focus();
+            const baseFileName = getBaseFileName(file.name);
+            inputField.setSelectionRange(0, baseFileName.length);
         }
     }
 
-    function renameFile(file): void {
-        // TODO: Save file changes to server, update local version, show loading spinner
-        console.debug("RENAME FILE", file, renameFileName.value);
-        hideRenameFileForm();
+    async function renameFile(file): Promise<void> {
+        fileListErrorAction.value = "";
+        fileListErrorMessage.value = "";
+
+        try {
+            isFilePaneActionLoading.value = true;
+            const { providerId } = parseFolderName(selectedFolder.value ?? "");
+
+            const url = "/api/v2/Controls/AssetManagerRenameFile";
+            const options: AssetManagerRenameFileOptionsBag = {
+                file: file.key,
+                assetStorageProviderId: Number(providerId),
+                newFileName: renameFileName.value
+            };
+
+            const response = await post<boolean>(url, undefined, options);
+
+            if (response.isSuccess && response.data) {
+                hideRenameFileForm();
+            }
+            else {
+                throw response.errorMessage;
+            }
+        }
+        catch (e) {
+            fileListErrorMessage.value = (e as Error).message || "An unknown error occurred while renaming the file.";
+            fileListErrorAction.value = "Renaming File";
+        }
+        finally {
+            isFilePaneActionLoading.value = false;
+            refreshFiles();
+        }
     }
 
     function hideRenameFileForm(): void {
@@ -559,7 +591,6 @@
             isFilePaneActionLoading.value = false;
             refreshFiles();
         }
-
     }
 
     function refreshFiles(): void {
@@ -581,7 +612,7 @@
             assetFolderId: selectedFolder.value
         };
         const url = "/api/v2/Controls/AssetManagerGetFiles";
-        const response = await post<any[]>(url, undefined, options);
+        const response = await post<FileAsset[]>(url, undefined, options);
 
         if (response.isSuccess && response.data) {
             files.value = response.data;
@@ -591,24 +622,27 @@
         isFilePaneActionLoading.value = false;
     }
 
-    function getFileDropDownMenuItems(file: any): MenuAction[] {
+    function getFileDropDownMenuItems(file: FileAsset): MenuAction[] {
         /** TODO: Detect file type and return appropriate menu items */
 
         return [{
-            title: "Edit",
-            type: "default",
-            handler: () => console.log("Edit"), // TODO
-            disabled: false // TODO
-        }, {
+            //     title: "Edit",
+            //     type: "default",
+            //     handler: () => console.log("Edit"), // TODO
+            //     disabled: false // TODO
+            // }, {
             title: "Download",
             type: "default",
-            handler: () => console.log("DOWNLOAD"), // TODO
-            disabled: false // TODO
+            handler: () => {
+                // Since this returns a download stream, we never actually navigate away from the page
+                window.location.href = `/api/v2/Controls/AssetManagerDownloadFile?file=${encodeURI(file.key)}&assetStorageProviderId=${parseFolderName(selectedFolder.value ?? "").providerId}`;
+            },
+            disabled: false
         }, {
             title: "Rename",
             type: "default",
-            handler: () => showRenameFileForm(file), // TODO
-            disabled: false // TODO
+            handler: () => showRenameFileForm(file),
+            disabled: false
         }, {
             title: "Delete",
             type: "danger",
@@ -616,6 +650,26 @@
                 deleteFiles([file.key]); /* Explicitly don't return promise so dropdown will hide immediately */
             }
         }];
+    }
+
+    /**
+     * Gets the name of the file without the extension
+     */
+    function getBaseFileName(fileName: string): string {
+        // Regex captures two parts. The first part is the base name and the second is a dot
+        // followed by at least 1 non-dot character at the end of the string.
+        const parser = /(.*)(\.[^.]+)$/;
+
+        // For example "file.name.ext" would return ["file.name.ext", "file.name", ".ext"]
+        const results = parser.exec(fileName);
+
+        // If we have anything in the base name capture element, return it.
+        if (results && results[1]) {
+            return results[1];
+        }
+
+        // If we couldn't parse out the base, just return the entire file name.
+        return fileName;
     }
 
     watch(selectedFolder, () => {

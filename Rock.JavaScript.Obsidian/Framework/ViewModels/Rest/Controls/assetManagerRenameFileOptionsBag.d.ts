@@ -21,6 +21,14 @@
 // </copyright>
 //
 
-/** The additional configuration options for the Persisted Dataset List block. */
-export type PersistedDatasetListOptionsBag = {
+/**
+ * The options that can be passed to the DeleteFiles API action of
+ * the AssetManager control.
+ */
+export type AssetManagerRenameFileOptionsBag = {
+    assetStorageProviderId: number;
+
+    file?: string | null;
+
+    newFileName?: string | null;
 };

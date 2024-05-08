@@ -798,19 +798,15 @@ namespace Rock.Rest.v2
         public IHttpActionResult AssetManagerDownloadFile( [FromUri] AssetManagerDownloadFileOptionsBag options )
         {
             var (provider, component) = GetAssetStorageProvider( options.AssetStorageProviderId );
-            var fileKey = options.File.Trim();
 
-            if ( provider == null || component == null || fileKey.IsNullOrWhiteSpace() )
+            if ( provider == null || component == null || options.File.IsNullOrWhiteSpace() )
             {
                 return BadRequest( "Invalid Asset Storage Provider ID or file key." );
             }
 
-            Asset asset = component.GetObject( provider.ToEntity(), new Asset { Key = fileKey, Type = AssetType.File }, false );
+            Asset asset = component.GetObject( provider.ToEntity(), new Asset { Key = options.File, Type = AssetType.File }, false );
 
             byte[] bytes = asset.AssetStream.ReadBytesToEnd();
-
-            //var a = new System.Web.Http.Results.OkResult(Request);
-            //var stream = new MemoryStream( bytes );
 
             var result = new System.Net.Http.HttpResponseMessage( System.Net.HttpStatusCode.OK )
             {
@@ -818,14 +814,30 @@ namespace Rock.Rest.v2
             };
 
             result.Content.Headers.ContentType = new MediaTypeHeaderValue( "application/octet-stream" );
-            result.Content.Headers.Add( "content-disposition", "attachment; filename=" + asset.Name );
-
-            //result.Content.Headers.BufferOutput = true;
-            //result.Content.Headers.Flush();
-            //result.Content.Headers.SuppressContent = true;
-            //System.Web.HttpContext.Current.ApplicationInstance.CompleteRequest();
+            result.Headers.Add( "content-disposition", "attachment; filename=" + HttpUtility.UrlEncode( asset.Name ) );
 
             return new ResponseMessageResult( result );
+        }
+
+        /// <summary>
+        /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
+        /// </summary>
+        /// <param name="options">The options that describe which items to load.</param>
+        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        [HttpPost]
+        [System.Web.Http.Route( "AssetManagerRenameFile" )]
+        [Authenticate]
+        [Rock.SystemGuid.RestActionGuid( "150AAF48-33C5-47F8-BD53-2CF3A75F88FB" )]
+        public bool AssetManagerRenameFile( [FromBody] AssetManagerRenameFileOptionsBag options )
+        {
+            var (provider, component) = GetAssetStorageProvider( options.AssetStorageProviderId );
+
+            if ( provider == null || component == null || options.File.IsNullOrWhiteSpace() || options.NewFileName.IsNullOrWhiteSpace() )
+            {
+                return false;
+            }
+
+            return component.RenameAsset( provider.ToEntity(), new Asset { Key = options.File, Type = AssetType.File }, options.NewFileName );
         }
 
         /// <summary>
