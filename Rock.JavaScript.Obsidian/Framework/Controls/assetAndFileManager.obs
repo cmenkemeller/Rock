@@ -80,7 +80,7 @@
                     <!-- TODO -->
                     <input type="file" ref="zipFileInputElement" class="hidden" accept=".zip" @change="uploadZipFile" :disabled="true/*TODO*/">
                 </label>
-                <RockButton type="button" btnSize="xs" title="Delete selected files" class="mr-2" :disabled="selectedFiles.length < 1" @click="deleteFiles(selectedFiles)">
+                <RockButton type="button" btnSize="xs" title="Delete selected files" class="mr-2" :disabled="selectedFileKeys.length < 1" @click="deleteFiles(selectedFileKeys)">
                     <i class="fa fa-trash-alt"></i> <span class="hidden-xs">Delete Selected</span>
                 </RockButton>
                 <RockButton type="button" btnSize="xs" title="Refresh file list" class="ml-auto" @click="refreshFiles">
@@ -99,7 +99,7 @@
                     <tbody>
                         <tr v-for="file in files" :key="file.key">
                             <td>
-                                <CheckBox label="" v-model="selectedFiles" :value="file.key" />
+                                <CheckBox label="" v-model="selectedFileKeys" :value="file.key" />
                             </td>
                             <td>
                                 <img :src="file.iconPath" style="object-fit: cover; height: 58px; width: 44px;">
@@ -210,7 +210,7 @@
 
     const props = defineProps({
         modelValue: {
-            type: Object as PropType<ListItemBag>,
+            type: Object as PropType<FileAsset[]>,
         },
 
         openFolders: {
@@ -218,6 +218,11 @@
             default: () => [],
         },
 
+        /**
+         * "flexible" will make the height grow as the number of files/folder show grows.
+         * Otherwise pass in a CSS height value.
+         * Default: "flexible"
+         */
         height: {
             type: String as PropType<string | "flexible">,
             default: "flexible",
@@ -231,6 +236,12 @@
         enableLocalFileBrowser: {
             type: Boolean,
             default: false
+        },
+
+        /** The root folder used for the local file browser */
+        rootFolder: {
+            type: String,
+            default: "~/Content/"
         },
 
         enableZipUpload: {
@@ -454,7 +465,7 @@
 
     // #region File List
 
-    const selectedFiles = ref<string[]>([]);
+    const selectedFileKeys = ref<string[]>([]);
     const files = ref<FileAsset[]>([]);
     const isLoadingFiles = ref(false);
 
@@ -599,7 +610,7 @@
 
     function resetFileState(): void {
         shownFileRenameForm.value = null;
-        selectedFiles.value = [];
+        selectedFileKeys.value = [];
         files.value = [];
     }
 
@@ -671,6 +682,10 @@
         // If we couldn't parse out the base, just return the entire file name.
         return fileName;
     }
+
+    watch(selectedFileKeys, () => {
+        internalValue.value = files.value.filter(f => selectedFileKeys.value.includes(f.key));
+    });
 
     watch(selectedFolder, () => {
         if (selectedFolder.value) {

@@ -1,16 +1,31 @@
 <template>
     <GalleryAndResult :importCode="importCode" :exampleCode="exampleCode">
 
-        <AssetAndFileManager :height="height" v-model:openFolders="openFolders" />
+        <AssetAndFileManager :height="height" v-model="value" v-model:openFolders="openFolders" :enableAssetProvider="enableAssetProviders" :enableLocalFileBrowse="enableLocalFileBrowser" :rootFolder="fileBrowserRoot" />
 
         <div class="my-5">
-            {{ openFolders }}
+            <label>Selected Files:</label> {{ value }}
+            <label>Open Folders:</label> {{ openFolders }}
         </div>
 
         <template #settings>
             <div class="row">
                 <div class="col-md-3">
-                    <CheckBox v-model="isStaticHeight" text="Use Static Height?" label="" disableLabel />
+                    <CheckBox v-model="isStaticHeight" label="Use Static Height?" />
+                </div>
+                <div class="col-md-3">
+                    <CheckBox v-model="enableLocalFileBrowser" label="Enable File Browser" help="If true, a folder will appear in the left column hooked to a folder on the server, the root of which is configurable." />
+                </div>
+                <div class="col-md-3">
+                    <CheckBox v-model="enableAssetProviders" label="Enable Asset Storage Providers" help="If true, all asset storage providers configured in system settings will appear in the left column." />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3" :style="{ visibility: isStaticHeight ? 'visible' : 'hidden' }">
+                    <TextBox v-model="staticHeight" label="Static Height" help="You may use any valid CSS height value. If you enter `flexible`, it is the same as not specifying a value (disables static height; this is the default)" />
+                </div>
+                <div class="col-md-3" :style="{ visibility: enableLocalFileBrowser ? 'visible' : 'hidden' }">
+                    <TextBox v-model="fileBrowserRoot" label="File Browser Root Folder" help="Default is ~/Content/" />
                 </div>
             </div>
         </template>
@@ -22,20 +37,26 @@
     import GalleryAndResult from "./galleryAndResult.partial.obs";
     import AssetAndFileManager from "@Obsidian/Controls/assetAndFileManager.obs";
     import CheckBox from "@Obsidian/Controls/checkBox.obs";
+    import TextBox from "@Obsidian/Controls/textBox.obs";
     import { getSfcControlImportPath } from "./utils.partial";
+    import { FileAsset } from "@Obsidian/ViewModels/Controls/fileAsset";
 
-    const value = ref([]);
+    const value = ref<FileAsset[]>([]);
     const openFolders = ref<string[]>(["1,~/Content/,True", "1,~/Content/ExternalSite/"]);
-    const someBool = ref(false);
 
     const isStaticHeight = ref(true);
     const staticHeight = ref("400px");
     const height = computed(() => isStaticHeight.value ? staticHeight.value : "flexible");
+    const enableAssetProviders = ref(true);
+    const enableLocalFileBrowser = ref(true);
+    const fileBrowserRoot = ref("~/Content/");
 
     const importCode = getSfcControlImportPath("assetAndFileManager");
     const exampleCode = computed(() => {
-        const someBoolProp = someBool.value ? " someBool" : "";
+        const enableAssetProvidersProp = enableAssetProviders.value ? " enableAssetProviders" : "";
+        const enableLocalFileBrowserProp = enableLocalFileBrowser.value ? " enableLocalFileBrowser" : "";
         const heightProp = isStaticHeight.value ? ` height="${height.value}"` : "";
-        return `<AssetAndFileManager v-model="value"${someBoolProp}${heightProp} />`;
+        const rootFolderProp = enableLocalFileBrowser.value ? ` rootFolder="${fileBrowserRoot.value}"` : "";
+        return `<AssetAndFileManager v-model="value"${enableAssetProvidersProp}${enableLocalFileBrowserProp}${heightProp}${rootFolderProp} />`;
     });
 </script>

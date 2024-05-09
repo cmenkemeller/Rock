@@ -814,7 +814,7 @@ namespace Rock.Rest.v2
             };
 
             result.Content.Headers.ContentType = new MediaTypeHeaderValue( "application/octet-stream" );
-            result.Headers.Add( "content-disposition", "attachment; filename=" + HttpUtility.UrlEncode( asset.Name ) );
+            result.Content.Headers.Add( "content-disposition", "attachment; filename=" + HttpUtility.UrlEncode( asset.Name ) );
 
             return new ResponseMessageResult( result );
         }
