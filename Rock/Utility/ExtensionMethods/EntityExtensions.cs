@@ -217,9 +217,9 @@ namespace Rock
         /// Converts a single entity to a ListItemBag.
         /// </summary>
         /// <param name="entity">The entity to be represented by the bag.</param>
-        /// <param name="toText">A function that can set the Text property of the ListItemBag for the entity.</param>
+        /// <param name="text">The value to use for the Text property of the ListItemBag.</param>
         /// <returns>A <see cref="ListItemBag"/> that represents the entity.</returns>
-        public static ListItemBag ToListItemBag( this IEntity entity, Func<IEntity, string> toText )
+        public static ListItemBag ToListItemBag( this IEntity entity, string text )
         {
             if ( entity == null )
             {
@@ -229,7 +229,7 @@ namespace Rock
             var viewModel = new ListItemBag
             {
                 Value = entity.Guid.ToString(),
-                Text = toText( entity )
+                Text = text
             };
 
             return viewModel;
@@ -263,7 +263,7 @@ namespace Rock
                 return new List<ListItemBag>();
             }
 
-            return entities.Select( e => e.ToListItemBag( toText ) ).ToList();
+            return entities.Select( e => e.ToListItemBag( toText( e ) ) ).ToList();
         }
 
         /// <summary>
