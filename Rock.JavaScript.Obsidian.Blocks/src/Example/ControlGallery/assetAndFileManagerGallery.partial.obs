@@ -42,7 +42,7 @@
     import { FileAsset } from "@Obsidian/ViewModels/Controls/fileAsset";
 
     const value = ref<FileAsset[]>([]);
-    const openFolders = ref<string[]>(["1,~/Content/,True", "1,~/Content/ExternalSite/"]);
+    const openFolders = ref<string[]>(["1,EAAAABoMLQ7sxQnuAw5xJ6fMyNpOWavdmnjvI21yclYPMFnm,,True", "1,EAAAAE7cu51UBwj12ozhSL3ocnErk4IIkGrNdWKOW0qL/ReB,ExternalSite/"]);
 
     const isStaticHeight = ref(true);
     const staticHeight = ref("400px");

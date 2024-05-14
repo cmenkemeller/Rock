@@ -635,14 +635,26 @@ namespace Rock.Rest.v2
         [System.Web.Http.Route( "AssetManagerGetChildren" )]
         [Authenticate]
         [Rock.SystemGuid.RestActionGuid( "9A96E14F-99DB-4F9A-95EB-DF17D3B5EE25" )]
-        public List<TreeItemBag> AssetManagerGetChildren( [FromBody] AssetManagerGetChildrenOptionsBag options )
+        public IHttpActionResult AssetManagerGetChildren( [FromBody] AssetManagerGetChildrenOptionsBag options )
         {
             if ( options.AssetFolderId == "0" )
             {
-                return GetAssetStorageProviders( options.ExpandedFolders );
+                return Ok( GetAssetStorageProviders( options.ExpandedFolders ) );
             }
 
-            return GetChildrenOfAsset( options.AssetFolderId, options.ExpandedFolders );
+            var expandedFolders = new List<string>();
+
+            // Decrypt the root folder of the ExpandedFolders so we actually know which folders to expand
+            if ( options.ExpandedFolders != null && options.ExpandedFolders.Count > 0 )
+            {
+                foreach ( var folder in options.ExpandedFolders )
+                {
+                    var (assetProviderId, path) = ParseAssetKey( folder );
+                    expandedFolders.Add( $"{assetProviderId},{path}" );
+                }
+            }
+
+            return Ok( GetChildrenOfAsset( options.AssetFolderId, expandedFolders ) );
         }
 
         /// <summary>
@@ -654,23 +666,25 @@ namespace Rock.Rest.v2
         [System.Web.Http.Route( "AssetManagerGetFiles" )]
         [Authenticate]
         [Rock.SystemGuid.RestActionGuid( "D45422C0-5FCA-44C4-B9E1-4BA05E8D534D" )]
-        public List<Asset> AssetManagerGetFiles( [FromBody] AssetManagerBaseOptionsBag options )
+        public IHttpActionResult AssetManagerGetFiles( [FromBody] AssetManagerBaseOptionsBag options )
         {
-            var (assetStorageProviderId, path) = ParseAssetId( options.AssetFolderId );
+            var (assetStorageProviderId, path) = ParseAssetKey( options.AssetFolderId );
 
             if ( assetStorageProviderId == null || path == null )
             {
-                return new List<Asset>();
+                return BadRequest();
             }
 
-            var assetStorageProviderCache = AssetStorageProviderCache.Get( assetStorageProviderId.Value );
+            var (provider, component) = GetAssetStorageProvider( assetStorageProviderId.Value );
 
-            var component = assetStorageProviderCache.AssetStorageComponent;
+            if ( provider == null || component == null )
+            {
+                return BadRequest();
+            }
 
-            List<Asset> assets = component.ListFilesInFolder( assetStorageProviderCache.ToEntity(), new Asset { Key = path, Type = AssetType.Folder, AssetStorageProviderId = assetStorageProviderId.Value } );
+            List<Asset> assets = component.ListFilesInFolder( provider.ToEntity(), new Asset { Key = path, Type = AssetType.Folder, AssetStorageProviderId = assetStorageProviderId.Value } );
 
-
-            return assets;
+            return Ok( assets );
         }
 
         /// <summary>
@@ -682,23 +696,23 @@ namespace Rock.Rest.v2
         [System.Web.Http.Route( "AssetManagerDeleteFolder" )]
         [Authenticate]
         [Rock.SystemGuid.RestActionGuid( "7625091B-D70A-4564-97C8-ED77AE5DB738" )]
-        public bool AssetManagerDeleteFolder( [FromBody] AssetManagerBaseOptionsBag options )
+        public IHttpActionResult AssetManagerDeleteFolder( [FromBody] AssetManagerBaseOptionsBag options )
         {
-            var (assetStorageProviderId, path) = ParseAssetId( options.AssetFolderId );
+            var (assetStorageProviderId, path) = ParseAssetKey( options.AssetFolderId );
 
             if ( assetStorageProviderId == null || path == null )
             {
-                return false;
+                return BadRequest();
             }
 
             var (provider, component) = GetAssetStorageProvider( assetStorageProviderId.Value );
 
             if ( provider == null || component == null )
             {
-                return false;
+                return BadRequest();
             }
 
-            return component.DeleteAsset( provider.ToEntity(), new Asset { Key = path, Type = AssetType.Folder } );
+            return Ok( component.DeleteAsset( provider.ToEntity(), new Asset { Key = path, Type = AssetType.Folder } ) );
         }
 
         /// <summary>
@@ -710,26 +724,25 @@ namespace Rock.Rest.v2
         [System.Web.Http.Route( "AssetManagerAddFolder" )]
         [Authenticate]
         [Rock.SystemGuid.RestActionGuid( "B90D9215-57A4-45D3-9B70-A44AA2C9FE7B" )]
-        public TreeItemBag AssetManagerAddFolder( [FromBody] AssetManagerAddFolderOptionsBag options )
+        public IHttpActionResult AssetManagerAddFolder( [FromBody] AssetManagerAddFolderOptionsBag options )
         {
-
             if ( !IsValidAssetFolderName( options.NewFolderName ) || options.NewFolderName.IsNullOrWhiteSpace() )
             {
                 return null;
             }
 
-            var (assetStorageProviderId, path) = ParseAssetId( options.AssetFolderId );
+            var (assetStorageProviderId, path) = ParseAssetKey( options.AssetFolderId );
 
             if ( assetStorageProviderId == null || path == null )
             {
-                return null;
+                return BadRequest();
             }
 
             var (provider, component) = GetAssetStorageProvider( assetStorageProviderId.Value );
 
             if ( provider == null || component == null )
             {
-                return null;
+                return BadRequest();
             }
 
             var asset = new Asset { Type = AssetType.Folder };
@@ -748,13 +761,13 @@ namespace Rock.Rest.v2
 
             if ( component.CreateFolder( provider.ToEntity(), asset ) )
             {
-                return new TreeItemBag
+                return Ok( new TreeItemBag
                 {
                     Text = options.NewFolderName,
                     Value = $"{provider.Id},{path + options.NewFolderName}/",
                     IconCssClass = "fa fa-folder",
                     HasChildren = false
-                };
+                } );
             }
 
             return null;
@@ -840,6 +853,17 @@ namespace Rock.Rest.v2
             return component.RenameAsset( provider.ToEntity(), new Asset { Key = options.File, Type = AssetType.File }, options.NewFileName );
         }
 
+
+
+
+
+
+
+
+
+
+
+
         /// <summary>
         /// Gets the asset storage provider [cache] and associated asset storage component using the ID stored in the hidden field.
         /// </summary>
@@ -855,34 +879,47 @@ namespace Rock.Rest.v2
         /// <summary>
         /// Parse a string ID in the form of "${assetStorageProviderID},${path}" and pull out its individual parts.
         /// </summary>
-        /// <param name="assetFolderId"></param>
+        /// <param name="assetItemKey"></param>
         /// <returns>The asset storage provider ID and the asset's path</returns>
-        private (int? assetStorageProviderId, string assetPath) ParseAssetId( string assetFolderId )
+        private (int? assetStorageProviderId, string assetPath) ParseAssetKey( string assetItemKey )
         {
-            var assetParts = assetFolderId.Split( ',' );
-            int assetStorageProviderId;
-            string path;
+            try
+            {
+                var assetParts = assetItemKey.Split( ',' );
+                int assetStorageProviderId;
+                string path;
 
-            if ( assetParts.Length < 2 )
+                if ( assetParts.Length < 3 )
+                {
+                    return (null, null);
+                }
+                else
+                {
+                    assetStorageProviderId = assetParts[0].AsInteger();
+                    var encryptedRoot = assetParts[1].Trim();
+                    var root = Rock.Security.Encryption.DecryptString( encryptedRoot );
+
+                    var partialPath = assetParts[2].Trim();
+
+                    // Adding the slash shouldn't be necessary but the parsers don't choke on an extra slash, so it's here just in case it's missing from root.
+                    path = root + "/" + partialPath;
+
+                    if ( path.Length > 0 )
+                    {
+                        var scrubbedFileName = Regex.Replace( path, "[" + Regex.Escape( string.Concat( System.IO.Path.GetInvalidPathChars() ) ) + "]", string.Empty, RegexOptions.CultureInvariant );
+                        var scrubbedFilePath = System.IO.Path.GetDirectoryName( scrubbedFileName ).Replace( '\\', '/' );
+                        scrubbedFileName = System.IO.Path.GetFileName( scrubbedFileName );
+                        scrubbedFileName = Regex.Replace( scrubbedFileName, "[" + Regex.Escape( string.Concat( System.IO.Path.GetInvalidFileNameChars() ) ) + "]", string.Empty, RegexOptions.CultureInvariant );
+
+                        path = $"{scrubbedFilePath}/{scrubbedFileName}";
+                    }
+
+                    return (assetStorageProviderId, path);
+                }
+            }
+            catch ( Exception )
             {
                 return (null, null);
-            }
-            else
-            {
-                assetStorageProviderId = assetParts[0].AsInteger();
-                path = assetParts[1].Trim();
-
-                if ( path.Length > 0 )
-                {
-                    var scrubbedFileName = Regex.Replace( path, "[" + Regex.Escape( string.Concat( System.IO.Path.GetInvalidPathChars() ) ) + "]", string.Empty, RegexOptions.CultureInvariant );
-                    var scrubbedFilePath = System.IO.Path.GetDirectoryName( scrubbedFileName ).Replace( '\\', '/' );
-                    scrubbedFileName = System.IO.Path.GetFileName( scrubbedFileName );
-                    scrubbedFileName = Regex.Replace( scrubbedFileName, "[" + Regex.Escape( string.Concat( System.IO.Path.GetInvalidFileNameChars() ) ) + "]", string.Empty, RegexOptions.CultureInvariant );
-
-                    path = $"{scrubbedFilePath}/{scrubbedFileName}";
-                }
-
-                return (assetStorageProviderId, path);
             }
         }
 
@@ -900,11 +937,12 @@ namespace Rock.Rest.v2
             {
                 var component = provider.AssetStorageComponent;
                 var rootFolder = component.GetRootFolder( provider.ToEntity() );
+                var encryptedRootFolder = Rock.Security.Encryption.EncryptString( rootFolder );
 
                 var providerBag = new TreeItemBag
                 {
                     Text = provider.Name,
-                    Value = $"{provider.Id},{rootFolder},{true}",
+                    Value = $"{provider.Id},{encryptedRootFolder},,{true}",
                     IconCssClass = component.IconCssClass,
                     HasChildren = true
                 };
@@ -928,7 +966,7 @@ namespace Rock.Rest.v2
 
         private List<TreeItemBag> GetChildrenOfAsset( string assetFolderId, List<string> expandedFolders )
         {
-            var (assetStorageProviderId, path) = ParseAssetId( assetFolderId );
+            var (assetStorageProviderId, path) = ParseAssetKey( assetFolderId );
 
             if ( assetStorageProviderId == null || path == null )
             {
@@ -945,13 +983,15 @@ namespace Rock.Rest.v2
             var tree = new List<TreeItemBag>();
             var asset = new Asset { Type = AssetType.Folder, Key = path ?? string.Empty };
             var folders = component.ListFoldersInFolder( provider.ToEntity(), asset );
+            var rootFolder = component.GetRootFolder( provider.ToEntity() );
+            var encryptedRootFolder = Rock.Security.Encryption.EncryptString( rootFolder );
 
             foreach ( Asset folder in folders )
             {
                 var folderBag = new TreeItemBag
                 {
                     Text = folder.Name,
-                    Value = $"{provider.Id},{folder.Key}",
+                    Value = $"{provider.Id},{encryptedRootFolder},{folder.Key.Replace( rootFolder, "" )}",
                     IconCssClass = "fa fa-folder",
                     // Verifying if it has any children is slow, so we just say true and it gets fixed
                     // on the client when attempting to expand children
