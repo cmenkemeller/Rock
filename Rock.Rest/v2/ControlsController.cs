@@ -637,11 +637,6 @@ namespace Rock.Rest.v2
         [Rock.SystemGuid.RestActionGuid( "9A96E14F-99DB-4F9A-95EB-DF17D3B5EE25" )]
         public IHttpActionResult AssetManagerGetChildren( [FromBody] AssetManagerGetChildrenOptionsBag options )
         {
-            if ( options.AssetFolderId == "0" )
-            {
-                return Ok( GetAssetStorageProviders( options.ExpandedFolders ) );
-            }
-
             var expandedFolders = new List<string>();
 
             // Decrypt the root folder of the ExpandedFolders so we actually know which folders to expand
@@ -652,6 +647,11 @@ namespace Rock.Rest.v2
                     var (assetProviderId, path) = ParseAssetKey( folder );
                     expandedFolders.Add( $"{assetProviderId},{path}" );
                 }
+            }
+
+            if ( options.AssetFolderId == "0" )
+            {
+                return Ok( GetAssetStorageProviders( expandedFolders ) );
             }
 
             return Ok( GetChildrenOfAsset( options.AssetFolderId, expandedFolders ) );
@@ -947,7 +947,7 @@ namespace Rock.Rest.v2
                     HasChildren = true
                 };
 
-                if ( expandedFolders?.Contains( providerBag.Value ) ?? false )
+                if ( expandedFolders.Contains( $"{provider.Id},{rootFolder}" ) )
                 {
                     providerBag.Children = GetChildrenOfAsset( providerBag.Value, expandedFolders );
                     providerBag.ChildCount = providerBag.Children?.Count ?? 0;
@@ -988,17 +988,18 @@ namespace Rock.Rest.v2
 
             foreach ( Asset folder in folders )
             {
+                var folderPath = folder.Key.Replace( rootFolder, "" );
                 var folderBag = new TreeItemBag
                 {
                     Text = folder.Name,
-                    Value = $"{provider.Id},{encryptedRootFolder},{folder.Key.Replace( rootFolder, "" )}",
+                    Value = $"{provider.Id},{encryptedRootFolder},{folderPath}",
                     IconCssClass = "fa fa-folder",
                     // Verifying if it has any children is slow, so we just say true and it gets fixed
                     // on the client when attempting to expand children
                     HasChildren = true
                 };
 
-                if ( expandedFolders?.Contains( folderBag.Value ) ?? false )
+                if ( expandedFolders?.Contains( $"{provider.Id},{rootFolder}{folderPath}" ) ?? false )
                 {
                     folderBag.Children = GetChildrenOfAsset( folderBag.Value, expandedFolders );
                     folderBag.ChildCount = folderBag.Children?.Count ?? 0;
