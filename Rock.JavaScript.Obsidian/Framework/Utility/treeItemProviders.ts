@@ -1114,10 +1114,11 @@ export class AssetManagerTreeItemProvider implements ITreeItemProvider {
             expandedFolders: this.openFolders.size > 0 ? Array.from(this.openFolders) : null,
         };
         const url = "/api/v2/Controls/AssetManagerGetChildren";
-        const response = await post<TreeItemBag[]>(url, undefined, options);
+        const response = await post<{tree:TreeItemBag[], updatedExpandedFolders: string[]}>(url, undefined, options);
 
         if (response.isSuccess && response.data) {
-            return response.data;
+            this.openFolders = new Set(response.data.updatedExpandedFolders);
+            return response.data.tree;
         }
         else {
             console.log("Error", response.errorMessage);

@@ -637,6 +637,8 @@ namespace Rock.Rest.v2
         [Rock.SystemGuid.RestActionGuid( "9A96E14F-99DB-4F9A-95EB-DF17D3B5EE25" )]
         public IHttpActionResult AssetManagerGetChildren( [FromBody] AssetManagerGetChildrenOptionsBag options )
         {
+            List<TreeItemBag> tree;
+            List<string> updatedExpandedFolders;
             var expandedFolders = new List<string>();
 
             // Decrypt the root folder of the ExpandedFolders so we actually know which folders to expand
@@ -651,10 +653,20 @@ namespace Rock.Rest.v2
 
             if ( options.AssetFolderId == "0" )
             {
-                return Ok( GetAssetStorageProviders( expandedFolders ) );
+                (tree, updatedExpandedFolders) = GetAssetStorageProviders( expandedFolders );
+                return Ok( new
+                {
+                    Tree = tree,
+                    UpdatedExpandedFolders = updatedExpandedFolders
+                } );
             }
 
-            return Ok( GetChildrenOfAsset( options.AssetFolderId, expandedFolders ) );
+            (tree, updatedExpandedFolders) = GetChildrenOfAsset( options.AssetFolderId, expandedFolders );
+            return Ok( new
+            {
+                Tree = tree,
+                UpdatedExpandedFolders = updatedExpandedFolders
+            } );
         }
 
         /// <summary>
@@ -927,11 +939,12 @@ namespace Rock.Rest.v2
         /// Get a tree of all the asset storage providers
         /// </summary>
         /// <returns>A tree of all the asset storage providers</returns>
-        private List<TreeItemBag> GetAssetStorageProviders( List<string> expandedFolders )
+        private (List<TreeItemBag>, List<string> updatedExpandedFolders) GetAssetStorageProviders( List<string> expandedFolders )
         {
             var providers = AssetStorageProviderCache.All()
                 .Where( a => a.EntityTypeId.HasValue && a.IsActive );
             var tree = new List<TreeItemBag>();
+            var updatedExpandedFolders = new List<string>();
 
             foreach ( var provider in providers )
             {
@@ -949,42 +962,50 @@ namespace Rock.Rest.v2
 
                 if ( expandedFolders.Contains( $"{provider.Id},{rootFolder}" ) )
                 {
-                    providerBag.Children = GetChildrenOfAsset( providerBag.Value, expandedFolders );
-                    providerBag.ChildCount = providerBag.Children?.Count ?? 0;
+                    var (children, exFolders) = GetChildrenOfAsset( providerBag.Value, expandedFolders );
+                    providerBag.Children = children;
+                    providerBag.ChildCount = children?.Count ?? 0;
 
                     if ( providerBag.ChildCount == 0 )
                     {
                         providerBag.HasChildren = false;
+                    }
+                    else
+                    {
+                        updatedExpandedFolders.Add( providerBag.Value );
+                        updatedExpandedFolders.AddRange( exFolders );
                     }
                 }
 
                 tree.Add( providerBag );
             }
 
-            return tree;
+            return (tree, updatedExpandedFolders);
         }
 
-        private List<TreeItemBag> GetChildrenOfAsset( string assetFolderId, List<string> expandedFolders )
+        private (List<TreeItemBag> children, List<string> updatedExpandedFolders) GetChildrenOfAsset( string assetFolderId, List<string> expandedFolders )
         {
+            var tree = new List<TreeItemBag>();
             var (assetStorageProviderId, path) = ParseAssetKey( assetFolderId );
 
             if ( assetStorageProviderId == null || path == null )
             {
-                return null;
+                return (tree, expandedFolders);
             }
 
             var (provider, component) = GetAssetStorageProvider( assetStorageProviderId.Value );
 
             if ( provider == null || component == null )
             {
-                return null;
+                return (tree, expandedFolders);
             }
 
-            var tree = new List<TreeItemBag>();
             var asset = new Asset { Type = AssetType.Folder, Key = path ?? string.Empty };
             var folders = component.ListFoldersInFolder( provider.ToEntity(), asset );
             var rootFolder = component.GetRootFolder( provider.ToEntity() );
             var encryptedRootFolder = Rock.Security.Encryption.EncryptString( rootFolder );
+
+            var updatedExpandedFolders = new List<string>();
 
             foreach ( Asset folder in folders )
             {
@@ -1001,19 +1022,25 @@ namespace Rock.Rest.v2
 
                 if ( expandedFolders?.Contains( $"{provider.Id},{rootFolder}{folderPath}" ) ?? false )
                 {
-                    folderBag.Children = GetChildrenOfAsset( folderBag.Value, expandedFolders );
-                    folderBag.ChildCount = folderBag.Children?.Count ?? 0;
+                    var (children, exFolders) = GetChildrenOfAsset( folderBag.Value, expandedFolders );
+                    folderBag.Children = children;
+                    folderBag.ChildCount = children?.Count ?? 0;
 
                     if ( folderBag.ChildCount == 0 )
                     {
                         folderBag.HasChildren = false;
+                    }
+                    else
+                    {
+                        updatedExpandedFolders.Add( folderBag.Value );
+                        updatedExpandedFolders.AddRange( exFolders );
                     }
                 }
 
                 tree.Add( folderBag );
             }
 
-            return tree;
+            return (tree, updatedExpandedFolders);
         }
 
         /// <summary>
