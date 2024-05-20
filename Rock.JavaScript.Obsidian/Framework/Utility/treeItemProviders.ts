@@ -131,7 +131,7 @@ export class CategoryTreeItemProvider implements ITreeItemProvider {
             securityGrantToken: this.securityGrantToken,
 
             getCategorizedItems: false,
-            includeCategoriesWithoutChildren: false,
+            includeCategoriesWithoutChildren: true,
             includeInactiveItems: false,
             includeUnnamedEntityItems: false,
         };
