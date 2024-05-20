@@ -132,7 +132,7 @@ namespace Rock.DownhillCss
                 {
                     _cssBuilder.Append( baseStylesMobile );
 
-                    if( Settings.EnableLegacyStyles )
+                    if ( Settings.EnableLegacyStyles )
                     {
                         _cssBuilder.Append( legacyStylesMobile );
                     }
@@ -189,13 +189,13 @@ namespace Rock.DownhillCss
                     cssStyles = ReplaceCssVariable( cssStyles, key, value );
                 }
 
-                if ( Settings.SupplyTailwindCss )
+                if ( Settings.SupplyTailwindCss || true )
                 {
                     foreach ( var color in ColorPalette.ColorMaps )
                     {
                         foreach ( var saturatedColor in color.ColorSaturations )
                         {
-                            ReplaceCssVariable( cssStyles, $"?color-{color.Color.ToLower()}-{saturatedColor.Intensity}", saturatedColor.ColorValue.ToLower() );
+                            cssStyles = ReplaceCssVariable( cssStyles, $"?color-{color.Color.ToLower()}-{saturatedColor.Intensity}", saturatedColor.ColorValue.ToLower() );
                         }
                     }
                 }
@@ -212,11 +212,11 @@ namespace Rock.DownhillCss
             /// <returns></returns>
             private string ReplaceCssVariable( string cssStyles, string name, string value )
             {
-                if( string.IsNullOrWhiteSpace( name ) || string.IsNullOrWhiteSpace( value ) )
+                if ( string.IsNullOrWhiteSpace( name ) || string.IsNullOrWhiteSpace( value ) )
                 {
                     return cssStyles;
                 }
-                
+
                 if ( !name.StartsWith( "?" ) )
                 {
                     name = $"?{name}";
@@ -243,7 +243,7 @@ namespace Rock.DownhillCss
                     cssStyles = cssStyles.Replace( "?color-background", Settings.BackgroundColor );
                 }
 
-                if( Settings.Platform == DownhillPlatform.Mobile )
+                if ( Settings.Platform == DownhillPlatform.Mobile )
                 {
                     // Most Xamarin.Forms controls only support integer values for border-radius.
                     cssStyles = cssStyles.Replace( "?radius-base", ( ( int ) Math.Floor( Settings.RadiusBase ) ).ToString() );
@@ -270,19 +270,19 @@ namespace Rock.DownhillCss
 
                     AddUtilityClass( string.Empty, namedTextStyle.Name.ToLower(), new Dictionary<string, string>
                     {
-                        [ "font-size" ] = namedTextStyle.Size.ToString(),
-                        [ "line-height" ] = namedTextStyle.LineHeight.ToString()
+                        ["font-size"] = namedTextStyle.Size.ToString(),
+                        ["line-height"] = namedTextStyle.LineHeight.ToString()
                     } );
                 }
 
                 AddUtilityClass( string.Empty, "bold", new Dictionary<string, string>
                 {
-                    [ "font-style" ] = "bold"
+                    ["font-style"] = "bold"
                 } );
 
                 AddUtilityClass( string.Empty, "italic", new Dictionary<string, string>
                 {
-                    [ "font-style" ] = "italic"
+                    ["font-style"] = "italic"
                 } );
             }
 
@@ -299,7 +299,7 @@ namespace Rock.DownhillCss
                 AddColorUtilityClasses( defaultColors, string.Empty );
                 AddColorUtilityClasses( flippedColors, "dark-mode" );
 
-                if ( Settings.SupplyTailwindCss )
+                if ( Settings.SupplyTailwindCss || true )
                 {
                     foreach ( var color in ColorPalette.ColorMaps )
                     {
@@ -307,17 +307,17 @@ namespace Rock.DownhillCss
                         {
                             AddUtilityClass( "bg", $"{color.Color.ToLower()}-{saturatedColor.Intensity}", new Dictionary<string, string>
                             {
-                                [ "background-color" ] = saturatedColor.ColorValue.ToLower()
+                                ["background-color"] = saturatedColor.ColorValue.ToLower()
                             } );
 
                             AddUtilityClass( "text", $"{color.Color.ToLower()}-{saturatedColor.Intensity}", new Dictionary<string, string>
                             {
-                                [ "color" ] = saturatedColor.ColorValue.ToLower()
+                                ["color"] = saturatedColor.ColorValue.ToLower()
                             } );
 
                             AddUtilityClass( "border", $"{color.Color.ToLower()}-{saturatedColor.Intensity}", new Dictionary<string, string>
                             {
-                                [ "border-color" ] = saturatedColor.ColorValue.ToLower()
+                                ["border-color"] = saturatedColor.ColorValue.ToLower()
                             } );
                         }
                     }
@@ -337,21 +337,21 @@ namespace Rock.DownhillCss
                         var bgClass = string.IsNullOrWhiteSpace( prefix ) ? "bg" : $"{prefix} .bg";
                         AddUtilityClass( bgClass, colorName, new Dictionary<string, string>
                         {
-                            [ "background-color" ] = colorValue
+                            ["background-color"] = colorValue
                         } );
 
                         // Text Color
                         var textClass = string.IsNullOrWhiteSpace( prefix ) ? "text" : $"{prefix} .text";
                         AddUtilityClass( textClass, colorName, new Dictionary<string, string>
                         {
-                            [ "color" ] = colorValue
+                            ["color"] = colorValue
                         } );
 
                         // Border Color
                         var borderClass = string.IsNullOrWhiteSpace( prefix ) ? "border" : $"{prefix} .border";
                         AddUtilityClass( borderClass, colorName, new Dictionary<string, string>
                         {
-                            [ "border-color" ] = colorValue
+                            ["border-color"] = colorValue
                         } );
                     }
                 }
@@ -372,119 +372,119 @@ namespace Rock.DownhillCss
                     // m-
                     AddUtilityClass( "m", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "margin" ] = spacing.Value
+                        ["margin"] = spacing.Value
                     } );
 
                     // ml-
                     AddUtilityClass( "ml", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "margin-left" ] = spacing.Value
+                        ["margin-left"] = spacing.Value
                     } );
 
                     // mt-
                     AddUtilityClass( "mt", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "margin-top" ] = spacing.Value
+                        ["margin-top"] = spacing.Value
                     } );
 
                     // mr-
                     AddUtilityClass( "mr", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "margin-right" ] = spacing.Value
+                        ["margin-right"] = spacing.Value
                     } );
 
                     // mb-
                     AddUtilityClass( "mb", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "margin-bottom" ] = spacing.Value
+                        ["margin-bottom"] = spacing.Value
                     } );
 
                     // my-
                     AddUtilityClass( "my", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "margin-top" ] = spacing.Value,
-                        [ "margin-bottom" ] = spacing.Value
+                        ["margin-top"] = spacing.Value,
+                        ["margin-bottom"] = spacing.Value
                     } );
 
                     // mx-
                     AddUtilityClass( "mx", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "margin-left" ] = spacing.Value,
-                        [ "margin-right" ] = spacing.Value
+                        ["margin-left"] = spacing.Value,
+                        ["margin-right"] = spacing.Value
                     } );
 
                     // p-
                     AddUtilityClass( "p", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "padding" ] = spacing.Value
+                        ["padding"] = spacing.Value
                     } );
 
                     // pl-
                     AddUtilityClass( "pl", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "padding-left" ] = spacing.Value
+                        ["padding-left"] = spacing.Value
                     } );
 
                     // pt-
                     AddUtilityClass( "pt", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "padding-top" ] = spacing.Value
+                        ["padding-top"] = spacing.Value
                     } );
 
                     // pr-
                     AddUtilityClass( "pr", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "padding-right" ] = spacing.Value
+                        ["padding-right"] = spacing.Value
                     } );
 
                     // pb-
                     AddUtilityClass( "pb", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "padding-bottom" ] = spacing.Value
+                        ["padding-bottom"] = spacing.Value
                     } );
 
                     // py-
                     AddUtilityClass( "py", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "padding-top" ] = spacing.Value,
-                        [ "padding-bottom" ] = spacing.Value
+                        ["padding-top"] = spacing.Value,
+                        ["padding-bottom"] = spacing.Value
                     } );
 
                     // px-
                     AddUtilityClass( "px", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "padding-left" ] = spacing.Value,
-                        [ "padding-right" ] = spacing.Value
+                        ["padding-left"] = spacing.Value,
+                        ["padding-right"] = spacing.Value
                     } );
 
                     // spacing-
                     AddUtilityClass( "spacing", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "-maui-spacing" ] = spacing.Value
+                        ["-maui-spacing"] = spacing.Value
                     } );
 
                     // gap-
                     AddUtilityClass( "gap", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "row-gap" ] = spacing.Value,
-                        [ "column-gap" ] = spacing.Value,
-                        [ "-rock-responsive-layout-row-spacing" ] = spacing.Value,
-                        [ "-rock-responsive-layout-column-spacing" ] = spacing.Value
+                        ["row-gap"] = spacing.Value,
+                        ["column-gap"] = spacing.Value,
+                        ["-rock-responsive-layout-row-spacing"] = spacing.Value,
+                        ["-rock-responsive-layout-column-spacing"] = spacing.Value
                     } );
 
                     // gap-row-
                     AddUtilityClass( "gap-row", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "row-gap" ] = spacing.Value,
-                        [ "-rock-responsive-layout-row-spacing" ] = spacing.Value
+                        ["row-gap"] = spacing.Value,
+                        ["-rock-responsive-layout-row-spacing"] = spacing.Value
                     }
                     );
 
                     // gap-column-
                     AddUtilityClass( "gap-column", spacing.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "column-gap" ] = spacing.Value,
-                        [ "-rock-responsive-layout-column-spacing" ] = spacing.Value
+                        ["column-gap"] = spacing.Value,
+                        ["-rock-responsive-layout-column-spacing"] = spacing.Value
                     } );
                 }
             }
@@ -501,13 +501,13 @@ namespace Rock.DownhillCss
                     {
                         AddUtilityClass( string.Empty, "border", new Dictionary<string, string>
                         {
-                            [ "border-width" ] = $"{width}{Settings.BorderUnits}"
+                            ["border-width"] = $"{width}{Settings.BorderUnits}"
                         } );
                     }
 
                     AddUtilityClass( "border", width.ToString(), new Dictionary<string, string>
                     {
-                        [ "border-width" ] = $"{width}{Settings.BorderUnits}"
+                        ["border-width"] = $"{width}{Settings.BorderUnits}"
                     } );
                 }
             }
@@ -518,16 +518,16 @@ namespace Rock.DownhillCss
             /// </summary>
             private void BuildSizeUtilities()
             {
-                foreach( var size in Settings.SpacingValues )
+                foreach ( var size in Settings.SpacingValues )
                 {
                     AddUtilityClass( "h", size.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "height" ] = size.Value
+                        ["height"] = size.Value
                     } );
 
                     AddUtilityClass( "w", size.Key.ToString(), new Dictionary<string, string>
                     {
-                        [ "width" ] = size.Value
+                        ["width"] = size.Value
                     } );
                 }
             }
@@ -663,20 +663,10 @@ icon {
     color: ?color-interface-softest;
 }
 
-.dark-mode .btn.btn-primary {
-    background-color: ?color-primary-soft;
-    color: ?color-primary-strong;
-}
-
 /* Success */
 .btn.btn-success {
     background-color: ?color-success-strong;
     color: ?color-success-soft;
-}
-
-.dark-mode .btn.btn-success {
-    background-color: ?color-success-soft;
-    color: ?color-success-strong;
 }
 
 /* Info */
@@ -685,20 +675,10 @@ icon {
     color: ?color-info-soft;
 }
 
-.dark-mode .btn.btn-info {
-    background-color: ?color-info-soft;
-    color: ?color-info-strong;
-}
-
 /* Warning */
 .btn.btn-warning {
     background-color: ?color-warning-strong;
     color: ?color-warning-soft;
-}
-
-.dark-mode .btn.btn-warning {
-    background-color: ?color-warning-soft;
-    color: ?color-warning-strong;
 }
 
 /* Danger */
@@ -707,20 +687,11 @@ icon {
     color: ?color-danger-soft;
 }
 
-.dark-mode .btn.btn-danger {
-    background-color: ?color-danger-soft;
-    color: ?color-danger-strong;
-}
 
 /* Dark */
 .btn.btn-dark {
     color: ?color-interface-soft;
     background-color: ?color-interface-strong;
-}
-
-.dark-mode .btn.btn-dark {
-    color: ?color-interface-strong;
-    background-color: ?color-interface-soft;
 }
 
 /* Light */
@@ -729,20 +700,10 @@ icon {
     background-color: ?color-interface-soft;
 }
 
-.dark-mode .btn.btn-light {
-    color: ?color-interface-soft;
-    background-color: ?color-interface-strong;
-}
-
 /* Secondary */
 .btn.btn-secondary {
     color: ?color-secondary-soft;
     background-color: ?color-secondary-strong;
-}
-
-.dark-mode .btn.btn-secondary {
-    color: ?color-secondary-strong;
-    background-color: ?color-secondary-soft;
 }
 
 /* Brand */
@@ -751,22 +712,10 @@ icon {
     background-color: ?color-brand-strong;
 }
 
-.dark-mode .btn.btn-brand {
-    color: ?color-brand-strong;
-    background-color: ?color-brand-soft;
-}
-
 /* Default */
 .btn.btn-default {
     color: ?color-primary-strong;
     border-color: ?color-primary-strong;
-    border-width: 1;
-    background-color: transparent;
-}
-
-.dark-mode .btn.btn-default {
-    color: ?color-primary-soft;
-    border-color: ?color-primary-soft;
     border-width: 1;
     background-color: transparent;
 }
@@ -780,21 +729,9 @@ icon {
     background-color: transparent;
 }
 
-.dark-mode .btn.btn-link {
-    color: ?color-primary-soft;
-    border-width: 0;
-    background-color: transparent;
-}
-
 /* Link secondary */
 .btn.btn-link-secondary {
     color: ?color-secondary-strong;
-    border-width: 0;
-    background-color: transparent;
-}
-
-.dark-mode .btn.btn-link-secondary {
-    color: ?color-secondary-soft;
     border-width: 0;
     background-color: transparent;
 }
@@ -806,21 +743,9 @@ icon {
     background-color: transparent;
 }
 
-.dark-mode .btn.btn-link-success {
-    color: ?color-success-soft;
-    border-width: 0;
-    background-color: transparent;
-}
-
 /* Link danger */
 .btn.btn-link-danger {
     color: ?color-danger-strong;
-    border-width: 0;
-    background-color: transparent;
-}
-
-.dark-mode .btn.btn-link-danger {
-    color: ?color-danger-soft;
     border-width: 0;
     background-color: transparent;
 }
@@ -832,21 +757,9 @@ icon {
     background-color: transparent;
 }
 
-.dark-mode .btn.btn-link-warning {
-    color: ?color-warning-soft;
-    border-width: 0;
-    background-color: transparent;
-}
-
 /* Link info */
 .btn.btn-link-info {
     color: ?color-info-strong;
-    border-width: 0;
-    background-color: transparent;
-}
-
-.dark-mode .btn.btn-link-info {
-    color: ?color-info-soft;
     border-width: 0;
     background-color: transparent;
 }
@@ -858,12 +771,6 @@ icon {
     background-color: transparent;
 }
 
-.dark-mode .btn.btn-link-light {
-    color: ?color-interface-strong;
-    border-width: 0;
-    background-color: transparent;
-}
-
 /* Link dark */
 .btn.btn-link-dark {
     color: ?color-interface-strong;
@@ -871,21 +778,9 @@ icon {
     background-color: transparent;
 }
 
-.dark-mode .btn.btn-link-dark {
-    color: ?color-interface-soft;
-    border-width: 0;
-    background-color: transparent;
-}
-
 /* Link brand */
 .btn.btn-link-brand {
     color: ?color-brand-strong;
-    border-width: 0;
-    background-color: transparent;
-}
-
-.dark-mode .btn.btn-link-brand {
-    color: ?color-brand-soft;
     border-width: 0;
     background-color: transparent;
 }
@@ -900,24 +795,10 @@ icon {
     background-color: transparent;
 }
 
-.dark-mode .btn.btn-outline-primary {
-    color: ?color-primary-soft;
-    border-color: ?color-primary-soft;
-    border-width: 1;
-    background-color: transparent;
-}
-
 /* Outline secondary */
 .btn.btn-outline-secondary {
     color: ?color-secondary-strong;
     border-color: ?color-secondary-strong;
-    border-width: 1;
-    background-color: transparent;
-}
-
-.dark-mode .btn.btn-outline-secondary {
-    color: ?color-secondary-soft;
-    border-color: ?color-secondary-soft;
     border-width: 1;
     background-color: transparent;
 }
@@ -930,24 +811,10 @@ icon {
     background-color: transparent;
 }
 
-.dark-mode .btn.btn-outline-success {
-    color: ?color-success-soft;
-    border-color: ?color-success-soft;
-    border-width: 1;
-    background-color: transparent;
-}
-
 /* Outline danger */
 .btn.btn-outline-danger {
     color: ?color-danger-strong;
     border-color: ?color-danger-strong;
-    border-width: 1;
-    background-color: transparent;
-}
-
-.dark-mode .btn.btn-outline-danger {
-    color: ?color-danger-soft;
-    border-color: ?color-danger-soft;
     border-width: 1;
     background-color: transparent;
 }
@@ -960,24 +827,10 @@ icon {
     background-color: transparent;
 }
 
-.dark-mode .btn.btn-outline-warning {
-    color: ?color-warning-soft;
-    border-color: ?color-warning-soft;
-    border-width: 1;
-    background-color: transparent;
-}
-
 /* Outline info */
 .btn.btn-outline-info {
     color: ?color-info-strong;
     border-color: ?color-info-strong;
-    border-width: 1;
-    background-color: transparent;
-}
-
-.dark-mode .btn.btn-outline-info {
-    color: ?color-info-soft;
-    border-color: ?color-info-soft;
     border-width: 1;
     background-color: transparent;
 }
@@ -990,13 +843,6 @@ icon {
     background-color: transparent;
 }
 
-.dark-mode .btn.btn-outline-light {
-    color: ?color-interface-medium;
-    border-color: ?color-interface-strong;
-    border-width: 1;
-    background-color: transparent;
-}
-
 /* Outline dark */
 .btn.btn-outline-dark {
     color: ?color-interface-strong;
@@ -1005,24 +851,10 @@ icon {
     background-color: transparent;
 }
 
-.dark-mode .btn.btn-outline-dark {
-    color: ?color-interface-soft;
-    border-color: ?color-interface-soft;
-    border-width: 1;
-    background-color: transparent;
-}
-
 /* Outline brand */
 .btn.btn-outline-brand {
     color: ?color-brand-strong;
     border-color: ?color-brand-strong;
-    border-width: 1;
-    background-color: transparent;
-}
-
-.dark-mode .btn.btn-outline-brand {
-    color: ?color-brand-soft;
-    border-color: ?color-brand-soft;
     border-width: 1;
     background-color: transparent;
 }
@@ -1041,9 +873,23 @@ icon {
 }
 
 /* Button Sizes */
+.btn {
+    font-size: 17;
+    padding: 16;
+    font-style: bold;
+    border-radius: 8;
+}
+
+.btn.btn-sm {
+    font-size: 17;
+    padding: 8 16;
+    font-style: bold;
+}
+
 .btn.btn-lg {
-    font-size: large;
-    padding: 20;
+    font-size: 17;
+    padding: 24 16;
+    font-style: bold;
 }
 
 /* Visibility Classes */
@@ -1238,11 +1084,6 @@ formfield.required .required-indicator,
 .dark-mode ^entry {
     color: ?color-interface-soft;
 }
-
-^FieldStack {
-    border-color: ?color-interface-medium;
-}
-
 formfield, .unlabeled {
     padding: 8 12;    
 }";
