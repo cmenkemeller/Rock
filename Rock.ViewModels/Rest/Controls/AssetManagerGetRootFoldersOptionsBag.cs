@@ -23,8 +23,17 @@ namespace Rock.ViewModels.Rest.Controls
     /// The options that can be passed to the AddFolder API action of
     /// the AssetManager control.
     /// </summary>
-    public class AssetManagerGetChildrenOptionsBag : AssetManagerBaseOptionsBag
+    public class AssetManagerGetRootFoldersOptionsBag
     {
         public List<string> ExpandedFolders { get; set; } = null;
+
+        // TODO: Remove default
+        public string RootFolder { get; set; } = "EAAAAI5wiBY4SMrjA6A6W0j6tcLcNlC3Lti9xvjVPk4iT8KU";
+
+        // TODO: Change default
+        public bool EnableAssetManager { get; set; } = true;
+
+        // TODO: Change default
+        public bool EnableFileManager { get; set; } = true;
     }
 }

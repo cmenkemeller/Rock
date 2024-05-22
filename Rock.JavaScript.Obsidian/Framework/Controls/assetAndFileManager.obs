@@ -129,7 +129,7 @@
                         </tr>
                     </tbody>
                 </table>
-                <div v-else-if="!isFolderSelected" class="m-auto justify-self-center text-lg text-muted" style="width:max-content;">Please Select a Folder.</div>
+                <div v-else-if="!isFolderSelected" class="m-auto justify-self-center text-lg text-muted" style="width:max-content;">Please select a folder.</div>
                 <div v-else-if="!isLoadingFiles" class="m-auto justify-self-center text-lg text-muted" style="width:max-content;">No files found.</div>
             </div>
 

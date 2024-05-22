@@ -627,22 +627,22 @@ namespace Rock.Rest.v2
         #region Asset Manager
 
         /// <summary>
-        /// Gets the root storage providers, or a list of folders of a parent folder
+        /// Gets the root storage providers and/or the main File Browser folder.
         /// </summary>
         /// <param name="options">The options that describe which items to load.</param>
         /// <returns>A List of <see cref="TreeItemBag"/> objects that represent the asset storage providers/folders.</returns>
         [HttpPost]
-        [System.Web.Http.Route( "AssetManagerGetChildren" )]
+        [System.Web.Http.Route( "AssetManagerGetRootFolders" )]
         [Authenticate]
         [Rock.SystemGuid.RestActionGuid( "9A96E14F-99DB-4F9A-95EB-DF17D3B5EE25" )]
-        public IHttpActionResult AssetManagerGetChildren( [FromBody] AssetManagerGetChildrenOptionsBag options )
+        public IHttpActionResult AssetManagerGetRootFolders( [FromBody] AssetManagerGetRootFoldersOptionsBag options )
         {
-            List<TreeItemBag> tree;
-            List<string> updatedExpandedFolders;
             var expandedFolders = new List<string>();
+            var tree = new List<TreeItemBag>();
+            var updatedExpandedFolders = new List<string>();
 
             // Decrypt the root folder of the ExpandedFolders so we actually know which folders to expand
-            if ( options.ExpandedFolders != null && options.ExpandedFolders.Count > 0 )
+            if ( ( options.ExpandedFolders?.Count ?? 0 ) > 0 )
             {
                 foreach ( var folder in options.ExpandedFolders )
                 {
@@ -651,22 +651,60 @@ namespace Rock.Rest.v2
                 }
             }
 
-            if ( options.AssetFolderId == "0" )
+            if ( options.EnableFileManager && options.RootFolder.IsNotNullOrWhiteSpace() )
             {
-                (tree, updatedExpandedFolders) = GetAssetStorageProviders( expandedFolders );
-                return Ok( new
+                var (folder, expandedFileFolders) = GetRootFolder( options.RootFolder, expandedFolders );
+
+                tree.Add( folder );
+                updatedExpandedFolders.AddRange( expandedFileFolders );
+
+                // If only file manager is enabled, we want the folder expanded immediately
+                if ( !options.EnableAssetManager && ( folder.Children?.Count ?? 0 ) > 0 )
                 {
-                    Tree = tree,
-                    UpdatedExpandedFolders = updatedExpandedFolders
-                } );
+                    var (children, expanded) = GetChildFolders( options.RootFolder, expandedFolders );
+                    folder.Children = children;
+                    updatedExpandedFolders.Add( folder.Value );
+                }
             }
 
-            (tree, updatedExpandedFolders) = GetChildrenOfAsset( options.AssetFolderId, expandedFolders );
+            if ( options.EnableAssetManager )
+            {
+                var (assetTree, expandedAssetFolders) = GetAssetStorageProviders( expandedFolders );
+
+                tree.AddRange( assetTree );
+                updatedExpandedFolders.AddRange( expandedAssetFolders );
+
+                var folder = assetTree?.ElementAt( 0 );
+
+                // If only asset manager is enabled and only one asset provider exists, we want it expanded immediately
+                if ( !options.EnableFileManager && ( assetTree?.Count ?? 0 ) == 1 && ( folder.Children?.Count ?? 0 ) > 0 )
+                {
+                    var (children, expanded) = GetChildrenOfAsset( folder.Value, expandedFolders );
+                    folder.Children = children;
+                    updatedExpandedFolders.Add( folder.Value );
+                }
+            }
+
             return Ok( new
             {
                 Tree = tree,
                 UpdatedExpandedFolders = updatedExpandedFolders
             } );
+        }
+
+        /// <summary>
+        /// Gets the root storage providers, or a list of folders of a parent folder
+        /// </summary>
+        /// <param name="options">The options that describe which items to load.</param>
+        /// <returns>A List of <see cref="TreeItemBag"/> objects that represent the asset storage providers/folders.</returns>
+        [HttpPost]
+        [System.Web.Http.Route( "AssetManagerGetChildren" )]
+        [Authenticate]
+        [Rock.SystemGuid.RestActionGuid( "9A96E14F-99DB-4F9A-95EB-DF17D3B5EE25" )]
+        public IHttpActionResult AssetManagerGetChildren( [FromBody] AssetManagerBaseOptionsBag options )
+        {
+            var (tree, updatedExpandedFolders) = GetChildrenOfAsset( options.AssetFolderId, new List<string>() );
+            return Ok( tree );
         }
 
         /// <summary>
@@ -916,7 +954,7 @@ namespace Rock.Rest.v2
                     // Adding the slash shouldn't be necessary but the parsers don't choke on an extra slash, so it's here just in case it's missing from root.
                     path = root + "/" + partialPath;
 
-                    if ( path.Length > 0 )
+                    if ( path.Length > 0 && path != "/" )
                     {
                         var scrubbedFileName = Regex.Replace( path, "[" + Regex.Escape( string.Concat( System.IO.Path.GetInvalidPathChars() ) ) + "]", string.Empty, RegexOptions.CultureInvariant );
                         var scrubbedFilePath = System.IO.Path.GetDirectoryName( scrubbedFileName ).Replace( '\\', '/' );
@@ -933,6 +971,166 @@ namespace Rock.Rest.v2
             {
                 return (null, null);
             }
+        }
+
+        /// <summary>
+        /// Get a tree of all the folders in the given root of the local file system
+        /// </summary>
+        /// <returns>A tree of all the folder</returns>
+        private (TreeItemBag, List<string> updatedExpandedFolders) GetRootFolder( string encryptedRootFolder, List<string> expandedFolders )
+        {
+            string root;
+            var HiddenFolders = new List<string>()
+                {
+                    "Content\\ASM_Thumbnails"
+                };
+
+            try
+            {
+                root = Rock.Security.Encryption.DecryptString( encryptedRootFolder );
+            }
+            catch ( Exception )
+            {
+                return (null, expandedFolders);
+            }
+
+            if ( root.IsNullOrWhiteSpace() )
+            {
+                return (null, expandedFolders);
+            }
+
+            // ensure that the folder is formatted to be relative to web root
+            if ( !root.StartsWith( "~/" ) )
+            {
+                root = "~/" + root;
+            }
+
+            var localRoot = System.Web.HttpContext.Current.Server.MapPath( root );
+
+            if ( !Directory.Exists( localRoot ) )
+            {
+                try
+                {
+                    Directory.CreateDirectory( localRoot );
+                }
+                catch
+                {
+                    // intentionally ignore the exception. It'll be handled later.
+                }
+            }
+
+            if ( Directory.Exists( localRoot ) && !HiddenFolders.Any( a => localRoot.IndexOf( a, StringComparison.OrdinalIgnoreCase ) > 0 ) )
+            {
+                var tree = new List<TreeItemBag>();
+                var updatedExpandedFolders = new List<string>();
+
+                var folder = new DirectoryInfo( localRoot );
+                var hasChildren = false;
+
+                try
+                {
+                    var subDirectoryList = Directory.GetDirectories( localRoot ).ToList();
+                    hasChildren = subDirectoryList.Any();
+                }
+                catch ( Exception ex )
+                {
+                    // Empty. Just mark as having no children.
+                }
+
+                var folderBag = new TreeItemBag
+                {
+                    Text = folder.Name,
+                    Value = $"0,{encryptedRootFolder},,True",
+                    IconCssClass = "fa fa-folder",
+                    HasChildren = hasChildren
+                };
+
+                tree.Add( folderBag );
+
+                return (tree, updatedExpandedFolders);
+            }
+
+            return (null, expandedFolders);
+        }
+
+        /// <summary>
+        /// Get a tree of all the folders in the given root of the local file system
+        /// </summary>
+        /// <returns>A tree of all the folder</returns>
+        private (List<TreeItemBag>, List<string> updatedExpandedFolders) GetChildFolders( string encryptedRootFolder, List<string> expandedFolders )
+        {
+            string root;
+            var HiddenFolders = new List<string>()
+                {
+                    "Content\\ASM_Thumbnails"
+                };
+
+            try
+            {
+                root = Rock.Security.Encryption.DecryptString( encryptedRootFolder );
+            }
+            catch ( Exception )
+            {
+                return (null, expandedFolders);
+            }
+
+            if ( root.IsNullOrWhiteSpace() )
+            {
+                return (null, expandedFolders);
+            }
+
+            // ensure that the folder is formatted to be relative to web root
+            if ( !root.StartsWith( "~/" ) )
+            {
+                root = "~/" + root;
+            }
+
+            var localRoot = System.Web.HttpContext.Current.Server.MapPath( root );
+
+            if ( !Directory.Exists( localRoot ) )
+            {
+                try
+                {
+                    Directory.CreateDirectory( localRoot );
+                }
+                catch
+                {
+                    // intentionally ignore the exception. It'll be handled later.
+                }
+            }
+
+            if ( Directory.Exists( localRoot ) && !HiddenFolders.Any( a => localRoot.IndexOf( a, StringComparison.OrdinalIgnoreCase ) > 0 ) )
+            {
+                var tree = new List<TreeItemBag>();
+                var updatedExpandedFolders = new List<string>();
+
+                var folder = new DirectoryInfo( localRoot );
+                var hasChildren = false;
+
+                try
+                {
+                    var subDirectoryList = Directory.GetDirectories( localRoot ).Where().ToList();
+                    hasChildren = subDirectoryList.Any();
+                }
+                catch ( Exception ex )
+                {
+                    // Empty. Just mark as having no children.
+                }
+
+                var folderBag = new TreeItemBag
+                {
+                    Text = folder.Name,
+                    Value = $"0,{encryptedRootFolder},,True",
+                    IconCssClass = "fa fa-folder",
+                    HasChildren = hasChildren
+                };
+
+                tree.Add( folderBag );
+
+                return (tree, updatedExpandedFolders);
+            }
+
+            return (null, expandedFolders);
         }
 
         /// <summary>
