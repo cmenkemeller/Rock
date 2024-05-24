@@ -39,6 +39,7 @@ using Rock.Extension;
 using Rock.Field;
 using Rock.Field.Types;
 using Rock.Financial;
+using Rock.IpAddress;
 using Rock.Lava;
 using Rock.Media;
 using Rock.Model;
@@ -646,8 +647,8 @@ namespace Rock.Rest.v2
             {
                 foreach ( var folder in options.ExpandedFolders )
                 {
-                    var (assetProviderId, path) = ParseAssetKey( folder );
-                    expandedFolders.Add( $"{assetProviderId},{path}" );
+                    var parsedAsset = ParseAssetKey( folder );
+                    expandedFolders.Add( $"{parsedAsset.ProviderId},{parsedAsset.FullPath}" );
                 }
             }
 
@@ -661,7 +662,7 @@ namespace Rock.Rest.v2
                 // If only file manager is enabled, we want the folder expanded immediately
                 if ( !options.EnableAssetManager && ( folder.Children?.Count ?? 0 ) > 0 )
                 {
-                    var (children, expanded) = GetChildFolders( options.RootFolder, expandedFolders );
+                    var (children, expanded) = GetChildFolders( options.RootFolder, options.RootFolder, expandedFolders );
                     folder.Children = children;
                     updatedExpandedFolders.Add( folder.Value );
                 }
@@ -718,21 +719,21 @@ namespace Rock.Rest.v2
         [Rock.SystemGuid.RestActionGuid( "D45422C0-5FCA-44C4-B9E1-4BA05E8D534D" )]
         public IHttpActionResult AssetManagerGetFiles( [FromBody] AssetManagerBaseOptionsBag options )
         {
-            var (assetStorageProviderId, path) = ParseAssetKey( options.AssetFolderId );
+            var asset = ParseAssetKey( options.AssetFolderId );
 
-            if ( assetStorageProviderId == null || path == null )
+            if ( asset.ProviderId == null || asset.FullPath == null )
             {
                 return BadRequest();
             }
 
-            var (provider, component) = GetAssetStorageProvider( assetStorageProviderId.Value );
+            var (provider, component) = GetAssetStorageProvider( asset.ProviderId.Value );
 
             if ( provider == null || component == null )
             {
                 return BadRequest();
             }
 
-            List<Asset> assets = component.ListFilesInFolder( provider.ToEntity(), new Asset { Key = path, Type = AssetType.Folder, AssetStorageProviderId = assetStorageProviderId.Value } );
+            List<Asset> assets = component.ListFilesInFolder( provider.ToEntity(), new Asset { Key = asset.FullPath, Type = AssetType.Folder, AssetStorageProviderId = asset.ProviderId.Value } );
 
             return Ok( assets );
         }
@@ -748,21 +749,21 @@ namespace Rock.Rest.v2
         [Rock.SystemGuid.RestActionGuid( "7625091B-D70A-4564-97C8-ED77AE5DB738" )]
         public IHttpActionResult AssetManagerDeleteFolder( [FromBody] AssetManagerBaseOptionsBag options )
         {
-            var (assetStorageProviderId, path) = ParseAssetKey( options.AssetFolderId );
+            var asset = ParseAssetKey( options.AssetFolderId );
 
-            if ( assetStorageProviderId == null || path == null )
+            if ( asset.ProviderId == null || asset.FullPath == null )
             {
                 return BadRequest();
             }
 
-            var (provider, component) = GetAssetStorageProvider( assetStorageProviderId.Value );
+            var (provider, component) = GetAssetStorageProvider( asset.ProviderId.Value );
 
             if ( provider == null || component == null )
             {
                 return BadRequest();
             }
 
-            return Ok( component.DeleteAsset( provider.ToEntity(), new Asset { Key = path, Type = AssetType.Folder } ) );
+            return Ok( component.DeleteAsset( provider.ToEntity(), new Asset { Key = asset.FullPath, Type = AssetType.Folder } ) );
         }
 
         /// <summary>
@@ -781,14 +782,14 @@ namespace Rock.Rest.v2
                 return null;
             }
 
-            var (assetStorageProviderId, path) = ParseAssetKey( options.AssetFolderId );
+            var parsedAsset = ParseAssetKey( options.AssetFolderId );
 
-            if ( assetStorageProviderId == null || path == null )
+            if ( parsedAsset.ProviderId == null || parsedAsset.FullPath == null )
             {
                 return BadRequest();
             }
 
-            var (provider, component) = GetAssetStorageProvider( assetStorageProviderId.Value );
+            var (provider, component) = GetAssetStorageProvider( parsedAsset.ProviderId.Value );
 
             if ( provider == null || component == null )
             {
@@ -800,9 +801,9 @@ namespace Rock.Rest.v2
             // Selecting the root does not put a value for the selected folder, so we have to make sure
             // if it does not have a value that we use name instead of key so the root folder is used
             // by the component.
-            if ( path.IsNotNullOrWhiteSpace() )
+            if ( parsedAsset.FullPath.IsNotNullOrWhiteSpace() )
             {
-                asset.Key = path + options.NewFolderName;
+                asset.Key = parsedAsset.FullPath + options.NewFolderName;
             }
             else
             {
@@ -814,7 +815,7 @@ namespace Rock.Rest.v2
                 return Ok( new TreeItemBag
                 {
                     Text = options.NewFolderName,
-                    Value = $"{provider.Id},{path + options.NewFolderName}/",
+                    Value = $"{provider.Id},{parsedAsset.FullPath + options.NewFolderName}/",
                     IconCssClass = "fa fa-folder",
                     HasChildren = false
                 } );
@@ -931,17 +932,16 @@ namespace Rock.Rest.v2
         /// </summary>
         /// <param name="assetItemKey"></param>
         /// <returns>The asset storage provider ID and the asset's path</returns>
-        private (int? assetStorageProviderId, string assetPath) ParseAssetKey( string assetItemKey )
+        private AssetManagerAsset ParseAssetKey( string assetItemKey )
         {
             try
             {
                 var assetParts = assetItemKey.Split( ',' );
                 int assetStorageProviderId;
-                string path;
 
                 if ( assetParts.Length < 3 )
                 {
-                    return (null, null);
+                    return null;
                 }
                 else
                 {
@@ -951,25 +951,18 @@ namespace Rock.Rest.v2
 
                     var partialPath = assetParts[2].Trim();
 
-                    // Adding the slash shouldn't be necessary but the parsers don't choke on an extra slash, so it's here just in case it's missing from root.
-                    path = root + "/" + partialPath;
-
-                    if ( path.Length > 0 && path != "/" )
+                    return new AssetManagerAsset
                     {
-                        var scrubbedFileName = Regex.Replace( path, "[" + Regex.Escape( string.Concat( System.IO.Path.GetInvalidPathChars() ) ) + "]", string.Empty, RegexOptions.CultureInvariant );
-                        var scrubbedFilePath = System.IO.Path.GetDirectoryName( scrubbedFileName ).Replace( '\\', '/' );
-                        scrubbedFileName = System.IO.Path.GetFileName( scrubbedFileName );
-                        scrubbedFileName = Regex.Replace( scrubbedFileName, "[" + Regex.Escape( string.Concat( System.IO.Path.GetInvalidFileNameChars() ) ) + "]", string.Empty, RegexOptions.CultureInvariant );
-
-                        path = $"{scrubbedFilePath}/{scrubbedFileName}";
-                    }
-
-                    return (assetStorageProviderId, path);
+                        ProviderId = assetStorageProviderId,
+                        EncryptedRoot = encryptedRoot,
+                        Root = root.EndsWith( "/" ) ? root : root + "/",
+                        SubPath = partialPath
+                    };
                 }
             }
             catch ( Exception )
             {
-                return (null, null);
+                return null;
             }
         }
 
@@ -980,10 +973,7 @@ namespace Rock.Rest.v2
         private (TreeItemBag, List<string> updatedExpandedFolders) GetRootFolder( string encryptedRootFolder, List<string> expandedFolders )
         {
             string root;
-            var HiddenFolders = new List<string>()
-                {
-                    "Content\\ASM_Thumbnails"
-                };
+            var HiddenFolders = new List<string> { "Content\\ASM_Thumbnails" };
 
             try
             {
@@ -991,12 +981,12 @@ namespace Rock.Rest.v2
             }
             catch ( Exception )
             {
-                return (null, expandedFolders);
+                return (null, null);
             }
 
             if ( root.IsNullOrWhiteSpace() )
             {
-                return (null, expandedFolders);
+                return (null, null);
             }
 
             // ensure that the folder is formatted to be relative to web root
@@ -1021,11 +1011,11 @@ namespace Rock.Rest.v2
 
             if ( Directory.Exists( localRoot ) && !HiddenFolders.Any( a => localRoot.IndexOf( a, StringComparison.OrdinalIgnoreCase ) > 0 ) )
             {
-                var tree = new List<TreeItemBag>();
                 var updatedExpandedFolders = new List<string>();
 
                 var folder = new DirectoryInfo( localRoot );
                 var hasChildren = false;
+                List<TreeItemBag> children = null;
 
                 try
                 {
@@ -1037,27 +1027,31 @@ namespace Rock.Rest.v2
                     // Empty. Just mark as having no children.
                 }
 
+                if ( hasChildren )
+                {
+                    (children, updatedExpandedFolders) = GetChildFolders( localRoot, localRoot, expandedFolders );
+                }
+
                 var folderBag = new TreeItemBag
                 {
                     Text = folder.Name,
                     Value = $"0,{encryptedRootFolder},,True",
                     IconCssClass = "fa fa-folder",
-                    HasChildren = hasChildren
+                    HasChildren = hasChildren,
+                    Children = children
                 };
 
-                tree.Add( folderBag );
-
-                return (tree, updatedExpandedFolders);
+                return (folderBag, updatedExpandedFolders);
             }
 
-            return (null, expandedFolders);
+            return (null, null);
         }
 
         /// <summary>
         /// Get a tree of all the folders in the given root of the local file system
         /// </summary>
         /// <returns>A tree of all the folder</returns>
-        private (List<TreeItemBag>, List<string> updatedExpandedFolders) GetChildFolders( string encryptedRootFolder, List<string> expandedFolders )
+        private (List<TreeItemBag>, List<string> updatedExpandedFolders) GetChildFolders( string directoryPath, string rootFolder, List<string> expandedFolders )
         {
             string root;
             var HiddenFolders = new List<string>()
@@ -1067,16 +1061,16 @@ namespace Rock.Rest.v2
 
             try
             {
-                root = Rock.Security.Encryption.DecryptString( encryptedRootFolder );
+                root = Rock.Security.Encryption.DecryptString( rootFolder );
             }
             catch ( Exception )
             {
-                return (null, expandedFolders);
+                return (null, null);
             }
 
             if ( root.IsNullOrWhiteSpace() )
             {
-                return (null, expandedFolders);
+                return (null, null);
             }
 
             // ensure that the folder is formatted to be relative to web root
@@ -1109,7 +1103,7 @@ namespace Rock.Rest.v2
 
                 try
                 {
-                    var subDirectoryList = Directory.GetDirectories( localRoot ).Where().ToList();
+                    var subDirectoryList = Directory.GetDirectories( localRoot ).Where( dir => !HiddenFolders.Contains( dir ) ).ToList();
                     hasChildren = subDirectoryList.Any();
                 }
                 catch ( Exception ex )
@@ -1120,9 +1114,10 @@ namespace Rock.Rest.v2
                 var folderBag = new TreeItemBag
                 {
                     Text = folder.Name,
-                    Value = $"0,{encryptedRootFolder},,True",
+                    Value = $"0,{rootFolder},,True",
                     IconCssClass = "fa fa-folder",
-                    HasChildren = hasChildren
+                    HasChildren = hasChildren,
+
                 };
 
                 tree.Add( folderBag );
@@ -1130,7 +1125,7 @@ namespace Rock.Rest.v2
                 return (tree, updatedExpandedFolders);
             }
 
-            return (null, expandedFolders);
+            return (null, null);
         }
 
         /// <summary>
@@ -1184,41 +1179,46 @@ namespace Rock.Rest.v2
         private (List<TreeItemBag> children, List<string> updatedExpandedFolders) GetChildrenOfAsset( string assetFolderId, List<string> expandedFolders )
         {
             var tree = new List<TreeItemBag>();
-            var (assetStorageProviderId, path) = ParseAssetKey( assetFolderId );
+            var updatedExpandedFolders = new List<string>();
+            var parsedAsset = ParseAssetKey( assetFolderId );
 
-            if ( assetStorageProviderId == null || path == null )
+            if ( parsedAsset.ProviderId == null || parsedAsset.FullPath == null )
             {
-                return (tree, expandedFolders);
+                return (tree, updatedExpandedFolders);
             }
 
-            var (provider, component) = GetAssetStorageProvider( assetStorageProviderId.Value );
+            var (provider, component) = GetAssetStorageProvider( parsedAsset.ProviderId.Value );
 
             if ( provider == null || component == null )
             {
-                return (tree, expandedFolders);
+                return (tree, updatedExpandedFolders);
             }
 
-            var asset = new Asset { Type = AssetType.Folder, Key = path ?? string.Empty };
-            var folders = component.ListFoldersInFolder( provider.ToEntity(), asset );
-            var rootFolder = component.GetRootFolder( provider.ToEntity() );
-            var encryptedRootFolder = Rock.Security.Encryption.EncryptString( rootFolder );
+            var compontentRoot = component.GetRootFolder( provider.ToEntity() );
+            compontentRoot = compontentRoot.EndsWith( "/" ) ? compontentRoot : compontentRoot + "/";
 
-            var updatedExpandedFolders = new List<string>();
+            // Cannot request assets from a root other than the configured one
+            if ( compontentRoot != parsedAsset.Root )
+            {
+                return (tree, updatedExpandedFolders);
+            }
+
+            var asset = new Asset { Type = AssetType.Folder, Key = parsedAsset.FullPath ?? string.Empty };
+            var folders = component.ListFoldersInFolder( provider.ToEntity(), asset );
 
             foreach ( Asset folder in folders )
             {
-                var folderPath = folder.Key.Replace( rootFolder, "" );
                 var folderBag = new TreeItemBag
                 {
                     Text = folder.Name,
-                    Value = $"{provider.Id},{encryptedRootFolder},{folderPath}",
+                    Value = $"{parsedAsset.ProviderId},{parsedAsset.EncryptedRoot},{parsedAsset.SubPath}",
                     IconCssClass = "fa fa-folder",
                     // Verifying if it has any children is slow, so we just say true and it gets fixed
                     // on the client when attempting to expand children
                     HasChildren = true
                 };
 
-                if ( expandedFolders?.Contains( $"{provider.Id},{rootFolder}{folderPath}" ) ?? false )
+                if ( expandedFolders?.Contains( $"{parsedAsset.ProviderId},{parsedAsset.FullPath}" ) ?? false )
                 {
                     var (children, exFolders) = GetChildrenOfAsset( folderBag.Value, expandedFolders );
                     folderBag.Children = children;

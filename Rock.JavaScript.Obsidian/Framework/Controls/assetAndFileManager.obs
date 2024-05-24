@@ -75,7 +75,7 @@
                     <!-- TODO -->
                     <input type="file" ref="fileInputElement" class="hidden" @change="uploadFile" :disabled="!isFolderSelected || isUploadingFile">
                 </label>
-                <label class="btn btn-xs btn-default mr-2" v-if="enableLocalFileBrowser && enableZipUpload" :disabled="true/*TODO*/">
+                <label class="btn btn-xs btn-default mr-2" v-if="enableFileManager && enableZipUpload" :disabled="true/*TODO*/">
                     <i class="fa fa-archive"></i> <span class="hidden-xs">Upload Package</span>
                     <!-- TODO -->
                     <input type="file" ref="zipFileInputElement" class="hidden" accept=".zip" @change="uploadZipFile" :disabled="true/*TODO*/">
@@ -228,21 +228,18 @@
             default: "flexible",
         },
 
-        enableAssetProviders: {
+        enableAssetManager: {
             type: Boolean,
             default: false
         },
 
-        enableLocalFileBrowser: {
+        enableFileManager: {
             type: Boolean,
             default: false
         },
 
-        /** The root folder used for the local file browser */
-        rootFolder: {
-            type: String,
-            default: "~/Content/"
-        },
+        /** The encrypted root folder used for the local file browser */
+        encryptedRootFolder: String,
 
         enableZipUpload: {
             type: Boolean,
@@ -275,8 +272,7 @@
 
     // #region Folder List
 
-    const itemProvider = ref(new AssetManagerTreeItemProvider());
-    itemProvider.value.openFolders = new Set(props.openFolders);
+    const itemProvider = ref(initializeTreeProvider());
     const openFolders = computed(() => Array.from(itemProvider.value.openFolders));
     const folders = ref<TreeItemBag[]>([]);
 
@@ -434,6 +430,16 @@
         }
     }
 
+    function initializeTreeProvider(): AssetManagerTreeItemProvider {
+        const provider = new AssetManagerTreeItemProvider();
+        provider.openFolders = new Set(props.openFolders);
+        provider.enableAssetManager = props.enableAssetManager;
+        provider.enableFileManager = props.enableFileManager;
+        provider.encryptedRootFolder = props.encryptedRootFolder || "";
+
+        return provider;
+    }
+
     watch(() => props.openFolders, () => {
         const newList = new Set(props.openFolders);
 
@@ -459,6 +465,10 @@
         else {
             folderListScrolled.value = false;
         }
+    });
+
+    watch(() => [props.enableAssetManager, props.enableFileManager, props.encryptedRootFolder], () => {
+        itemProvider.value = initializeTreeProvider();
     });
 
     // #endregion

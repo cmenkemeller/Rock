@@ -27,13 +27,10 @@ namespace Rock.ViewModels.Rest.Controls
     {
         public List<string> ExpandedFolders { get; set; } = null;
 
-        // TODO: Remove default
-        public string RootFolder { get; set; } = "EAAAAI5wiBY4SMrjA6A6W0j6tcLcNlC3Lti9xvjVPk4iT8KU";
+        public string RootFolder { get; set; } = "";
 
-        // TODO: Change default
-        public bool EnableAssetManager { get; set; } = true;
+        public bool EnableAssetManager { get; set; } = false;
 
-        // TODO: Change default
-        public bool EnableFileManager { get; set; } = true;
+        public bool EnableFileManager { get; set; } = false;
     }
 }

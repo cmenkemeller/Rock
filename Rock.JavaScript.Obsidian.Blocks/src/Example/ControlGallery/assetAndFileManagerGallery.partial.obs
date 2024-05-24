@@ -1,7 +1,7 @@
 <template>
     <GalleryAndResult :importCode="importCode" :exampleCode="exampleCode">
 
-        <AssetAndFileManager :height="height" v-model="value" v-model:openFolders="openFolders" :enableAssetProvider="enableAssetProviders" :enableLocalFileBrowse="enableLocalFileBrowser" :rootFolder="fileBrowserRoot" />
+        <AssetAndFileManager :height="height" v-model="value" v-model:openFolders="openFolders" :enableAssetManager="enableAssetManager" :enableFileManager="enableFileManager" :encryptedRootFolder="encryptedRootFolder" />
 
         <div class="my-5">
             <label>Selected Files:</label> {{ value }}
@@ -14,18 +14,18 @@
                     <CheckBox v-model="isStaticHeight" label="Use Static Height?" />
                 </div>
                 <div class="col-md-3">
-                    <CheckBox v-model="enableLocalFileBrowser" label="Enable File Browser" help="If true, a folder will appear in the left column hooked to a folder on the server, the root of which is configurable." />
+                    <CheckBox v-model="enableFileManager" label="Enable File Browser" help="If true, a folder will appear in the left column hooked to a folder on the server, the root of which is configurable." />
                 </div>
                 <div class="col-md-3">
-                    <CheckBox v-model="enableAssetProviders" label="Enable Asset Storage Providers" help="If true, all asset storage providers configured in system settings will appear in the left column." />
+                    <CheckBox v-model="enableAssetManager" label="Enable Asset Storage Providers" help="If true, all asset storage providers configured in system settings will appear in the left column." />
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-3" :style="{ visibility: isStaticHeight ? 'visible' : 'hidden' }">
                     <TextBox v-model="staticHeight" label="Static Height" help="You may use any valid CSS height value. If you enter `flexible`, it is the same as not specifying a value (disables static height; this is the default)" />
                 </div>
-                <div class="col-md-3" :style="{ visibility: enableLocalFileBrowser ? 'visible' : 'hidden' }">
-                    <TextBox v-model="fileBrowserRoot" label="File Browser Root Folder" help="Default is ~/Content/" />
+                <div class="col-md-3" :style="{ visibility: enableFileManager ? 'visible' : 'hidden' }">
+                    <TextBox v-model="encryptedRootFolder" label="File Browser Root Folder" help="Default is ~/Content/" />
                 </div>
             </div>
         </template>
@@ -47,16 +47,16 @@
     const isStaticHeight = ref(true);
     const staticHeight = ref("400px");
     const height = computed(() => isStaticHeight.value ? staticHeight.value : "flexible");
-    const enableAssetProviders = ref(true);
-    const enableLocalFileBrowser = ref(true);
-    const fileBrowserRoot = ref("~/Content/");
+    const enableAssetManager = ref(false);
+    const enableFileManager = ref(true);
+    const encryptedRootFolder = ref("EAAAAI5wiBY4SMrjA6A6W0j6tcLcNlC3Lti9xvjVPk4iT8KU");
 
     const importCode = getSfcControlImportPath("assetAndFileManager");
     const exampleCode = computed(() => {
-        const enableAssetProvidersProp = enableAssetProviders.value ? " enableAssetProviders" : "";
-        const enableLocalFileBrowserProp = enableLocalFileBrowser.value ? " enableLocalFileBrowser" : "";
+        const enableAssetManagerProp = enableAssetManager.value ? " enableAssetManager" : "";
+        const enableFileManagerProp = enableFileManager.value ? " enableFileManager" : "";
         const heightProp = isStaticHeight.value ? ` height="${height.value}"` : "";
-        const rootFolderProp = enableLocalFileBrowser.value ? ` rootFolder="${fileBrowserRoot.value}"` : "";
-        return `<AssetAndFileManager v-model="value"${enableAssetProvidersProp}${enableLocalFileBrowserProp}${heightProp}${rootFolderProp} />`;
+        const rootFolderProp = enableFileManager.value ? ` encryptedRootFolder="${encryptedRootFolder.value}"` : "";
+        return `<AssetAndFileManager v-model="value"${enableAssetManagerProp}${enableFileManagerProp}${heightProp}${rootFolderProp} />`;
     });
 </script>
