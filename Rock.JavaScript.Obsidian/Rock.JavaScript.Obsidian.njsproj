@@ -390,6 +390,7 @@
     <Folder Include="Framework\ViewModels\Blocks\Finance\FinancialBatchList\" />
     <Folder Include="Framework\ViewModels\Blocks\Finance\FinancialGatewayDetail\" />
     <Folder Include="Framework\ViewModels\Blocks\Finance\FinancialPledgeDetail\" />
+    <Folder Include="Framework\ViewModels\Blocks\Finance\FinancialPledgeList\" />
     <Folder Include="Framework\ViewModels\Blocks\Fundraising\" />
     <Folder Include="Framework\ViewModels\Blocks\Fundraising\FundraisingDonationList\" />
     <Folder Include="Framework\ViewModels\Blocks\Finance\SavedAccountList\" />
@@ -411,6 +412,7 @@
     <Folder Include="Framework\ViewModels\Blocks\Group\GroupRegistration\" />
     <Folder Include="Framework\ViewModels\Blocks\Prayer\PrayerRequestList\" />
     <Folder Include="Framework\ViewModels\Blocks\Reporting\" />
+    <Folder Include="Framework\ViewModels\Blocks\Reporting\DynamicData\" />
     <Folder Include="Framework\ViewModels\Blocks\Reporting\MergeTemplateDetail\" />
     <Folder Include="Framework\ViewModels\Blocks\Reporting\MergeTemplateList\" />
     <Folder Include="Framework\ViewModels\Blocks\Reporting\ReportList\" />
@@ -979,6 +981,8 @@
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Finance\FinancialBatchList\setBulkBatchStatusResponseBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Finance\FinancialGatewayDetail\financialGatewayBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Finance\FinancialGatewayDetail\financialGatewayDetailOptionsBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Finance\FinancialPledgeList\financialPledgeListBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Finance\FinancialPledgeList\financialPledgeListOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Fundraising\FundraisingDonationList\fundraisingDonationListOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Finance\SavedAccountList\savedAccountListOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Groups\GroupRegistration\groupRegistrationBag.d.ts" />
@@ -1057,6 +1061,14 @@
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Prayer\PrayerRequestEntry\prayerRequestEntrySaveRequestBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Prayer\PrayerRequestEntry\prayerRequestEntrySaveResponseBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Prayer\PrayerRequestList\prayerRequestListOptionsBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\DynamicData\columnConfigurationBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\DynamicData\dynamicDataCustomSettingsBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\DynamicData\dynamicDataCustomSettingsOptionsBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\DynamicData\dynamicDataInitializationBox.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\DynamicData\gridResultsBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\DynamicData\lavaTemplateResultsBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\DynamicData\reloadColumnsRequestBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\DynamicData\reloadColumnsResponseBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\MergeTemplateDetail\mergeTemplateBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\MergeTemplateDetail\mergeTemplateDetailOptionsBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Blocks\Reporting\MergeTemplateDetail\mergeTemplateFileValidationBag.d.ts" />
@@ -1186,6 +1198,7 @@
     <TypeScriptCompile Include="Framework\ViewModels\Core\Grid\attributeFieldDefinitionBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Core\Grid\customActionBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Core\Grid\customColumnDefinitionBag.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Core\Grid\dynamicFieldDefinitionBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Core\Grid\fieldDefinitionBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Core\Grid\gridCommunicationBag.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Core\Grid\gridDataBag.d.ts" />
