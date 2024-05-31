@@ -44,14 +44,9 @@ using Rock.Security;
 using Rock.Tasks;
 using Rock.Transactions;
 using Rock.Utility;
-using Rock.Utility.Settings;
-using Rock.ViewModels;
 using Rock.ViewModels.Crm;
-using Rock.ViewModels.Utility;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
-
-using static Rock.Security.Authorization;
 
 using Page = System.Web.UI.Page;
 
@@ -721,6 +716,51 @@ namespace Rock.Web.UI
             }
         }
 
+        /// <summary>
+        /// Occurs when [page initialized]. This event is for registering any custom event shortkeys for the page.
+        /// </summary>
+        protected virtual void RegisterShortcutKeys()
+        {
+            // Register the shortcut keys with debouncing
+            string script = @"
+                (function() {
+                    var lastDispatchTime = 0;
+                    var lastDispatchedElement = null;
+                    var debounceDelay = 500;
+
+                    document.addEventListener('keydown', function (event) {
+                        if (event.altKey) {
+                            var shortcutKey = event.key.toLowerCase();
+
+                            // Check if a shortcut key is registered for the pressed key
+                            var element = document.querySelector('[data-shortcut-key=""' + shortcutKey + '""]');
+
+                    
+                            if (element) {
+                                var currentTime = performance.now();
+
+                                if (lastDispatchedElement === element && (currentTime - lastDispatchTime) < debounceDelay) {
+                                    return;
+                                }
+
+                                lastDispatchTime = currentTime;
+                                lastDispatchedElement = element;
+
+                                if (shortcutKey === 'arrowright' || shortcutKey === 'arrowleft') {
+                                    event.preventDefault();
+                                }
+
+                                event.preventDefault();
+                                element.click();
+                            }
+                        }
+                    });
+                })();
+            ";
+
+            ScriptManager.RegisterStartupScript( this, typeof( RockPage ), "ShortcutKeys", script, true );
+        }
+
         #endregion
 
         #region Overridden Methods
@@ -800,6 +840,9 @@ namespace Rock.Web.UI
             }
 
             var stopwatchInitEvents = Stopwatch.StartNew();
+
+            // Register shortcut keys
+            RegisterShortcutKeys();
 
 #pragma warning disable 618
             ConvertLegacyContextCookiesToJSON();
@@ -1464,11 +1507,14 @@ Rock.settings.initialize({{
                                 currentPersonJson = new CurrentPersonBag
                                 {
                                     IdKey = CurrentPerson.IdKey,
+                                    Guid = CurrentPerson.Guid,
+                                    PrimaryAliasIdKey = CurrentPerson.PrimaryAlias.IdKey,
+                                    PrimaryAliasGuid = CurrentPerson.PrimaryAlias.Guid,
                                     FirstName = CurrentPerson.FirstName,
                                     NickName = CurrentPerson.NickName,
                                     LastName = CurrentPerson.LastName,
                                     FullName = CurrentPerson.FullName,
-                                    Email = CurrentPerson.Email
+                                    Email = CurrentPerson.Email,
                                 }.ToCamelCaseJson( false, false );
                             }
                             else if ( CurrentPerson != null )
