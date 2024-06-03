@@ -45,7 +45,7 @@ namespace Rock.ViewModels.Rest.Controls
         {
             get
             {
-                return System.IO.Path.GetDirectoryName( FullPath ).Replace( '\\', '/' );
+                return System.IO.Path.GetDirectoryName( FullPath ).Replace( '\\', '/' ) + "/";
             }
         }
 
@@ -58,11 +58,27 @@ namespace Rock.ViewModels.Rest.Controls
             }
         }
 
-        public bool isRoot
+        public bool IsRoot
         {
             get
             {
                 return Root != null && Root != string.Empty && ( SubPath == null || SubPath == string.Empty );
+            }
+        }
+
+        public bool IsAssetProviderAsset
+        {
+            get
+            {
+                return ProviderId != null && ProviderId > 0;
+            }
+        }
+
+        public bool IsLocalAsset
+        {
+            get
+            {
+                return ProviderId == 0;
             }
         }
     }
