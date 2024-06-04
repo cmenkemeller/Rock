@@ -225,7 +225,8 @@ namespace Rock.DownhillCss
                 name = Regex.Escape( name.Substring( 1 ) );
 
                 // Use regex to match the ? variable and replace it with the value.
-                return Regex.Replace( cssStyles, $@"\?{name}\b", value );
+                // Add negative lookahead to ensure the variable is not followed by '-'.
+                return Regex.Replace( cssStyles, $@"\?{name}\b(?!-)", value );
             }
 
             /// <summary>

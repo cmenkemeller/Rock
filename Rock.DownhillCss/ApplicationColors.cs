@@ -32,6 +32,100 @@ namespace Rock.DownhillCss
     /// </remarks>
     public class ApplicationColors
     {
+        #region Legacy Colors
+
+        /// <summary>
+        /// Gets or sets the primary.
+        /// </summary>
+        /// <value>
+        /// The primary.
+        /// </value>
+        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
+        public string Primary { get; set; } = "#ee7625";
+
+        /// <summary>
+        /// Gets or sets the secondary.
+        /// </summary>
+        /// <value>
+        /// The secondary.
+        /// </value>
+        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
+        public string Secondary { get; set; } = "#4ba9df";
+
+        /// <summary>
+        /// Gets or sets the success.
+        /// </summary>
+        /// <value>
+        /// The success.
+        /// </value>
+        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
+        public string Success { get; set; } = "#28a745";
+
+        /// <summary>
+        /// Gets or sets the danger.
+        /// </summary>
+        /// <value>
+        /// The danger.
+        /// </value>
+        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
+        public string Danger { get; set; } = "#dc3545";
+
+        /// <summary>
+        /// Gets or sets the warning.
+        /// </summary>
+        /// <value>
+        /// The warning.
+        /// </value>
+        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
+        public string Warning { get; set; } = "#ffc107";
+
+        /// <summary>
+        /// Gets or sets the information.
+        /// </summary>
+        /// <value>
+        /// The information.
+        /// </value>
+        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
+        public string Info { get; set; } = "#17a2b8";
+
+        /// <summary>
+        /// Gets or sets the light.
+        /// </summary>
+        /// <value>
+        /// The light.
+        /// </value>
+        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
+        public string Light { get; set; } = "#f8f9fa";
+
+        /// <summary>
+        /// Gets or sets the dark.
+        /// </summary>
+        /// <value>
+        /// The dark.
+        /// </value>
+        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
+        public string Dark { get; set; } = "#343a40";
+
+        /// <summary>
+        /// Gets or sets the white.
+        /// </summary>
+        /// <value>
+        /// The white.
+        /// </value>
+        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
+        public string White { get; set; } = "#ffffff";
+
+        /// <summary>
+        /// Gets or sets the brand color.
+        /// </summary>
+        /// <value>
+        /// The brand.
+        /// </value>
+        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
+        public string Brand { get; set; } = "#ee7625";
+
+        #endregion
+
         #region Interface Colors
 
         /// <summary>
@@ -146,100 +240,6 @@ namespace Rock.DownhillCss
         /// The soft variant of the warning color.
         /// </summary>
         public string WarningSoft { get; set; } = "#fef3c7";
-
-        #endregion
-
-        #region Legacy Colors
-
-        /// <summary>
-        /// Gets or sets the primary.
-        /// </summary>
-        /// <value>
-        /// The primary.
-        /// </value>
-        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
-        public string Primary { get; set; } = "#ee7625";
-
-        /// <summary>
-        /// Gets or sets the secondary.
-        /// </summary>
-        /// <value>
-        /// The secondary.
-        /// </value>
-        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
-        public string Secondary { get; set; } = "#4ba9df";
-
-        /// <summary>
-        /// Gets or sets the success.
-        /// </summary>
-        /// <value>
-        /// The success.
-        /// </value>
-        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
-        public string Success { get; set; } = "#28a745";
-
-        /// <summary>
-        /// Gets or sets the danger.
-        /// </summary>
-        /// <value>
-        /// The danger.
-        /// </value>
-        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
-        public string Danger { get; set; } = "#dc3545";
-
-        /// <summary>
-        /// Gets or sets the warning.
-        /// </summary>
-        /// <value>
-        /// The warning.
-        /// </value>
-        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
-        public string Warning { get; set; } = "#ffc107";
-
-        /// <summary>
-        /// Gets or sets the information.
-        /// </summary>
-        /// <value>
-        /// The information.
-        /// </value>
-        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
-        public string Info { get; set; } = "#17a2b8";
-
-        /// <summary>
-        /// Gets or sets the light.
-        /// </summary>
-        /// <value>
-        /// The light.
-        /// </value>
-        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
-        public string Light { get; set; } = "#f8f9fa";
-
-        /// <summary>
-        /// Gets or sets the dark.
-        /// </summary>
-        /// <value>
-        /// The dark.
-        /// </value>
-        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
-        public string Dark { get; set; } = "#343a40";
-
-        /// <summary>
-        /// Gets or sets the white.
-        /// </summary>
-        /// <value>
-        /// The white.
-        /// </value>
-        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
-        public string White { get; set; } = "#ffffff";
-
-        /// <summary>
-        /// Gets or sets the brand color.
-        /// </summary>
-        /// <value>
-        /// The brand.
-        /// </value>
-        [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
-        public string Brand { get; set; } = "#ee7625";
 
         #endregion
     }
