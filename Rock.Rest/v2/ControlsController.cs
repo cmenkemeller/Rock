@@ -765,7 +765,10 @@ namespace Rock.Rest.v2
 
                 // TODO: filter on browse mode
 
-                return Ok( files );
+                return Ok( new AssetManagerGetFilesResultsBag<Asset>
+                {
+                    Files = files
+                } );
             }
 
             return BadRequest();
@@ -1179,6 +1182,9 @@ namespace Rock.Rest.v2
         /// <returns></returns>
         private List<Asset> GetFilesInFolder( AssetManagerAsset asset, string browseMode /* image or doc */ )
         {
+            var physicalRootFolder = System.Web.HttpContext.Current.Server.MapPath( asset.Root );
+            var physicalFolder = System.Web.HttpContext.Current.Server.MapPath( asset.FullDirectoryPath );
+
             return new List<Asset>();
         }
 
@@ -1309,6 +1315,59 @@ namespace Rock.Rest.v2
         {
             var HiddenFolders = new List<string> { "Content\\ASM_Thumbnails" };
             return HiddenFolders.Any( a => pathName.IndexOf( a, StringComparison.OrdinalIgnoreCase ) > -1 );
+        }
+
+        private bool IsRestrictedFolder( string pathName )
+        {
+            var restrictedFolders = new List<string>()
+            {
+                "Bin",
+                "App_Data",
+                "App_Code",
+                "App_Browsers",
+                "Assets",
+                "Blocks",
+                "Content",
+                "Plugins",
+                "Scripts",
+                "SqlServerTypes",
+                "Styles",
+                "Themes",
+                "Webhooks"
+            };
+
+            if ( pathName.StartsWith( "~/" ) || pathName.StartsWith( "~\\" ) )
+            {
+                pathName = pathName.Substring( 2 );
+            }
+
+            if ( pathName.StartsWith( "/" ) || pathName.StartsWith( "\\" ) )
+            {
+                pathName = pathName.TrimStart( '/', '\\' );
+            }
+
+            return restrictedFolders.Contains( pathName, StringComparer.OrdinalIgnoreCase );
+        }
+
+        private bool IsUploadRestrictedFolder( string pathName )
+        {
+            var restrictedFolders = new List<string>()
+            {
+                "Bin",
+                "App_Code"
+            };
+
+            if ( pathName.StartsWith( "~/" ) || pathName.StartsWith( "~\\" ) )
+            {
+                pathName = pathName.Substring( 2 );
+            }
+
+            if ( pathName.StartsWith( "/" ) || pathName.StartsWith( "\\" ) )
+            {
+                pathName = pathName.TrimStart( '/', '\\' );
+            }
+
+            return restrictedFolders.Any( a => pathName.StartsWith( a, StringComparison.OrdinalIgnoreCase ) );
         }
 
         #endregion
