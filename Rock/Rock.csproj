@@ -785,6 +785,7 @@
     <Compile Include="Bus\Consumer\RockConsumerAsync.cs" />
     <Compile Include="Bus\Exceptions\BusException.cs" />
     <Compile Include="Bus\Faults\ReceiveFaultObserver.cs" />
+    <Compile Include="Bus\Message\NewItemCacheAddedMessage.cs" />
     <Compile Include="Bus\Message\ClearReferencedEntityDependenciesMessage.cs" />
     <Compile Include="Bus\Message\CreditCardIsExpiringMessage.cs" />
     <Compile Include="Bus\Message\GiftWasGivenMessage.cs" />
@@ -963,6 +964,11 @@
     <Compile Include="Communication\Transport\EmailSendResponse.cs" />
     <Compile Include="Communication\EmailTransportComponent.cs" />
     <Compile Include="Communication\Transport\ThrottleHelper.cs" />
+    <Compile Include="Configuration\DatabaseConfiguration.cs" />
+    <Compile Include="Configuration\DatabaseConfigurationExtensions.cs" />
+    <Compile Include="Configuration\HostingSettings.cs" />
+    <Compile Include="Configuration\IConnectionStringProvider.cs" />
+    <Compile Include="Configuration\WebFormsConnectionStringProvider.cs" />
     <Compile Include="Core\NotificationMessageTypeComponent.cs" />
     <Compile Include="Core\NotificationMessageTypeContainer.cs" />
     <Compile Include="Core\NotificationMessageTypes\ConnectionRequestMention.cs" />
@@ -1040,6 +1046,7 @@
     <Compile Include="Jobs\PostUpdateDataMigrationsReplaceWebFormsBlocksWithObsidianBlocks.cs" />
     <Compile Include="Jobs\PostUpdateJobs\PostV152CreateAttributeValue_ValueAsPersonId_Index.cs" />
     <Compile Include="Jobs\PostV154DataMigrationsUpdateAgeBracketValues.cs" />
+    <Compile Include="Jobs\PostUpdateJobs\PostV166DataMigrationsAddInteractionCreatedDateTimeIndex.cs" />
     <Compile Include="Jobs\ProcessReminders.cs" />
     <Compile Include="Jobs\PostUpdateJobs\PostV133DataMigrationsAddInteractionSessionLocationIndexToInteractionSession.cs" />
     <Compile Include="Jobs\PostUpdateJobs\PostV141AddMissingIndexes.cs" />
@@ -1160,6 +1167,10 @@
     <Compile Include="Model\Event\InteractiveExperience\InteractiveExperience.Logic.cs" />
     <Compile Include="Model\Event\InteractiveExperience\InteractiveExperienceService.cs" />
     <Compile Include="Model\Event\RegistrationTemplate\RegistrationTemplate.Logic.cs" />
+    <Compile Include="Model\Finance\FinancialPledge\FinancialPledge.SaveHook.cs" />
+    <Compile Include="Model\Finance\FinancialScheduledTransaction\FinancialScheduledTransactionExtensionMethods.cs" />
+    <Compile Include="Model\Finance\FinancialScheduledTransaction\FinancialScheduledTransactionPaymentPlanPair.cs" />
+    <Compile Include="Model\Finance\FinancialScheduledTransaction\PaymentPlan.cs" />
     <Compile Include="Model\Group\GroupLocationHistoricalSchedule\GroupLocationHistoricalScheduleService.cs" />
     <Compile Include="Model\Event\RegistrationTemplateFormField\RegistrationTemplateFormFieldException.cs" />
     <Compile Include="Model\Event\RegistrationTemplateForm\RegistrationTemplateFormService.cs" />
@@ -1170,12 +1181,14 @@
     <Compile Include="Model\Group\GroupSync\GroupSyncInfo.cs" />
     <Compile Include="Model\Group\GroupSync\GroupSyncResult.cs" />
     <Compile Include="Model\Group\GroupSync\GroupSyncService.cs" />
+    <Compile Include="Model\Group\PeerNetwork\PeerNetwork.cs" />
     <Compile Include="Model\Reporting\AnalyticsSourcePostalCode\AnalyticsSourcePostalCode.cs" />
     <Compile Include="Model\Reporting\AnalyticsSourcePostalCode\AnalyticsSourcePostalCode.Logic.cs" />
     <Compile Include="Model\Reporting\AnalyticsSourcePostalCode\ZipCodeBoundary.cs" />
     <Compile Include="Model\Reporting\DataViewFilter\DataViewFilter.SaveHook.cs" />
     <Compile Include="Model\Security\RemoteAuthenticationSessionExtensions.cs" />
     <Compile Include="Model\Security\RemoteAuthenticationSessionService.cs" />
+    <Compile Include="Model\Validation\EmailAddressValidationAttribute.cs" />
     <Compile Include="Net\BrowserCookie.cs" />
     <Compile Include="Net\IRockRequestContextAccessor.cs" />
     <Compile Include="Net\IRockResponseContext.cs" />
@@ -1275,6 +1288,8 @@
     <Compile Include="RealTime\Topics\InteractiveExperienceParticipantTopic.cs" />
     <Compile Include="RealTime\Topics\ITestCommunicationTransport.cs" />
     <Compile Include="RealTime\Topics\TestCommunicationTransportTopic.cs" />
+    <Compile Include="Reporting\FieldFilterGroup.cs" />
+    <Compile Include="Reporting\FieldFilterRule.cs" />
     <Compile Include="Reporting\DataFilter\Group\SignUpOpportunityHasNoAttendanceFilter.cs" />
     <Compile Include="Reporting\DataFilter\Group\SignUpOpportunityHasNoMembersFilter.cs" />
     <Compile Include="Reporting\DataFilter\Person\GivingAlertsFilter.cs" />
@@ -1743,7 +1758,6 @@
     <Compile Include="Model\Reporting\AnalyticsSourceFamilyBase\AnalyticsSourceFamilyBase.cs" />
     <Compile Include="Model\Reporting\AnalyticsBaseFinancialTransaction\AnalyticsBaseFinancialTransaction.cs" />
     <Compile Include="Model\Reporting\AnalyticsSourcePersonBase\AnalyticsSourcePersonBase.cs" />
-    <Compile Include="Model\Reporting\DataViewFilter\ComparisonType.cs" />
     <Compile Include="Model\Reporting\DataViewFilter\DataViewFilter.Logic.cs" />
     <Compile Include="Model\Reporting\DataViewFilter\DataViewFilterOverride.cs" />
     <Compile Include="Model\Reporting\DataViewFilter\DataViewFilterOverrides.cs" />
@@ -2115,7 +2129,14 @@
     <Compile Include="Utility\RockDynamic.cs" />
     <Compile Include="Cms\StructuredContent\StructuredContentHelper.cs" />
     <Compile Include="Utility\RockHtmlMarkupFormatter.cs" />
+    <Compile Include="Configuration\IDatabaseConfiguration.cs" />
+    <Compile Include="Configuration\IHostingSettings.cs" />
+    <Compile Include="Configuration\IInitializationSettings.cs" />
+    <Compile Include="Configuration\InitializationSettings.cs" />
+    <Compile Include="Configuration\RockAppExtensions.cs" />
     <Compile Include="Utility\Settings\Giving\GivingAutomationSettings.cs" />
+    <Compile Include="Configuration\RockApp.cs" />
+    <Compile Include="Configuration\WebFormsInitializationSettings.cs" />
     <Compile Include="Utility\TaskActivityMessageHub.cs" />
     <Compile Include="Utility\RockSerializableList.cs" />
     <Compile Include="Utility\CampaignItem.cs" />
@@ -2210,6 +2231,7 @@
     <Compile Include="Web\Cache\NonEntities\PersonOrVisitorCache.cs" />
     <Compile Include="Web\Cache\NonEntities\PersonPreferenceCache.cs" />
     <Compile Include="Web\Cache\NonEntities\RateLimiterCache.cs" />
+    <Compile Include="Web\Cache\RockCacheAllIdUpdater.cs" />
     <Compile Include="Web\Cache\RockCacheConsumer.cs" />
     <Compile Include="Web\HttpModules\DeepLinks.cs" />
     <Compile Include="Web\HttpModules\Observability.cs" />
@@ -2903,7 +2925,6 @@
     <Compile Include="Jobs\CalculatePersonSignals.cs" />
     <Compile Include="Jobs\CommunicationQueueAlert.cs" />
     <Compile Include="Jobs\DatabaseMaintenance.cs" />
-    <Compile Include="Jobs\GetNcoa.cs" />
     <Compile Include="Jobs\IndexRockSite.cs" />
     <Compile Include="Jobs\ProcessBIAnalytics.cs" />
     <Compile Include="Jobs\PbxCdrDownload.cs" />
@@ -3717,13 +3738,6 @@
     <Compile Include="Utility\FileUtilities.cs" />
     <Compile Include="Utility\FontAwesomeHelper.cs" />
     <Compile Include="Utility\IRockOwinStartup.cs" />
-    <Compile Include="Utility\Ncoa.cs" />
-    <Compile Include="Utility\SparkDataApi\PersonAddressItem.cs" />
-    <Compile Include="Utility\SparkDataApi\NcoaApi.cs" />
-    <Compile Include="Utility\SparkDataApi\NcoaReturnRecord.cs" />
-    <Compile Include="Utility\SparkDataApi\NcoaResponse.cs" />
-    <Compile Include="Utility\SparkDataApi\GroupNameTransactionKey.cs" />
-    <Compile Include="Utility\SparkDataApi\UsernamePassword.cs" />
     <Compile Include="Utility\Settings\DataAutomation\InactivatePeople.cs" />
     <Compile Include="Utility\Settings\DataAutomation\InteractionItem.cs" />
     <Compile Include="Utility\Settings\DataAutomation\MoveAdultChildren.cs" />
@@ -3733,7 +3747,6 @@
     <Compile Include="Utility\Settings\DataAutomation\UpdateFamilyCampus.cs" />
     <Compile Include="Utility\Settings\SparkData\NcoaSettings.cs" />
     <Compile Include="Utility\Settings\SparkData\SparkDataConfig.cs" />
-    <Compile Include="Utility\SparkDataApi\SparkDataApi.cs" />
     <Compile Include="Utility\TextToWorkflow.cs" />
     <Compile Include="Utility\ZebraPrint.cs" />
     <Compile Include="Web\HttpModules\ResponseHeaders.cs" />

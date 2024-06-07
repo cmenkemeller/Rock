@@ -1557,7 +1557,7 @@ namespace RockWeb.Blocks.Event
             {
                 foreach ( var discount in this.RegistrationTemplate.Discounts.OrderBy( d => d.Code ) )
                 {
-                    discountCodes.AddOrIgnore(
+                    discountCodes.TryAdd(
                         discount.Code,
                         discount.Code + ( string.IsNullOrWhiteSpace( discount.DiscountString ) ? string.Empty : string.Format( " ({0})", HttpUtility.HtmlDecode( discount.DiscountString ) ) ) );
                 }
@@ -1565,7 +1565,7 @@ namespace RockWeb.Blocks.Event
 
             if ( !string.IsNullOrWhiteSpace( registration.DiscountCode ) )
             {
-                discountCodes.AddOrIgnore( registration.DiscountCode, registration.DiscountCode );
+                discountCodes.TryAdd( registration.DiscountCode, registration.DiscountCode );
             }
 
             ddlGroup.Items.Clear();
@@ -1729,11 +1729,36 @@ namespace RockWeb.Blocks.Event
                 hlCost.Visible = true;
                 hlCost.Text = registration.DiscountedCost.FormatAsCurrency();
 
-                decimal balanceDue = registration.BalanceDue;
+                var balanceDue = registration.BalanceDue;
                 hlBalance.Visible = true;
                 hlBalance.Text = balanceDue.FormatAsCurrency();
-                hlBalance.LabelType = balanceDue > 0 ? LabelType.Danger :
-                    balanceDue < 0 ? LabelType.Warning : LabelType.Success;
+                
+                var isPaymentPlanActive = registration.IsPaymentPlanActive;
+
+                if ( balanceDue > 0.0m )
+                {
+                    if ( !isPaymentPlanActive )
+                    {
+                        hlBalance.LabelType = LabelType.Danger;
+                    }
+                    else
+                    {
+                        hlBalance.LabelType = LabelType.Warning;
+                    }
+                }
+                else if ( balanceDue < 0.0m )
+                {
+                    hlBalance.LabelType = LabelType.Warning;
+                }
+                else
+                {
+                    hlBalance.LabelType = LabelType.Success;
+                }
+
+                if ( isPaymentPlanActive )
+                {
+                    hlBalance.IconCssClass = "fa fa-calendar-day";
+                }
             }
             else
             {
@@ -2416,7 +2441,7 @@ namespace RockWeb.Blocks.Event
                 .Max( t => ( DateTime? ) t.TransactionDateTime.Value );
             
             // Use the financial gateway associated with the existing payment plan
-            // instead of what's configured on the template, as that gateway may
+            // instead of what's configured on the template, as the template's gateway may
             // have changed after the payment plan was created.
             var nextPaymentDate = registration.PaymentPlanFinancialScheduledTransaction.FinancialGateway?.GetGatewayComponent()?.GetNextPaymentDate( registration.PaymentPlanFinancialScheduledTransaction, lastTransactionDate );
                 
@@ -2426,8 +2451,22 @@ namespace RockWeb.Blocks.Event
                 lNextPaymentDate.Text = nextPaymentDate.Value.ToShortDateString();
                 lNextPaymentDate.Visible = true;
 
-                // Disallow updates if the next payment date is today.
-                lbChangePaymentPlan.Enabled = nextPaymentDate.Value.Date != RockDateTime.Today;
+                // Disallow updates if the next payment date is today
+                if ( nextPaymentDate.Value.Date == RockDateTime.Today )
+                {
+                    lbChangePaymentPlan.Enabled = false;
+                    spanChangeButtonWrapper.Attributes["title"] = "The plan cannot be changed because the next payment is today (and may be in process).";
+                }
+                else if ( this.Registration.BalanceDue <= 0 )
+                {
+                    lbChangePaymentPlan.Enabled = false;
+                    spanChangeButtonWrapper.Attributes["title"] = "The plan cannot be changed because the amount remaining is zero.";
+                }
+                else
+                {
+                    lbChangePaymentPlan.Enabled = true;
+                    spanChangeButtonWrapper.Attributes["title"] = string.Empty;
+                }
 
                 // Allow deletion if the recurring payment has more payments.
                 lbDeletePaymentPlan.Enabled = true;
@@ -3028,7 +3067,7 @@ namespace RockWeb.Blocks.Event
         private PaymentPlanConfiguration GetPaymentPlanConfigurationForRegistration()
         {
             // Use the financial gateway associated with the existing payment plan
-            // instead of what's configured on the template, as that gateway may
+            // instead of what's configured on the template, as the template's gateway may
             // have changed after the payment plan was created.
             var financialGatewayComponent = this.Registration
                 .PaymentPlanFinancialScheduledTransaction
@@ -3104,7 +3143,7 @@ namespace RockWeb.Blocks.Event
         private PaymentPlanConfiguration GetPaymentPlanConfigurationFromModal()
         {
             // Use the financial gateway associated with the existing payment plan
-            // instead of what's configured on the template, as that gateway may
+            // instead of what's configured on the template, as the template's gateway may
             // have changed after the payment plan was created.
             var financialGatewayComponent = this.Registration
                 .PaymentPlanFinancialScheduledTransaction
@@ -3191,8 +3230,15 @@ namespace RockWeb.Blocks.Event
 
             var balanceAfterPaymentPlan = this.Registration.BalanceDue - paymentPlanConfiguration.PlannedAmount;
             var remainderSuffix = balanceAfterPaymentPlan > 0 ? $" (this will leave a remaining balance of { balanceAfterPaymentPlan.FormatAsCurrency() })" : string.Empty;
-            lPaymentPlanSummaryPaymentAmount.Text =
-                $"{ paymentPlanConfiguration.AmountPerPayment.FormatAsCurrency() } × { paymentPlanConfiguration.NumberOfPayments } { paymentPlanConfiguration.PaymentFrequencyConfiguration.PaymentFrequency }{ remainderSuffix }";
+            if ( paymentPlanConfiguration.NumberOfPayments > 0 && paymentPlanConfiguration.PaymentFrequencyConfiguration != null )
+            {
+                lPaymentPlanSummaryPaymentAmount.Text =
+                    $"{paymentPlanConfiguration.AmountPerPayment.FormatAsCurrency()} × {paymentPlanConfiguration.NumberOfPayments} {paymentPlanConfiguration.PaymentFrequencyConfiguration.PaymentFrequency}{remainderSuffix}";
+            }
+            else
+            {
+                lPaymentPlanSummaryPaymentAmount.Text = string.Empty;
+            }
 
             if ( paymentPlanConfiguration.AmountPerPayment > 0 )
             { 
@@ -3241,7 +3287,7 @@ namespace RockWeb.Blocks.Event
                     .FirstOrDefault( f => f.Id == paymentPlanFinancialScheduledTransactionId.Value );
                 
                 // Use the financial gateway associated with the existing payment plan
-                // instead of what's configured on the template, as that gateway may
+                // instead of what's configured on the template, as the template's gateway may
                 // have changed after the payment plan was created.
                 var financialGatewayComponent = financialScheduledTransaction.FinancialGateway?.GetGatewayComponent();
 
@@ -3312,7 +3358,7 @@ namespace RockWeb.Blocks.Event
 
                     rockContext.SaveChanges();
 
-                    // TODO Should message be published to event bus?
+                    // TODO Should message be published to event bus? No. As indicated by the class name, this event is exclusively used for non-event giving (or real "gift" giving).
                     //Task.Run( () => ScheduledGiftWasModifiedMessage.PublishScheduledTransactionEvent( financialScheduledTransaction.Id, ScheduledGiftEventTypes.ScheduledGiftUpdated ) );
 
                     error = null;

@@ -654,6 +654,9 @@ export type GridAction = {
 
     /** If true then the action will be disabled and not respond to clicks. */
     disabled?: boolean;
+
+    /** The shortcut key prop to pass to the button. */
+    shortcutKey?: string;
 };
 
 /** The type of unit the length value represents. */
@@ -762,6 +765,9 @@ export type ColumnDefinition = {
 
     /** All properties and attributes that were defined on the column. */
     props: Record<string, unknown>;
+
+    /** All slots that were defined on the column. */
+    slots: Record<string, Component>;
 
     /** Custom data that the column and cells can use any way they desire. */
     data: Record<string, unknown>;

@@ -88,6 +88,50 @@
     <Compile Include="Migrations\202405302213035_MobileStyleGuide1.Designer.cs">
       <DependentUpon>202405302213035_MobileStyleGuide1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202405091644314_Rollup_20240509.cs" />
+    <Compile Include="Migrations\202405091644314_Rollup_20240509.Designer.cs">
+      <DependentUpon>202405091644314_Rollup_20240509.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202405091842467_CodeGenerated_20240509.cs" />
+    <Compile Include="Migrations\202405091842467_CodeGenerated_20240509.Designer.cs">
+      <DependentUpon>202405091842467_CodeGenerated_20240509.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202405121011403_UpdateAgeBracketValues.cs" />
+    <Compile Include="Migrations\202405121011403_UpdateAgeBracketValues.Designer.cs">
+      <DependentUpon>202405121011403_UpdateAgeBracketValues.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202405211556129_AddPeerNetworkEntity.cs" />
+    <Compile Include="Migrations\202405211556129_AddPeerNetworkEntity.Designer.cs">
+      <DependentUpon>202405211556129_AddPeerNetworkEntity.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202405231643444_Rollup_20240523.cs" />
+    <Compile Include="Migrations\202405231643444_Rollup_20240523.Designer.cs">
+      <DependentUpon>202405231643444_Rollup_20240523.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202405231728102_CodeGenerated_20240523.cs" />
+    <Compile Include="Migrations\202405231728102_CodeGenerated_20240523.Designer.cs">
+      <DependentUpon>202405231728102_CodeGenerated_20240523.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202406031841385_AddSiteTypeFlagsColumnToBlockTypeModel.cs" />
+    <Compile Include="Migrations\202406031841385_AddSiteTypeFlagsColumnToBlockTypeModel.Designer.cs">
+      <DependentUpon>202406031841385_AddSiteTypeFlagsColumnToBlockTypeModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202406040120175_WidenColumnInteractionSessionLocationRegionCode.cs" />
+    <Compile Include="Migrations\202406040120175_WidenColumnInteractionSessionLocationRegionCode.Designer.cs">
+      <DependentUpon>202406040120175_WidenColumnInteractionSessionLocationRegionCode.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202406051555015_UpdatePersonalizationSegmentModel.cs" />
+    <Compile Include="Migrations\202406051555015_UpdatePersonalizationSegmentModel.Designer.cs">
+      <DependentUpon>202406051555015_UpdatePersonalizationSegmentModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202406061735165_Rollup_20240606.cs" />
+    <Compile Include="Migrations\202406061735165_Rollup_20240606.Designer.cs">
+      <DependentUpon>202406061735165_Rollup_20240606.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202406061828335_CodeGenerated_20240606.cs" />
+    <Compile Include="Migrations\202406061828335_CodeGenerated_20240606.Designer.cs">
+      <DependentUpon>202406061828335_CodeGenerated_20240606.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Version 16.0\Version 1.16.5\202404071458052_AddTheme.cs" />
     <Compile Include="Migrations\Version 16.0\Version 1.16.5\202404071458052_AddTheme.designer.cs">
       <DependentUpon>202404071458052_AddTheme.cs</DependentUpon>
@@ -2067,6 +2111,39 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202405302213035_MobileStyleGuide1.resx">
       <DependentUpon>202405302213035_MobileStyleGuide1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202405091644314_Rollup_20240509.resx">
+      <DependentUpon>202405091644314_Rollup_20240509.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202405091842467_CodeGenerated_20240509.resx">
+      <DependentUpon>202405091842467_CodeGenerated_20240509.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202405121011403_UpdateAgeBracketValues.resx">
+      <DependentUpon>202405121011403_UpdateAgeBracketValues.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202405211556129_AddPeerNetworkEntity.resx">
+      <DependentUpon>202405211556129_AddPeerNetworkEntity.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202405231643444_Rollup_20240523.resx">
+      <DependentUpon>202405231643444_Rollup_20240523.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202405231728102_CodeGenerated_20240523.resx">
+      <DependentUpon>202405231728102_CodeGenerated_20240523.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202406031841385_AddSiteTypeFlagsColumnToBlockTypeModel.resx">
+      <DependentUpon>202406031841385_AddSiteTypeFlagsColumnToBlockTypeModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202406040120175_WidenColumnInteractionSessionLocationRegionCode.resx">
+      <DependentUpon>202406040120175_WidenColumnInteractionSessionLocationRegionCode.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202406051555015_UpdatePersonalizationSegmentModel.resx">
+      <DependentUpon>202406051555015_UpdatePersonalizationSegmentModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202406061735165_Rollup_20240606.resx">
+      <DependentUpon>202406061735165_Rollup_20240606.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202406061828335_CodeGenerated_20240606.resx">
+      <DependentUpon>202406061828335_CodeGenerated_20240606.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 16.0\Version 1.16.5\202404071458052_AddTheme.resx">
       <DependentUpon>202404071458052_AddTheme.cs</DependentUpon>
