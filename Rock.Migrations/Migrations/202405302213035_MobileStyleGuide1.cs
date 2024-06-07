@@ -47,15 +47,19 @@ namespace Rock.Migrations
             // c) Rename the old template to have a different name ("Legacy").
             // 
 
+            // Daily Challenge Entry
+            UpdateTemplate( "3DA15C4B-BD5B-44AF-97CD-E9F5FD97B55A", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_DAILY_CHALLENGE_ENTRY, _dailyChallengeEntryTemplate, "08009450-92A5-4D4A-8E31-FCC1E4CBDF16", _dailyChallengeEntryLegacyTemplate );
 
-            // CMS Blocks
-            DailyChallengeEntryBlockUp();
+            // Communication View
+            UpdateTemplate( "528EA8BC-4E9D-4F17-9920-9E11F3A4FC5E", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_COMMUNICATION_VIEW, _communicationViewTemplate, "3DA15C4B-BD5B-44AF-97CD-E9F5FD97B55A", _communicationViewLegacyTemplate );
 
-            // Communication Blocks
-            CommunicationViewBlockUp();
+            // Connection Type List
+            UpdateTemplate( "F9F29166-A080-4179-A210-AE42CC473D6F", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_CONNECTION_CONNECTION_TYPE_LIST, _connectionTypeListTemplate, "E0D00422-7895-4081-9C06-16DE9BF48E1A", _connectionTypeListLegacyTemplate );
 
-            // Connection Blocks
-            ConnectionTypeListBlockUp();
+            // Connection Opportunity List
+            UpdateTemplate( "A7D8FB47-A779-4427-B41D-2C0F0E6DB0FF", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_CONNECTION_CONNECTION_OPPORTUNITY_LIST, _connectionOpportunityListTemplate, "1FB8E236-DF34-4BA2-B5C6-CA8B542ABC7A", _connectionOpportunityListLegacyTemplate );
+
+            // Conection Request List
         }
 
         /// <summary>
@@ -67,29 +71,6 @@ namespace Rock.Migrations
         }
 
         #region CMS Blocks
-
-        public void DailyChallengeEntryBlockUp()
-        {
-            // Add the new default template.
-            RockMigrationHelper.AddOrUpdateTemplateBlockTemplate(
-                "3DA15C4B-BD5B-44AF-97CD-E9F5FD97B55A",
-                Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_DAILY_CHALLENGE_ENTRY,
-                "Default",
-                _dailyChallengeEntryTemplate,
-                _standardIconSvg,
-                "standard-template.svg",
-                "image/svg+xml" );
-
-            // Update the legacy template to have a new name.
-            RockMigrationHelper.AddOrUpdateTemplateBlockTemplate(
-                "08009450-92A5-4D4A-8E31-FCC1E4CBDF16",
-                Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_DAILY_CHALLENGE_ENTRY,
-                "Legacy",
-                _dailyChallengeEntryLegacyTemplate,
-                _standardIconSvg,
-                "standard-template.svg",
-                "image/svg+xml" );
-        }
 
         private string _dailyChallengeEntryTemplate = @"{% assign MissedDatesSize = MissedDates | Size %}
 
@@ -334,29 +315,6 @@ namespace Rock.Migrations
 
         #region Communication Blocks
 
-        private void CommunicationViewBlockUp()
-        {
-            // Add the new default template.
-            RockMigrationHelper.AddOrUpdateTemplateBlockTemplate(
-                "528EA8BC-4E9D-4F17-9920-9E11F3A4FC5E",
-                Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_COMMUNICATION_VIEW,
-                "Default",
-                _communicationViewTemplate,
-                _standardIconSvg,
-                "standard-template.svg",
-                "image/svg+xml" );
-
-            // Update the legacy template to have a new name.
-            RockMigrationHelper.AddOrUpdateTemplateBlockTemplate(
-                "3DA15C4B-BD5B-44AF-97CD-E9F5FD97B55A",
-                Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_COMMUNICATION_VIEW,
-                "Legacy",
-                _communicationViewLegacyTemplate,
-                _standardIconSvg,
-                "standard-template.svg",
-                "image/svg+xml" );
-        }
-
         private string _communicationViewTemplate = @"<StackLayout StyleClass=""spacing-4"">
     <Label Text=""{{ Communication.PushTitle | Escape }}"" StyleClass=""text-interface-strongest, title1, bold"" />
     <Rock:Html>
@@ -374,32 +332,6 @@ namespace Rock.Migrations
         #endregion
 
         #region Connection Blocks 
-
-        /// <summary>
-        /// Called to update the ConnectionTypeListBlock default templates.
-        /// </summary>
-        private void ConnectionTypeListBlockUp()
-        {
-            // Add the new default template.
-            RockMigrationHelper.AddOrUpdateTemplateBlockTemplate(
-                "F9F29166-A080-4179-A210-AE42CC473D6F",
-                Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_CONNECTION_CONNECTION_TYPE_LIST,
-                "Default",
-                _connectionTypeListTemplate,
-                _standardIconSvg,
-                "standard-template.svg",
-                "image/svg+xml" );
-
-            // Update the legacy template to have a new name.
-            RockMigrationHelper.AddOrUpdateTemplateBlockTemplate(
-                "E0D00422-7895-4081-9C06-16DE9BF48E1A",
-                Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_CONNECTION_CONNECTION_TYPE_LIST,
-                "Legacy",
-                _connectionTypeListLegacyTemplate,
-                _standardIconSvg,
-                "standard-template.svg",
-                "image/svg+xml" );
-        }
 
         /// <summary>
         /// Called to downgrade the ConnectionTypeListBlock default templates.
@@ -425,65 +357,70 @@ namespace Rock.Migrations
 
         private const string _connectionTypeListTemplate = @"<Rock:StyledBorder StyleClass=""border, border-interface-soft, bg-interface-softest, rounded, p-16"">
     <VerticalStackLayout>
+        {% assign size = ConnectionTypes | Size %}
+
+        {% if size == 0 %}
+            <Label Text=""No Connection Types Found""
+                StyleClass=""body, text-interface-stronger"" />
+        {% endif %}
+
         {% for type in ConnectionTypes %}    
-            <Grid RowDefinitions=""Auto, Auto, Auto""
-                  ColumnDefinitions=""Auto, *""
-                  StyleClass=""gap-column-8"">
+            <Grid RowDefinitions=""64, Auto""
+                ColumnDefinitions=""Auto, *, 20""
+                StyleClass=""gap-column-8"">
     
                 <!-- Icon -->
                 <Rock:Icon StyleClass=""text-interface-strong""
-                           IconClass=""{{ type.IconCssClass | Replace:'fa fa-','' }}""
-                           FontSize=""36""
-                           HorizontalOptions=""Center""
-                           VerticalOptions=""Center""
-                           Grid.Row=""0""
-                           Grid.Column=""0"" 
-                           Grid.RowSpan=""2"" />
-    
-                <Grid ColumnDefinitions=""*, 24""
-                      Grid.Row=""0""
-                      Grid.Column=""1"">
+                    IconClass=""{{ type.IconCssClass | Replace:'fa fa-','' }}""
+                    FontSize=""32""
+                    Grid.Row=""0""
+                    Grid.Column=""0""
+                    VerticalOptions=""Center""
+                    HorizontalOptions=""Center"" />
 
-                      <Label Text=""{{ type.Name | Escape }}""
-                             StyleClass=""body, bold, text-interface-stronger""
-                             MaxLines=""1""
-                             LineBreakMode=""TailTruncation""
-                             HorizontalOptions=""Start""
-                             Grid.Row=""0""
-                             Grid.Column=""0"" />
+                <!-- Name and Description -->
+                <VerticalStackLayout Grid.Row=""0""
+                    Grid.Column=""1""
+                    VerticalOptions=""Center"">
 
-                      <Border HeightRequest=""20""
-                              WidthRequest=""20""
-                              StrokeShape=""RoundRectangle 10""
-                              Grid.Row=""0""
-                              Grid.Column=""1""
-                              StyleClass=""bg-info-strong"">
-                           <Label Text=""{{ ConnectionRequestCounts[type.Id].AssignedToYouCount }}""
-                                  StyleClass=""text-interface-softer, caption2""
-                                  HorizontalOptions=""Center""
-                                  VerticalOptions=""Center"" />
-                      </Border>
-                </Grid>
-                    
-                <Label Text=""{{ type.Description | Escape }}""
-                       StyleClass=""footnote, text-interface-strong""
-                       MaxLines=""2""
-                       LineBreakMode=""TailTruncation""
-                       Grid.Row=""1""
-                       Grid.Column=""1"" />
+                    <Label Text=""{{ type.Name | Escape }}""
+                        StyleClass=""body, bold, text-interface-stronger""
+                        MaxLines=""1""
+                        LineBreakMode=""TailTruncation"" />
 
-                {% unless forloop.last %}
-                    <BoxView HeightRequest=""1""
-                             Grid.Row=""2"" 
-                             Grid.Column=""0"" 
-                             Grid.ColumnSpan=""2""
-                             StyleClass=""my-8, bg-interface-soft"" />
-                {% endunless %}
+                    <Label Text=""{{ type.Description | Escape }}""
+                        StyleClass=""footnote, text-interface-strong""
+                        MaxLines=""2""
+                        LineBreakMode=""TailTruncation"" />
+
+                </VerticalStackLayout>
+
+                <!-- Count -->              
+                <Border HeightRequest=""20""
+                    WidthRequest=""20""
+                    StrokeShape=""RoundRectangle 10""
+                    Grid.Row=""0""
+                    Grid.Column=""2""
+                    VerticalOptions=""Center""
+                    StyleClass=""bg-info-strong"">
+                    <Label Text=""{{ ConnectionRequestCounts[type.Id].AssignedToYouCount }}""
+                        StyleClass=""text-interface-softer, caption2""
+                        HorizontalOptions=""Center""
+                        VerticalOptions=""Center"" />
+                </Border>
                 
-                {% if DetailPage != null %}
+                <!-- Divider -->
+                {% unless forloop.last %}
+                    <Rock:Divider Grid.Row=""1"" 
+                        Grid.Column=""0"" 
+                        Grid.ColumnSpan=""3""
+                        VerticalOptions=""Center""
+                        StyleClass=""my-8"" />
+                {% endunless %}
+
+                {% if DetailPage %}
                     <Grid.GestureRecognizers>
-                        <TapGestureRecognizer Command=""{Binding PushPage}""
-                                              CommandParameter=""{{ DetailPage }}"" />
+                        <TapGestureRecognizer Command=""{Binding PushPage}"" CommandParameter=""{{ DetailPage }}?ConnectionTypeGuid={{ type.Guid }}"" />
                     </Grid.GestureRecognizers>
                 {% endif %}
             </Grid>
@@ -532,6 +469,157 @@ namespace Rock.Migrations
         </Frame>
     {% endfor %}
 </StackLayout>";
+
+        private const string _connectionOpportunityListTemplate = @"<Rock:StyledBorder StyleClass=""border, border-interface-soft, bg-interface-softest, rounded, p-16"">
+    <VerticalStackLayout>
+        {% assign size = ConnectionOpportunities | Size %}
+
+        {% if size == 0 %}
+            <Label Text=""No Opportunities Found""
+                StyleClass=""body, text-interface-stronger"" />
+        {% endif %}
+
+        {% for opportunity in ConnectionOpportunities %}    
+            <Grid RowDefinitions=""64, Auto""
+                ColumnDefinitions=""Auto, *, 20""
+                StyleClass=""gap-column-8"">
+    
+                <!-- Icon -->
+                <Rock:Icon StyleClass=""text-interface-strong""
+                    IconClass=""{{ opportunity.IconCssClass | Replace:'fa fa-','' }}""
+                    FontSize=""32""
+                    Grid.Row=""0""
+                    Grid.Column=""0""
+                    VerticalOptions=""Center""
+                    HorizontalOptions=""Center"" />
+
+                <!-- Name and Description -->
+                <VerticalStackLayout Grid.Row=""0""
+                    Grid.Column=""1""
+                    VerticalOptions=""Center"">
+
+                    <Label Text=""{{ opportunity.Name | Escape }}""
+                        StyleClass=""body, bold, text-interface-stronger""
+                        MaxLines=""1""
+                        LineBreakMode=""TailTruncation"" />
+
+                    <Label Text=""{{ opportunity.Summary | StripHtml | Escape }}""
+                        StyleClass=""footnote, text-interface-strong""
+                        MaxLines=""2""
+                        LineBreakMode=""TailTruncation"" />
+
+                </VerticalStackLayout>
+
+                <!-- Count -->              
+                <Border HeightRequest=""20""
+                    WidthRequest=""20""
+                    StrokeShape=""RoundRectangle 10""
+                    Grid.Row=""0""
+                    Grid.Column=""2""
+                    VerticalOptions=""Center""
+                    StyleClass=""bg-info-strong"">
+                    <Label Text=""{{ ConnectionRequestCounts[opportunity.Id].AssignedToYouCount }}""
+                        StyleClass=""text-interface-softer, caption2""
+                        HorizontalOptions=""Center""
+                        VerticalOptions=""Center"" />
+                </Border>
+                
+                <!-- Divider -->
+                {% unless forloop.last %}
+                    <Rock:Divider Grid.Row=""1"" 
+                        Grid.Column=""0"" 
+                        Grid.ColumnSpan=""3""
+                        VerticalOptions=""Center""
+                        StyleClass=""my-8"" />
+                {% endunless %}
+
+                {% if DetailPage %}
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command=""{Binding PushPage}"" CommandParameter=""{{ DetailPage }}?ConnectionOpportunityGuid={{ opportunity.Guid }}"" />
+                    </Grid.GestureRecognizers>
+                {% endif %}
+            </Grid>
+        {% endfor %}
+    </VerticalStackLayout>    
+</Rock:StyledBorder>";
+
+        private const string _connectionOpportunityListLegacyTemplate = @"<StackLayout Spacing=""0"">
+    {% for opportunity in ConnectionOpportunities %}    
+        <Frame StyleClass=""connection-opportunity""
+            HasShadow=""false"">
+            <Grid ColumnDefinitions=""50,*,Auto""
+                RowDefinitions=""Auto,Auto""
+                RowSpacing=""0"">
+                {% if opportunity.IconCssClass != null and opportunity.IconCssClass != '' %}
+                    <Rock:Icon StyleClass=""connection-opportunity-icon""
+                        IconClass=""{{ opportunity.IconCssClass | Replace:'fa fa-','' }}""
+                        HorizontalOptions=""Center""
+                        VerticalOptions=""Center""
+                        Grid.RowSpan=""2"" />
+                {% endif %}
+                
+                <Label StyleClass=""connection-opportunity-name""
+                    Text=""{{ opportunity.Name | Escape }}""
+                    Grid.Column=""1"" />
+
+                <Label StyleClass=""connection-opportunity-description""
+                    Text=""{{ opportunity.Summary | StripHtml | Escape }}""
+                    MaxLines=""2""
+                    LineBreakMode=""TailTruncation""
+                    Grid.Column=""1""
+                    Grid.Row=""1""
+                    Grid.ColumnSpan=""2"" />
+
+                <Rock:Tag StyleClass=""connection-opportunity-count""
+                    Text=""{{ ConnectionRequestCounts[opportunity.Id].AssignedToYouCount }}""
+                    Type=""info""
+                    Grid.Column=""2"" />
+            </Grid>
+
+            {% if DetailPage != null %}            
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command=""{Binding PushPage}"" CommandParameter=""{{ DetailPage }}?ConnectionOpportunityGuid={{ opportunity.Guid }}"" />
+                </Frame.GestureRecognizers>
+            {% endif %}
+        </Frame>
+    {% endfor %}
+</StackLayout>";
+
+        #endregion
+
+        #region Helpers
+
+        /// <summary>
+        /// This method adds a new block template with the specified values, and then renames the provided
+        /// legacy template to have a new name.
+        /// </summary>
+        /// <param name="templateGuid">The GUID of the new template being generated.</param>
+        /// <param name="templateBlockGuid">The GUID of the block template.</param>
+        /// <param name="templateXaml">The XAML to use in the new template.</param>
+        /// <param name="legacyTemplateGuid">The GUID of the legacy template.</param>
+        /// <param name="legacyTemplateXaml">The old legacy template value.</param>
+        private void UpdateTemplate( string templateGuid, string templateBlockGuid, string templateXaml, string legacyTemplateGuid, string legacyTemplateXaml )
+        {
+            // Add the new default template.
+            RockMigrationHelper.AddOrUpdateTemplateBlockTemplate(
+                templateGuid,
+                templateBlockGuid,
+                "Default",
+                templateXaml,
+                _standardIconSvg,
+                "standard-template.svg",
+                "image/svg+xml" );
+
+            // Rename the old template to have a new name.
+            RockMigrationHelper.AddOrUpdateTemplateBlockTemplate(
+                legacyTemplateGuid,
+                templateBlockGuid,
+                "Legacy",
+                legacyTemplateXaml,
+                _standardIconSvg,
+                "standard-template.svg",
+                "image/svg+xml" );
+        }
 
         #endregion
     }

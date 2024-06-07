@@ -789,7 +789,7 @@ icon {
 /* Outline Buttons */
 
 /* Outline primary */
-.btn.btn-outline-primary {
+.btn.btn-outline-primary-strong {
     color: ?color-primary-strong;
     border-color: ?color-primary-strong;
     border-width: 1;
@@ -797,7 +797,7 @@ icon {
 }
 
 /* Outline secondary */
-.btn.btn-outline-secondary {
+.btn.btn-outline-secondary-strong {
     color: ?color-secondary-strong;
     border-color: ?color-secondary-strong;
     border-width: 1;
@@ -805,7 +805,7 @@ icon {
 }
 
 /* Outline success */
-.btn.btn-outline-success {
+.btn.btn-outline-success-strong {
     color: ?color-success-strong;
     border-color: ?color-success-strong;
     border-width: 1;
@@ -813,7 +813,7 @@ icon {
 }
 
 /* Outline danger */
-.btn.btn-outline-danger {
+.btn.btn-outline-danger-strong {
     color: ?color-danger-strong;
     border-color: ?color-danger-strong;
     border-width: 1;
@@ -821,7 +821,7 @@ icon {
 }
 
 /* Outline warning */
-.btn.btn-outline-warning {
+.btn.btn-outline-warning-strong {
     color: ?color-warning-strong;
     border-color: ?color-warning-strong;
     border-width: 1;
@@ -829,7 +829,7 @@ icon {
 }
 
 /* Outline info */
-.btn.btn-outline-info {
+.btn.btn-outline-info-strong {
     color: ?color-info-strong;
     border-color: ?color-info-strong;
     border-width: 1;
@@ -853,7 +853,7 @@ icon {
 }
 
 /* Outline brand */
-.btn.btn-outline-brand {
+.btn.btn-outline-brand-strong {
     color: ?color-brand-strong;
     border-color: ?color-brand-strong;
     border-width: 1;

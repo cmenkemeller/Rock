@@ -209,9 +209,7 @@ namespace Rock.Blocks.Types.Mobile.Reminders
                 return;
             }
 
-            //
             // Create a new reminder.
-            //
             var reminder = new Reminder
             {
                 EntityId = entityId.Value,
