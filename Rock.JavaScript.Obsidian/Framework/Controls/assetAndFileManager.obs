@@ -20,7 +20,7 @@
                 </RockButton>
                 <DropDownMenu :items="folderDropDownMenuItems" align="right" class="d-flex">
                     <template #anchor="anchorAttrs">
-                        <RockButton type="button" btnSize="xs" title="Additional Actions" isSquare :disabled="!isFolderSelected || isProviderSelected" v-bind="anchorAttrs">
+                        <RockButton type="button" btnSize="xs" title="Additional Actions" isSquare :disabled="!isFolderSelected || isRootSelected || isFolderRestricted" v-bind="anchorAttrs">
                             <i class="fa fa-ellipsis-v"></i>
                         </RockButton>
                     </template>
@@ -70,15 +70,15 @@
                     <!-- TODO -->
                     <i class="fa fa-refresh fa-lg fa-spin"></i>
                 </div>
-                <label class="btn btn-xs btn-default mr-2" title="Upload a file to the selected location." v-bind="!isFolderSelected || isUploadingFile ? { disabled: true } : {}">
+                <label class="btn btn-xs btn-default mr-2" title="Upload a file to the selected location." v-bind="isUploadDisabled ? { disabled: true } : {}">
                     <i class="fa fa-upload"></i> <span class="hidden-xs">Upload File</span>
                     <!-- TODO -->
-                    <input type="file" ref="fileInputElement" class="hidden" @change="uploadFile" :disabled="!isFolderSelected || isUploadingFile">
+                    <input type="file" ref="fileInputElement" class="hidden" @change="uploadFile" :disabled="isUploadDisabled">
                 </label>
-                <label class="btn btn-xs btn-default mr-2" v-if="enableFileManager && enableZipUpload" :disabled="true/*TODO*/">
+                <label class="btn btn-xs btn-default mr-2" v-if="enableFileManager && enableZipUpload" v-bind="isZipUploadDisabled ? { disabled: true } : {}">
                     <i class="fa fa-archive"></i> <span class="hidden-xs">Upload Package</span>
                     <!-- TODO -->
-                    <input type="file" ref="zipFileInputElement" class="hidden" accept=".zip" @change="uploadZipFile" :disabled="true/*TODO*/">
+                    <input type="file" ref="zipFileInputElement" class="hidden" accept=".zip" @change="uploadZipFile" :disabled="isZipUploadDisabled">
                 </label>
                 <RockButton type="button" btnSize="xs" title="Delete selected files" class="mr-2" :disabled="selectedFileKeys.length < 1" @click="deleteFiles(selectedFileKeys)">
                     <i class="fa fa-trash-alt"></i> <span class="hidden-xs">Delete Selected</span>
@@ -197,6 +197,7 @@
     import { AssetManagerBaseOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerBaseOptionsBag";
     import { AssetManagerAddFolderOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerAddFolderOptionsBag";
     import { AssetManagerGetFilesOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetFilesOptionsBag";
+    import { AssetManagerGetFilesResultsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetFilesResultsBag";
     import { AssetManagerDeleteFilesOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerDeleteFilesOptionsBag";
     import { AssetManagerRenameFileOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerRenameFileOptionsBag";
     import { FileAsset } from "@Obsidian/ViewModels/Controls/fileAsset";
@@ -244,7 +245,7 @@
 
         enableZipUpload: {
             type: Boolean,
-            default: false
+            default: true
         }
     });
 
@@ -280,7 +281,9 @@
     const selectedFolderArray = ref<string[]>([]);
     const selectedFolder = computed<string | null>(() => decodeURIComponent(selectedFolderArray.value[0] ?? "") || null);
     const isFolderSelected = computed(() => !!selectedFolder.value);
-    const isProviderSelected = computed(() => isFolderSelected.value && selectedFolder.value?.endsWith(",True"));
+    const isRootSelected = computed(() => isFolderSelected.value && selectedFolder.value?.endsWith(",True"));
+
+    const isFolderRestricted = ref(false);
 
     const isFolderPaneActionLoading = ref(false);
     const folderScrollContainer = ref<HTMLElement | null>(null);
@@ -486,9 +489,13 @@
     const shownFileRenameForm = ref<string | null>(null);
     const renameFileName = ref("");
 
+    const isUploadRestricted = ref(false);
     const isUploadingFile = ref(false);
     const fileInputElement = ref<HTMLInputElement | null>(null);
     const zipFileInputElement = ref<HTMLInputElement | null>(null);
+
+    const isUploadDisabled = computed(() => !isFolderSelected.value || isUploadingFile.value);
+    const isZipUploadDisabled = computed(() => isUploadDisabled.value || isUploadRestricted.value);
 
     const isFilePaneActionLoading = ref(false);
 
@@ -635,10 +642,12 @@
             browseMode: "doc" // TODO: add prop and pass in. Make prop reactive to refetch files
         };
         const url = "/api/v2/Controls/AssetManagerGetFiles";
-        const response = await post<FileAsset[]>(url, undefined, options);
+        const response = await post<AssetManagerGetFilesResultsBag<FileAsset>>(url, undefined, options);
 
         if (response.isSuccess && response.data) {
-            files.value = response.data;
+            files.value = response.data.files ?? [];
+            isFolderRestricted.value = response.data.isFolderRestricted ?? false;
+            isUploadRestricted.value = response.data.isFolderUploadRestricted ?? false;
         }
 
         isLoadingFiles.value = false;

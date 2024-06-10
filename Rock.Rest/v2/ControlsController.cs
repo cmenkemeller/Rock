@@ -33,6 +33,7 @@ using Rock.Badge;
 using Rock.ClientService.Core.Category;
 using Rock.ClientService.Core.Category.Options;
 using Rock.Communication;
+using Rock.Configuration;
 using Rock.Data;
 using Rock.Enums.Controls;
 using Rock.Extension;
@@ -747,7 +748,7 @@ namespace Rock.Rest.v2
 
             if ( asset.IsLocalAsset )
             {
-                var files = GetFilesInFolder( asset, options.BrowseMode );
+                var files = GetFilesInFolder( asset, options.BrowseMode, options.EditFilePage ?? string.Empty );
 
                 return Ok( files );
             }
@@ -998,11 +999,8 @@ namespace Rock.Rest.v2
 
                     if ( partialPath != string.Empty )
                     {
-                        // Verify path doesn't start with a "/"
-                        partialPath = partialPath.StartsWith( "/" ) ? partialPath.Substring( 1 ) : partialPath;
-
-                        // Verify path ends with "/"
-                        partialPath = partialPath.EndsWith( "/" ) ? partialPath : partialPath + "/";
+                        // Verify path doesn't start with a "/" and does end with a "/"
+                        partialPath = partialPath.TrimStart( '/', '\\' ).TrimEnd( '/', '\\' ) + "/";
                     }
 
                     return new AssetManagerAsset
@@ -1180,12 +1178,66 @@ namespace Rock.Rest.v2
         /// </summary>
         /// <param name="asset"></param>
         /// <returns></returns>
-        private List<Asset> GetFilesInFolder( AssetManagerAsset asset, string browseMode /* image or doc */ )
+        private AssetManagerGetFilesResultsBag<Asset> GetFilesInFolder( AssetManagerAsset asset, string browseMode /* image or doc */, string editFilePage )
         {
             var physicalRootFolder = System.Web.HttpContext.Current.Server.MapPath( asset.Root );
             var physicalFolder = System.Web.HttpContext.Current.Server.MapPath( asset.FullDirectoryPath );
 
-            return new List<Asset>();
+            var fileTypeWhiteList = "*.*";
+            var fileList = new List<string>();
+            var files = new List<Asset>();
+
+            if ( browseMode == "image" )
+            {
+                string imageFileTypeWhiteList = GlobalAttributesCache.Get().GetValue( "ContentImageFiletypeWhitelist" );
+                if ( imageFileTypeWhiteList.IsNotNullOrWhiteSpace() )
+                {
+                    fileTypeWhiteList = imageFileTypeWhiteList;
+                }
+            }
+
+            // Directory.GetFiles doesn't support multiple patterns, so we'll do one at a time
+            List<string> fileFilters = fileTypeWhiteList.Split( new char[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries )
+                .Select( s => s = "*." + s.TrimStart( new char[] { '*', ' ' } ).TrimStart( '.' ) ) // ensure that the filter starts with '*.'
+                .ToList();
+
+            foreach ( var filter in fileFilters )
+            {
+                fileList.AddRange( Directory.GetFiles( physicalFolder, filter ).OrderBy( a => a ).ToList() );
+            }
+
+            foreach ( var filePath in fileList )
+            {
+                var file = new Asset();
+
+                string ext = Path.GetExtension( filePath );
+                string fileName = Path.GetFileName( filePath ).Replace( "'", "&#39;" );
+                string relativeFilePath = filePath.Replace( physicalRootFolder, string.Empty );
+                string imagePath = asset.Root.TrimEnd( '/', '\\' ) + "/" + relativeFilePath.TrimStart( '/', '\\' ).Replace( "\\", "/" );
+                string imageUrl = RockApp.Current.ResolveRockUrl( "~/api/FileBrowser/GetFileThumbnail?relativeFilePath=" + HttpUtility.UrlEncode( imagePath ) );
+                var fileDateTime = File.GetLastWriteTimeUtc( filePath );
+                string editUrl = string.Empty;
+
+                if ( IsEditableFile( filePath ) && !string.IsNullOrWhiteSpace( editFilePage ) )
+                {
+                    editUrl = editFilePage + "?RelativeFilePath=" + HttpUtility.UrlEncode( imagePath );
+                }
+
+                file = new Asset
+                {
+                    AssetStorageProviderId = 0,
+                    Name = fileName,
+                    Key = imagePath,
+                    Uri = imageUrl,
+                    Type = AssetType.File,
+                    IconPath = imageUrl
+                };
+            }
+
+            return new AssetManagerGetFilesResultsBag<Asset>
+            {
+                Files = files
+            };
         }
 
         /// <summary>
@@ -1368,6 +1420,25 @@ namespace Rock.Rest.v2
             }
 
             return restrictedFolders.Any( a => pathName.StartsWith( a, StringComparison.OrdinalIgnoreCase ) );
+        }
+
+        private bool IsEditableFile( string filePath )
+        {
+            string ext = Path.GetExtension( filePath );
+            var uneditableFiles = new List<string>()
+            {
+                ".bin",
+                ".png",
+                ".jpg",
+                ".ico",
+                ".jpeg",
+                ".config",
+                ".eot",
+                ".woff",
+                ".woff2"
+            };
+
+            return !uneditableFiles.Any( a => ext.Equals( a, StringComparison.OrdinalIgnoreCase ) );
         }
 
         #endregion

@@ -27,5 +27,7 @@ namespace Rock.ViewModels.Rest.Controls
         /// Either "image" or "doc"
         /// </summary>
         public string BrowseMode { get; set; } = "doc";
+
+        public string EditFilePage { get; set; }
     }
 }
