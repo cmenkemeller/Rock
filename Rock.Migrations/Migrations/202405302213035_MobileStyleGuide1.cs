@@ -60,6 +60,8 @@ namespace Rock.Migrations
             UpdateTemplate( "A7D8FB47-A779-4427-B41D-2C0F0E6DB0FF", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_CONNECTION_CONNECTION_OPPORTUNITY_LIST, _connectionOpportunityListTemplate, "1FB8E236-DF34-4BA2-B5C6-CA8B542ABC7A", _connectionOpportunityListLegacyTemplate );
 
             // Conection Request List
+            UpdateTemplate( "2E36BC98-A18A-4524-8AC1-F14A1AC9DE2F", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_CONNECTION_CONNECTION_REQUEST_LIST, _connectionRequestListTemplate, "787BFAA8-FF61-49BA-80DD-67074DC362C2", _connectionRequestListLegacyTemplate );
+
         }
 
         /// <summary>
@@ -427,7 +429,6 @@ namespace Rock.Migrations
         {% endfor %}
     </VerticalStackLayout>    
 </Rock:StyledBorder>";
-
         private const string _connectionTypeListLegacyTemplate = @"<StackLayout Spacing=""0"">
     {% for type in ConnectionTypes %}    
         <Frame StyleClass=""connection-type""
@@ -469,7 +470,6 @@ namespace Rock.Migrations
         </Frame>
     {% endfor %}
 </StackLayout>";
-
         private const string _connectionOpportunityListTemplate = @"<Rock:StyledBorder StyleClass=""border, border-interface-soft, bg-interface-softest, rounded, p-16"">
     <VerticalStackLayout>
         {% assign size = ConnectionOpportunities | Size %}
@@ -542,7 +542,6 @@ namespace Rock.Migrations
         {% endfor %}
     </VerticalStackLayout>    
 </Rock:StyledBorder>";
-
         private const string _connectionOpportunityListLegacyTemplate = @"<StackLayout Spacing=""0"">
     {% for opportunity in ConnectionOpportunities %}    
         <Frame StyleClass=""connection-opportunity""
@@ -579,6 +578,121 @@ namespace Rock.Migrations
             {% if DetailPage != null %}            
                 <Frame.GestureRecognizers>
                     <TapGestureRecognizer Command=""{Binding PushPage}"" CommandParameter=""{{ DetailPage }}?ConnectionOpportunityGuid={{ opportunity.Guid }}"" />
+                </Frame.GestureRecognizers>
+            {% endif %}
+        </Frame>
+    {% endfor %}
+</StackLayout>";
+        private const string _connectionRequestListTemplate = @"<Rock:StyledBorder StyleClass=""border, border-interface-soft, bg-interface-softest, rounded, p-16"">
+    <VerticalStackLayout>
+        {% assign size = ConnectionRequests | Size %}
+
+        {% if size == 0 %}
+            <Label Text=""No Connection Requests Found""
+                StyleClass=""body, text-interface-stronger"" />
+        {% endif %}
+
+        {% for request in ConnectionRequests %}
+            {% assign person = request.PersonAlias.Person %}
+
+            <Grid RowDefinitions=""64, Auto""
+                ColumnDefinitions=""Auto, *""
+                StyleClass=""gap-column-8"">
+    
+                <!-- Avatar -->
+                <Rock:Avatar Source=""{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ person.PhotoUrl | Append:'&width=200' | Escape }}""
+                    Grid.Row=""0""
+                    Grid.Column=""0""
+                    VerticalOptions=""Center""
+                    ShowStroke=""false""
+                    HorizontalOptions=""Center"" />
+
+                <!-- Name and date are inline -->
+                <Grid ColumnDefinitions=""*, Auto""
+                    RowDefinitions=""Auto, *""
+                    Grid.Row=""0""
+                    Grid.Column=""1""
+                    VerticalOptions=""Center"">
+                    <Label Text=""{{ person.FullName | Escape }}""
+                        StyleClass=""body, bold, text-interface-stronger""
+                        MaxLines=""1""
+                        LineBreakMode=""TailTruncation"" />
+
+                    <!-- Date -->
+                    <HorizontalStackLayout Grid.Column=""1""
+                        Spacing=""4""
+                        VerticalOptions=""Start"">
+                        <Label StyleClass=""connection-request-date, caption2, text-interface-medium""
+                            Text=""{{ request.CreatedDateTime | Date:'sd' }}""
+                            VerticalOptions=""Start"" />
+
+                        <Rock:Icon IconClass=""chevron-right""
+                            StyleClass=""text-interface-medium, caption2""
+                            VerticalOptions=""Start"" />
+                    </HorizontalStackLayout>
+                    
+                    <Label Text=""{{ request.Comments | Default:'' | Escape }}""
+                        Grid.Row=""1""
+                        Grid.ColumnSpan=""2""
+                        StyleClass=""footnote, text-interface-strong""
+                        MaxLines=""2""
+                        LineBreakMode=""TailTruncation"" />
+                </Grid>
+
+                <!-- Divider -->
+                {% unless forloop.last %}
+                    <Rock:Divider Grid.Row=""1"" 
+                        Grid.Column=""0"" 
+                        Grid.ColumnSpan=""3""
+                        VerticalOptions=""Center""
+                        StyleClass=""my-8"" />
+                {% endunless %}
+
+                {% if DetailPage %}
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command=""{Binding PushPage}"" CommandParameter=""{{ DetailPage }}?ConnectionRequestGuid={{ request.Guid }}"" />
+                    </Grid.GestureRecognizers>
+                {% endif %}
+            </Grid>
+        {% endfor %}
+    </VerticalStackLayout>
+</Rock:StyledBorder>";
+        private const string _connectionRequestListLegacyTemplate = @"<StackLayout Spacing=""0"">
+    {% for request in ConnectionRequests %}
+        {% assign person = request.PersonAlias.Person %}
+        <Frame StyleClass=""connection-request""
+            HasShadow=""false"">
+            <Grid ColumnDefinitions=""50,*,Auto""
+                RowDefinitions=""Auto,Auto""
+                RowSpacing=""0"">
+                <Rock:Image StyleClass=""connection-request-image""
+                    Source=""{{ 'Global' | Attribute:'PublicApplicationRoot' }}{% if person.PhotoId != null %}{{ person.PhotoUrl | Append:'&width=200' | Escape }}{% else %}{{ person.PhotoUrl | Escape }}{% endif %}""
+                    HorizontalOptions=""Center""
+                    VerticalOptions=""Center""
+                    Grid.RowSpan=""2"">
+                    <Rock:CircleTransformation />
+                </Rock:Image>
+                
+                <Label StyleClass=""connection-request-name""
+                    Text=""{{ person.FullName | Escape }}""
+                    Grid.Column=""1"" />
+
+                <Label Text=""{{ request.Comments | Default:'' | Escape }}""
+                    MaxLines=""2""
+                    LineBreakMode=""TailTruncation""
+                    StyleClass=""connection-request-description""
+                    Grid.Column=""1""
+                    Grid.Row=""1""
+                    Grid.ColumnSpan=""2"" />
+
+                <Label StyleClass=""connection-request-date""
+                    Text=""{{ request.CreatedDateTime | Date:'sd' }}""
+                    Grid.Column=""2"" />
+            </Grid>
+
+            {% if DetailPage != null %}
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command=""{Binding PushPage}"" CommandParameter=""{{ DetailPage }}?ConnectionRequestGuid={{ request.Guid }}"" />
                 </Frame.GestureRecognizers>
             {% endif %}
         </Frame>
