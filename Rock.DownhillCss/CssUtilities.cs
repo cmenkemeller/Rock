@@ -189,7 +189,7 @@ namespace Rock.DownhillCss
                     cssStyles = ReplaceCssVariable( cssStyles, key, value );
                 }
 
-                if ( Settings.SupplyTailwindCss || true )
+                if ( Settings.SupplyTailwindCss && false )
                 {
                     foreach ( var color in ColorPalette.ColorMaps )
                     {
@@ -300,7 +300,7 @@ namespace Rock.DownhillCss
                 AddColorUtilityClasses( defaultColors, string.Empty );
                 AddColorUtilityClasses( flippedColors, "dark-mode" );
 
-                if ( Settings.SupplyTailwindCss || true )
+                if ( Settings.SupplyTailwindCss || false )
                 {
                     foreach ( var color in ColorPalette.ColorMaps )
                     {
@@ -667,25 +667,25 @@ icon {
 /* Success */
 .btn.btn-success {
     background-color: ?color-success-strong;
-    color: ?color-success-soft;
+    color: ?color-interface-softest;
 }
 
 /* Info */
 .btn.btn-info {
     background-color: ?color-info-strong;
-    color: ?color-info-soft;
+    color: ?color-interface-softest;
 }
 
 /* Warning */
 .btn.btn-warning {
     background-color: ?color-warning-strong;
-    color: ?color-warning-soft;
+    color: ?color-interface-softest;
 }
 
 /* Danger */
 .btn.btn-danger {
     background-color: ?color-danger-strong;
-    color: ?color-danger-soft;
+    color: ?color-interface-softest;
 }
 
 
@@ -703,13 +703,13 @@ icon {
 
 /* Secondary */
 .btn.btn-secondary {
-    color: ?color-secondary-soft;
+    color: ?color-interface-softest;
     background-color: ?color-secondary-strong;
 }
 
 /* Brand */
 .btn.btn-brand {
-    color: ?color-brand-soft;
+    color: ?color-interface-softest;
     background-color: ?color-brand-strong;
 }
 
@@ -789,7 +789,7 @@ icon {
 /* Outline Buttons */
 
 /* Outline primary */
-.btn.btn-outline-primary-strong {
+.btn.btn-outline-primary {
     color: ?color-primary-strong;
     border-color: ?color-primary-strong;
     border-width: 1;
@@ -797,7 +797,7 @@ icon {
 }
 
 /* Outline secondary */
-.btn.btn-outline-secondary-strong {
+.btn.btn-outline-secondary {
     color: ?color-secondary-strong;
     border-color: ?color-secondary-strong;
     border-width: 1;
@@ -805,7 +805,7 @@ icon {
 }
 
 /* Outline success */
-.btn.btn-outline-success-strong {
+.btn.btn-outline-success {
     color: ?color-success-strong;
     border-color: ?color-success-strong;
     border-width: 1;
@@ -813,7 +813,7 @@ icon {
 }
 
 /* Outline danger */
-.btn.btn-outline-danger-strong {
+.btn.btn-outline-danger {
     color: ?color-danger-strong;
     border-color: ?color-danger-strong;
     border-width: 1;
@@ -821,7 +821,7 @@ icon {
 }
 
 /* Outline warning */
-.btn.btn-outline-warning-strong {
+.btn.btn-outline-warning {
     color: ?color-warning-strong;
     border-color: ?color-warning-strong;
     border-width: 1;
@@ -829,7 +829,7 @@ icon {
 }
 
 /* Outline info */
-.btn.btn-outline-info-strong {
+.btn.btn-outline-info {
     color: ?color-info-strong;
     border-color: ?color-info-strong;
     border-width: 1;
@@ -853,7 +853,7 @@ icon {
 }
 
 /* Outline brand */
-.btn.btn-outline-brand-strong {
+.btn.btn-outline-brand {
     color: ?color-brand-strong;
     border-color: ?color-brand-strong;
     border-width: 1;
