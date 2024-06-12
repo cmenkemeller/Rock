@@ -75,6 +75,9 @@ namespace Rock.Migrations
             // Group Member List
             UpdateTemplate( "A57595B6-3F19-43B7-B3A5-D5E7BB041C66", SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_GROUP_MEMBER_LIST, _groupMemberListTemplate, "674CF1E3-561C-430D-B4A8-39957AC1BCF1", _groupMemberListLegacyTemplate );
 
+            // Group Member View
+            UpdateTemplate( "74760472-3516-480D-B96B-1F77AAEF0862", SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_GROUP_MEMBER_VIEW, _groupMemberViewTemplate, "F093A516-6D95-429E-8EEB-1DFB0303DF71", _groupMemberViewLegacyTemplate );
+
             // Group Members
             UpdateTemplate( "493F4ED9-11B9-4E9B-90FE-AD2BF207367B", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_GROUP_MEMBERS, _groupMembersTemplate, "13470DDB-5F8C-4EA2-93FD-B738F37C9AFC", _groupMembersLegacyTemplate );
         }
@@ -1362,6 +1365,283 @@ namespace Rock.Migrations
             HeightRequest=""1""
             Color=""#cccccc"" />
     {% endfor %}
+</StackLayout>";
+
+        private const string _groupMemberViewTemplate = @"
+<StackLayout StyleClass=""spacing-24"">
+    <VerticalStackLayout>
+        {% assign groupMemberCount = Member.Group.Members | Size %}
+    
+        <Label StyleClass=""title1, text-interface-strongest, bold"" 
+            Text=""{{ Member.Group.Name | Escape }} Group"" />
+    
+        <Label StyleClass=""body, text-interface-strong"" 
+            Text=""{{ 'member' | ToQuantity:groupMemberCount }}"" /> 
+    </VerticalStackLayout>
+
+    <Grid ColumnDefinitions=""80, *""
+        StyleClass=""gap-column-24"">
+        {% assign publicApplicationRoot = 'Global' | Attribute:'PublicApplicationRoot' %}
+        {% assign photoUrl = publicApplicationRoot | Append:Member.Person.PhotoUrl %}
+
+        <Rock:Avatar WidthRequest=""80""
+            HeightRequest=""80""
+            Source=""{{ photoUrl | Escape }}""
+            ShowStroke=""false""
+            VerticalOptions=""Center"" />
+
+        <VerticalStackLayout VerticalOptions=""Center""
+            Grid.Column=""1"">
+            <Label StyleClass=""body, bold, text-interface-stronger""
+                Text=""{{ Member.Person.FullName | Escape }}"" />
+
+            {% if Member.Person.BirthDate != null %}
+                <Label StyleClass=""body, text-interface-strong"">
+                    <Label.FormattedText>
+                        <FormattedString>
+                                <Span Text=""Age: {{ Member.Person.AgePrecise | Floor }}"" />
+                                <Span Text=""&#x0A;"" />
+                                <Span Text=""Birthdate: {{ Member.Person.BirthDate | Date:'MMMM' }} {{ Member.Person.BirthDate | Date:'d' | NumberToOrdinal }}"" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+            {% endif %}
+        </VerticalStackLayout>
+    </Grid>
+
+    <!-- Handle Member Attributes -->
+    {% if VisibleAttributes != empty %}
+        <Rock:ResponsiveLayout ColumnSpacing=""0""
+            RowSpacing=""8"">
+            {% for attribute in VisibleAttributes %}
+                {% if attribute.FormattedValue != '' %}
+                    <Rock:ResponsiveColumn ExtraSmall=""6"">
+                        <Rock:FieldContainer>
+                            <Rock:Literal Label=""{{ attribute.Name | Escape }}"" Text=""{{ attribute.FormattedValue }}"" />
+                        </Rock:FieldContainer>
+                    </Rock:ResponsiveColumn>
+                {% endif %}
+            {% endfor %}
+        </Rock:ResponsiveLayout>
+    {% endif %}
+
+    <Rock:StyledBorder StyleClass=""bg-interface-softest, p-16, border, border-interface-soft, rounded"">
+        <VerticalStackLayout>
+            <!-- Email -->
+            <Grid ColumnDefinitions=""*, Auto""
+                RowDefinitions=""48, Auto"">
+
+                {% assign hasEmail = false %}
+                {% if Member.Person.Email != '' %}
+                    {% assign hasEmail = true %}
+                {% endif %}
+
+                <VerticalStackLayout VerticalOptions=""Center"">
+                    <Label Text=""Email""
+                        StyleClass=""footnote, text-interface-strong"" />
+    
+                    <Label Text=""{% if hasEmail %}{{ Member.Person.Email | Escape }}{% else %}None{% endif %}"" 
+                        StyleClass=""body, text-interface-stronger"" />
+                </VerticalStackLayout>
+    
+                <Rock:Icon IconClass=""chevron-right""
+                    StyleClass=""text-interface-medium, caption1""
+                    Grid.Column=""1""
+                    Grid.Row=""0""
+                    VerticalOptions=""Center"" />
+
+                {% if hasEmail %}
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command=""{Binding SendEmail}""
+                            CommandParameter=""{{ Member.Person.Email | Escape }}""/>
+                    </Grid.GestureRecognizers>
+                {% endif %}
+
+                <Rock:Divider Grid.Column=""0""
+                    Grid.ColumnSpan=""2""
+                    Grid.Row=""1""
+                    StyleClass=""my-8"" />
+            </Grid>
+
+            <!-- Mobile -->
+            <Grid ColumnDefinitions=""*, Auto""
+                RowDefinitions=""48, Auto"">
+
+                {% assign hasPhoneNumber = false %}
+                {% assign phoneNumber = Member.Person | PhoneNumber:'Mobile' %}
+                {% assign phoneNumberLong = Member.Person | PhoneNumber:'Mobile',true %}
+                {% if phoneNumber != '' and phoneNumber != null %}
+                    {% assign hasPhoneNumber = true %}
+                {% endif %}
+
+                <VerticalStackLayout VerticalOptions=""Center"">
+                    <Label Text=""Mobile""
+                        StyleClass=""footnote, text-interface-strong"" />
+    
+                    <Label Text=""{% if hasPhoneNumber %}{{ phoneNumber }}{% else %}None{% endif %}"" 
+                        StyleClass=""body, text-interface-stronger"" />
+                </VerticalStackLayout>
+    
+                <Rock:Icon IconClass=""chevron-right""
+                    StyleClass=""text-interface-medium, caption1""
+                    Grid.Column=""1""
+                    Grid.Row=""0""
+                    VerticalOptions=""Center"" />
+
+                {% if hasPhoneNumber %}
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command=""{Binding ShowActionPanel}"">
+                            <TapGestureRecognizer.CommandParameter>
+                                <Rock:ShowActionPanelParameters Title=""Mobile Number""
+                                    CancelTitle=""Cancel"">
+                                    <Rock:ActionPanelButton Title=""Call""
+                                        Command=""{Binding CallPhoneNumber}""
+                                        CommandParameter=""{{ phoneNumberLong }}"" />
+                                    <Rock:ActionPanelButton Title=""Text""
+                                        Command=""{Binding SendSms}""
+                                        CommandParameter=""{{ phoneNumberLong }}"" />
+                                </Rock:ShowActionPanelParameters>
+                            </TapGestureRecognizer.CommandParameter>
+                        </TapGestureRecognizer>
+                    </Grid.GestureRecognizers>
+                {% endif %}
+
+                <Rock:Divider Grid.Column=""0""
+                    Grid.ColumnSpan=""2""
+                    Grid.Row=""1""
+                    StyleClass=""my-8"" />
+            </Grid>
+
+            <!-- Home -->
+            <Grid ColumnDefinitions=""*, Auto""
+                RowDefinitions=""48, Auto"">
+
+                {% assign hasPhoneNumber = false %}
+                {% assign phoneNumber = Member.Person | PhoneNumber:'Home' %}
+                {% assign phoneNumberLong = Member.Person | PhoneNumber:'Home',true %}
+                {% if phoneNumber != '' and phoneNumber != null %}
+                    {% assign hasPhoneNumber = true %}
+                {% endif %}
+
+                <VerticalStackLayout VerticalOptions=""Center"">
+                    <Label Text=""Home""
+                        StyleClass=""footnote, text-interface-strong"" />
+    
+                    <Label Text=""{% if hasPhoneNumber %}{{ phoneNumber }}{% else %}None{% endif %}"" 
+                        StyleClass=""body, text-interface-stronger"" />
+                </VerticalStackLayout>
+    
+                <Rock:Icon IconClass=""chevron-right""
+                    StyleClass=""text-interface-medium, caption1""
+                    Grid.Column=""1""
+                    Grid.Row=""0""
+                    VerticalOptions=""Center"" />
+
+                {% if hasPhoneNumber %}
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command=""{Binding ShowActionPanel}"">
+                            <TapGestureRecognizer.CommandParameter>
+                                <Rock:ShowActionPanelParameters Title=""Mobile Number""
+                                    CancelTitle=""Cancel"">
+                                    <Rock:ActionPanelButton Title=""Call""
+                                        Command=""{Binding CallPhoneNumber}""
+                                        CommandParameter=""{{ phoneNumberLong }}"" />
+                                    <Rock:ActionPanelButton Title=""Text""
+                                        Command=""{Binding SendSms}""
+                                        CommandParameter=""{{ phoneNumberLong }}"" />
+                                </Rock:ShowActionPanelParameters>
+                            </TapGestureRecognizer.CommandParameter>
+                        </TapGestureRecognizer>
+                    </Grid.GestureRecognizers>
+                {% endif %}
+            </Grid>
+        </VerticalStackLayout>
+    </Rock:StyledBorder>
+</StackLayout>";
+        private const string _groupMemberViewLegacyTemplate = @"<StackLayout Spacing=""0"">
+    {% assign groupMemberCount = Member.Group.Members | Size %}
+    
+    <Label StyleClass=""h1"" Text=""{{ Member.Group.Name | Escape }} Group"" />
+    <Label StyleClass=""text"" Text=""{{ 'member' | ToQuantity:groupMemberCount }}"" />
+
+    <StackLayout Orientation=""Horizontal"" Spacing=""20"" Margin=""0, 20, 0, 40"">
+            <Rock:Image Source=""{{ 'Global' | Attribute:'PublicApplicationRoot' }}{% if Member.Person.PhotoId != null %}{{ Member.Person.PhotoUrl | Append:'&width=300' | Escape }}{% else %}{{ Member.Person.PhotoUrl | Escape }}{% endif %}"" WidthRequest=""80"">
+                <Rock:CircleTransformation />
+            </Rock:Image>
+            <StackLayout Spacing=""0"" VerticalOptions=""Center"">
+                <Label StyleClass=""h4"" Text=""{{ Member.Person.FullName | Escape }}"" />
+                {% if Member.Person.BirthDate != null %}
+                    <Label StyleClass=""text, o-60"" Text=""Age: {{ Member.Person.AgePrecise | Floor }}"" />
+                    <Label StyleClass=""text, o-60"" Text=""Birthdate: {{ Member.Person.BirthDate | Date:'MMMM' }} {{ Member.Person.BirthDate | Date:'d' | NumberToOrdinal }}"" />
+                {% endif %}
+            </StackLayout>
+    </StackLayout>
+
+    <!-- Handle Member Attributes -->
+    {% if VisibleAttributes != empty %}
+        <Rock:ResponsiveLayout ColumnSpacing=""0"">
+            {% for attribute in VisibleAttributes %}
+                {% if attribute.FormattedValue != '' %}
+                    <Rock:ResponsiveColumn ExtraSmall=""6"">
+                        <Rock:FieldContainer Margin=""0, 0, 0, {% if forloop.last %}40{% else %}10{% endif %}"">
+                            <Rock:Literal Label=""{{ attribute.Name | Escape }}"" Text=""{{ attribute.FormattedValue }}"" />
+                        </Rock:FieldContainer>
+                    </Rock:ResponsiveColumn>
+                {% endif %}
+            {% endfor %}
+        </Rock:ResponsiveLayout>
+    {% endif %}
+
+    <!-- Contact options -->
+    {% assign hasContact = false %}
+    {% if Member.Person.Email != '' %}
+        {% assign hasContact = true %}
+        <Rock:Divider />
+        <StackLayout Orientation=""Horizontal"" Padding=""0,16"">
+            <StackLayout Spacing=""0"" VerticalOptions=""Center"" HorizontalOptions=""FillAndExpand"">
+                <Label FontSize=""16"" FontAttributes=""Bold"" Text=""{{ Member.Person.Email | Escape }}"" />
+                <Label Text=""Email"" />
+            </StackLayout>
+            <Rock:Icon IconClass=""envelope"" FontSize=""36"" Command=""{Binding SendEmail}"" CommandParameter=""{{ Member.Person.Email | Escape }}"" VerticalOptions=""Center"" />
+        </StackLayout>
+    {% endif %}
+
+    {% assign phoneNumber = Member.Person | PhoneNumber:'Mobile' %}
+    {% assign phoneNumberLong = Member.Person | PhoneNumber:'Mobile',true %}
+    {% if phoneNumber != '' and phoneNumber != null %}
+        {% assign hasContact = true %}
+        <Rock:Divider />
+        <StackLayout Orientation=""Horizontal"" Padding=""0,16"" Spacing=""20"">
+            <StackLayout Spacing=""0"" VerticalOptions=""Center"" HorizontalOptions=""FillAndExpand"">
+                <Label FontSize=""16"" FontAttributes=""Bold"" Text=""{{ phoneNumber }}"" />
+                <Label Text=""Mobile"" />
+            </StackLayout>
+            <Rock:Icon IconClass=""comment"" FontSize=""36"" Command=""{Binding SendSms}"" CommandParameter=""{{ phoneNumberLong }}"" VerticalOptions=""Center"" />
+            <Rock:Icon IconClass=""phone"" FontSize=""36"" Command=""{Binding CallPhoneNumber}"" CommandParameter=""{{ phoneNumberLong }}"" VerticalOptions=""Center"" />
+        </StackLayout>
+    {% endif %}
+
+    {% assign phoneNumber = Member.Person | PhoneNumber:'Home' %}
+    {% assign phoneNumberLong = Member.Person | PhoneNumber:'Home',true %}
+    {% if phoneNumber != '' and phoneNumber != null %}
+        {% assign hasContact = true %}
+        <Rock:Divider />
+        <StackLayout Orientation=""Horizontal"" Padding=""0,16"" Spacing=""20"">
+            <StackLayout Spacing=""0"" VerticalOptions=""Center"" HorizontalOptions=""FillAndExpand"">
+                <Label FontSize=""16"" FontAttributes=""Bold"" Text=""{{ phoneNumber }}"" />
+                <Label Text=""Home"" />
+            </StackLayout>
+            <Rock:Icon IconClass=""phone"" FontSize=""36"" Command=""{Binding CallPhoneNumber}"" CommandParameter=""{{ phoneNumberLong }}"" VerticalOptions=""Center"" />
+        </StackLayout>
+    {% endif %}
+
+    {% if hasContact == true %}
+        <Rock:Divider />
+    {% endif %}
+
+    {% if GroupMemberEditPage != '' %}
+        <Button StyleClass=""btn,btn-primary,mt-32"" Text=""Edit"" Command=""{Binding PushPage}"" CommandParameter=""{{ GroupMemberEditPage }}?GroupMemberGuid={{ Member.Guid }}"" />
+    {% endif %}
 </StackLayout>";
 
         #endregion
