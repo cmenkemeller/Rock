@@ -72,6 +72,9 @@ namespace Rock.Migrations
             // Schedule Unavailability
             UpdateTemplate( "FCFB9F90-9C94-4405-BBF9-DF62DC85DEFD", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_GROUP_SCHEDULE_UNAVAILABILITY, _scheduleUnavailabilityTemplate, "1A699B18-AB29-4CD5-BC02-AF55159D5DA6", _scheduleUnavailabilityLegacyTemplate );
 
+            // Group Member List
+            UpdateTemplate( "A57595B6-3F19-43B7-B3A5-D5E7BB041C66", SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_GROUP_MEMBER_LIST, _groupMemberListTemplate, "674CF1E3-561C-430D-B4A8-39957AC1BCF1", _groupMemberListLegacyTemplate );
+
             // Group Members
             UpdateTemplate( "493F4ED9-11B9-4E9B-90FE-AD2BF207367B", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_GROUP_MEMBERS, _groupMembersTemplate, "13470DDB-5F8C-4EA2-93FD-B738F37C9AFC", _groupMembersLegacyTemplate );
         }
@@ -725,17 +728,21 @@ namespace Rock.Migrations
                 <Grid ColumnDefinitions=""*, Auto"">
                     <StackLayout Orientation=""Horizontal"" StyleClass=""spacing-8"">
                         {% for member in group.Group.Members %}
-                            <VerticalStackLayout>
-                                {% assign publicApplicationRoot = 'Global' | Attribute:'PublicApplicationRoot' %}
-                                {% assign photoUrl = publicApplicationRoot | Append:member.Person.PhotoUrl %}
-                                
-                                <Rock:Avatar Source=""{{ photoUrl | Escape }}"" 
-                                    StyleClass=""h-48"" />
-    
-                                <Label Text=""{{ member.Person.NickName }}""
-                                    HorizontalTextAlignment=""Center""
-                                    StyleClass=""body, text-interface-strong"" />
-                            </VerticalStackLayout>
+                            {% if Person.Id != member.Person.Id %}
+                                <VerticalStackLayout>
+                                    {% assign publicApplicationRoot = 'Global' | Attribute:'PublicApplicationRoot' %}
+                                    {% assign photoUrl = publicApplicationRoot | Append:member.Person.PhotoUrl %}
+                                    
+                                    <Rock:Avatar Source=""{{ photoUrl | Escape }}"" 
+                                        StyleClass=""h-48"" />
+        
+                                    <Label Text=""{{ member.Person.NickName }}""
+                                        HorizontalTextAlignment=""Center""
+                                        StyleClass=""body, text-interface-strong"" />
+                                </VerticalStackLayout>
+                            {% else %}
+                                <ContentView />
+                            {% endif %}
                         {% endfor %}
                     </StackLayout>
 
@@ -743,7 +750,7 @@ namespace Rock.Migrations
                         <Rock:Icon Grid.Column=""1""
                             IconClass=""chevron-right"" 
                             VerticalOptions=""Center""
-                            StyleClass=""body, text-interface-medium"" /> 
+                            StyleClass=""caption1, text-interface-medium"" /> 
                     {% endif %}
                 </Grid>
 
@@ -1249,6 +1256,112 @@ namespace Rock.Migrations
                   Text=""Schedule Unavailability""
                   Command=""{Binding ScheduleUnavailability.PushScheduleUnavailabilityModal}"">
     </Button>
+</StackLayout>";
+
+        private const string _groupMemberListTemplate = @"<Rock:StyledBorder StyleClass=""bg-interface-softest, border, border-interface-soft, rounded, p-16"">
+    <VerticalStackLayout>
+        {% for member in Members %}
+            <Grid RowDefinitions=""48, Auto""
+                ColumnDefinitions=""Auto, *, Auto""
+                StyleClass=""gap-column-8"">
+                
+                <Rock:Avatar Source=""{{ member.PhotoUrl | Escape }}""
+                    HeightRequest=""48""
+                    ShowStroke=""false""
+                    Grid.Row=""0""
+                    Grid.Column=""0""
+                    VerticalOptions=""Center"" />
+
+                <StackLayout Grid.Column=""1""
+                    VerticalOptions=""Center"">
+                    <Label StyleClass=""body, bold, text-interface-stronger""
+                        Text=""{{ member.FullName }}""
+                        MaxLines=""1""
+                        LineBreakMode=""TailTruncation"" />
+
+                    <Label StyleClass=""footnote, text-interface-strong""
+                        Grid.Column=""0""
+                        MaxLines=""1""
+                        LineBreakMode=""TailTruncation"" 
+                        Text=""{{ member.GroupRole | Escape }}"" /> 
+                </StackLayout>
+
+                <Rock:Icon Grid.Column=""2""
+                    IconClass=""chevron-right"" 
+                    VerticalOptions=""Center""
+                    StyleClass=""caption1, text-interface-medium"" /> 
+
+                {% unless forloop.last %}
+                    <Rock:Divider Grid.Row=""1"" 
+                        Grid.ColumnSpan=""3"" 
+                        StyleClass=""my-8""/>
+                {% endunless %}
+
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Command=""{Binding PushPage}"" 
+                     CommandParameter=""{{ DetailPage }}?GroupMemberGuid={{ member.Guid }}"" />
+                </Grid.GestureRecognizers>
+            </Grid>
+        {% endfor %}
+    </VerticalStackLayout>
+</Rock:StyledBorder>";
+        private const string _groupMemberListLegacyTemplate = @"<StackLayout StyleClass=""members-container"" 
+    Spacing=""0"">
+    {% for member in Members %}
+        <Frame StyleClass=""member-container"" 
+            Margin=""0""
+            BackgroundColor=""White""
+            HasShadow=""false""
+            HeightRequest=""40"">
+                <StackLayout Orientation=""Horizontal""
+                    Spacing=""0""
+                    VerticalOptions=""Center"">
+                    <Rock:Image Source=""{{ member.PhotoUrl | Escape }}""
+                        StyleClass=""member-person-image""
+                        VerticalOptions=""Start""
+                        Aspect=""AspectFit""
+                        Margin=""0, 4, 14, 0""
+                        BackgroundColor=""#e4e4e4"">
+                        <Rock:CircleTransformation />
+                    </Rock:Image>
+                    
+                    <StackLayout Spacing=""0"" 
+                        HorizontalOptions=""FillAndExpand"">
+                        <StackLayout Orientation=""Horizontal""
+                        VerticalOptions=""Center"">
+                            <Label StyleClass=""member-name""
+                                Text=""{{ member.FullName }}""
+                                LineBreakMode=""TailTruncation""
+                                HorizontalOptions=""FillAndExpand"" />
+
+                            <Grid ColumnSpacing=""4"" 
+                                RowSpacing=""0""
+                                ColumnDefinitions=""*, Auto""
+                                VerticalOptions=""Start"">
+
+                                <Rock:Icon IconClass=""chevron-right""
+                                    VerticalTextAlignment=""Start""
+                                    Grid.Column=""1"" 
+                                    StyleClass=""note-read-more-icon""
+                                    />
+                            </Grid>
+                        </StackLayout>
+                            <Label StyleClass=""member-text""
+                                Grid.Column=""0""
+                                MaxLines=""2""
+                                LineBreakMode=""TailTruncation"" 
+                                Text=""{{ member.GroupRole | Escape }}"" /> 
+                    </StackLayout>
+                </StackLayout>
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command=""{Binding PushPage}"" 
+                     CommandParameter=""{{ DetailPage }}?GroupMemberGuid={{ member.Guid }}"" />
+                </Frame.GestureRecognizers>
+            </Frame>
+        <BoxView HorizontalOptions=""FillAndExpand""
+            HeightRequest=""1""
+            Color=""#cccccc"" />
+    {% endfor %}
 </StackLayout>";
 
         #endregion
