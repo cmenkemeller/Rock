@@ -62,6 +62,18 @@ namespace Rock.Migrations
             // Conection Request List
             UpdateTemplate( "2E36BC98-A18A-4524-8AC1-F14A1AC9DE2F", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_CONNECTION_CONNECTION_REQUEST_LIST, _connectionRequestListTemplate, "787BFAA8-FF61-49BA-80DD-67074DC362C2", _connectionRequestListLegacyTemplate );
 
+            // Schedule Toolbox
+            UpdateTemplate( "F04B6154-1543-4632-89A2-1792F6CED9D6", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_GROUP_SCHEDULE_TOOLBOX, _scheduleToolboxTemplate, "CD2629E5-8EB0-4D52-ACAB-8EDF9AF84814", _scheduleToolboxLegacyTemplate );
+            UpdateTemplate( "DE3E57AC-E12B-4249-BB15-64C7A7780AC8", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_GROUP_SCHEDULE_TOOLBOX_DECLINE_MODAL, _scheduleToolboxDeclineReasonTemplate, "92D39913-7D69-4B73-8FF9-72AC161BE381", _scheduleToolboxDeclineReasonLegacyTemplate );
+
+            // Schedule Preference
+            UpdateTemplate( "8DF04E4B-9ABF-477D-8CD2-D36FF06DBDB8", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_GROUP_SCHEDULE_PREFERENCE_LANDING_PAGE, _schedulePreferenceLandingTemplate, "C3A98DBE-E977-499C-B823-0B3676731E48", _schedulePreferenceLandingLegacyTemplate );
+
+            // Schedule Unavailability
+            UpdateTemplate( "FCFB9F90-9C94-4405-BBF9-DF62DC85DEFD", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_GROUP_SCHEDULE_UNAVAILABILITY, _scheduleUnavailabilityTemplate, "1A699B18-AB29-4CD5-BC02-AF55159D5DA6", _scheduleUnavailabilityLegacyTemplate );
+
+            // Group Members
+            UpdateTemplate( "493F4ED9-11B9-4E9B-90FE-AD2BF207367B", Rock.SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_GROUP_MEMBERS, _groupMembersTemplate, "13470DDB-5F8C-4EA2-93FD-B738F37C9AFC", _groupMembersLegacyTemplate );
         }
 
         /// <summary>
@@ -697,6 +709,546 @@ namespace Rock.Migrations
             {% endif %}
         </Frame>
     {% endfor %}
+</StackLayout>";
+
+        #endregion
+
+        #region Crm Blocks
+
+        private const string _groupMembersTemplate = @"<StackLayout StyleClass=""spacing-24"">
+    {% for group in Groups %}
+        <StackLayout StyleClass=""spacing-8"">
+            <Label Text=""{{ group.Group.Name | Escape }}"" 
+                StyleClass=""h3, title2, bold, text-interface-stronger"" />
+
+            <Rock:StyledBorder StyleClass=""border, border-interface-soft, rounded, bg-interface-softest, p-16"">
+                <Grid ColumnDefinitions=""*, Auto"">
+                    <StackLayout Orientation=""Horizontal"" StyleClass=""spacing-8"">
+                        {% for member in group.Group.Members %}
+                            <VerticalStackLayout>
+                                {% assign publicApplicationRoot = 'Global' | Attribute:'PublicApplicationRoot' %}
+                                {% assign photoUrl = publicApplicationRoot | Append:member.Person.PhotoUrl %}
+                                
+                                <Rock:Avatar Source=""{{ photoUrl | Escape }}"" 
+                                    StyleClass=""h-48"" />
+    
+                                <Label Text=""{{ member.Person.NickName }}""
+                                    HorizontalTextAlignment=""Center""
+                                    StyleClass=""body, text-interface-strong"" />
+                            </VerticalStackLayout>
+                        {% endfor %}
+                    </StackLayout>
+
+                    {% if EditPage and group.CanEdit %}
+                        <Rock:Icon Grid.Column=""1""
+                            IconClass=""chevron-right"" 
+                            VerticalOptions=""Center""
+                            StyleClass=""body, text-interface-medium"" /> 
+                    {% endif %}
+                </Grid>
+
+                {% if EditPage and group.CanEdit %}
+                    <Rock:StyledBorder.GestureRecognizers>
+                        <TapGestureRecognizer Command=""{Binding PushPage}""
+                            CommandParameter=""{{ EditPage }}?GroupGuid={{ group.Group.Guid }}"" />
+                    </Rock:StyledBorder.GestureRecognizers>
+                {% endif %}
+            </Rock:StyledBorder>
+        </StackLayout>
+    {% endfor %}
+</StackLayout>";
+
+        private const string _groupMembersLegacyTemplate = @"{% for group in Groups %}
+    <StackLayout>
+        <Label Text=""{{ group.Group.Name }}"" 
+            StyleClass=""h3"" />
+        
+        <Frame StyleClass=""p-0""
+            HasShadow=""False"">
+            <Grid
+                ColumnDefinitions=""*, 32"">
+                <ScrollView Orientation=""Horizontal""
+                    Grid.Column=""0""
+                    HorizontalScrollBarVisibility=""Never"">
+                    <StackLayout Orientation=""Horizontal"">
+                      {% for member in group.Group.Members %}
+                        <!-- We want to exclude the actual person from this list -->
+                        {% if Person.Id != member.Person.Id %}
+                            <StackLayout>
+                            {% assign publicApplicationRoot = 'Global' | Attribute:'PublicApplicationRoot' %}
+                            {% assign photoUrl = publicApplicationRoot | Append:member.Person.PhotoUrl %}
+                            <Rock:Image Source=""{{ photoUrl | Escape }}""
+                                WidthRequest=""48""
+                                HeightRequest=""48"">
+                                <Rock:CircleTransformation />
+                            </Rock:Image>
+                            <Label Text=""{{ member.Person.NickName }}""
+                                HorizontalTextAlignment=""Center"" />
+                        </StackLayout>
+                        {% else %}
+                            <ContentView />
+                        {% endif %}
+                      {% endfor %}
+
+                    {% if EditPage and group.CanEdit %}
+                    <StackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Command=""{Binding PushPage}""
+                            CommandParameter=""{{ EditPage }}?GroupGuid={{ group.Group.Guid }}"" />
+                    </StackLayout.GestureRecognizers>
+                    {% endif %}
+                    </StackLayout>
+                </ScrollView>
+                {% if EditPage and group.CanEdit %}
+                    <Rock:Icon Grid.Column=""1""
+                        IconClass=""chevron-right""
+                        WidthRequest=""32""
+                        HeightRequest=""32"" 
+                        VerticalTextAlignment=""Center""
+                        HorizontalTextAlignment=""End"" /> 
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command=""{Binding PushPage}""
+                            CommandParameter=""{{ EditPage }}?GroupGuid={{ group.Group.Guid }}"" />
+                    </Grid.GestureRecognizers>
+                {% endif %}
+            </Grid>
+        </Frame>
+    </StackLayout>
+{% endfor %}";
+
+        #endregion 
+
+        #region Group Blocks
+
+        private const string _scheduleToolboxTemplate = @"<Rock:StyledBorder StyleClass=""border, border-interface-soft, bg-interface-softest, rounded, p-16"">
+    <VerticalStackLayout>
+
+        {% if ScheduleList == empty %}
+            <Label Text=""You currently have no pending or confirmed schedules. Reach out to a church administrator if you are interested!""
+                StyleClass=""body, text-interface-stronger"" />
+        {% endif %}
+
+        {% for attendance in ScheduleList %}
+            {% assign status = attendance.GroupScheduleType %}
+
+            <Grid RowDefinitions=""64, Auto""
+                ColumnDefinitions=""*, Auto"">
+                <VerticalStackLayout VerticalOptions=""Center"">
+                    <Label StyleClass=""body, bold, text-interface-stronger""
+                        Text=""{{ attendance.OccurrenceStartDate | Date:'sd' }}""
+                        MaxLines=""1""
+                        LineBreakMode=""TailTruncation"" />
+
+                    {% capture title %}{{ attendance.Group.Name }}{% if attendance.Location.Name and attendance.Location.Name != '' %} - {{ attendance.Location.Name }}{% endif %}{% endcapture %}
+
+                    <Label StyleClass=""footnote, text-interface-strong""
+                        Text=""{{ title | Escape }}""
+                        MaxLines=""1""
+                        LineBreakMode=""TailTruncation"" />
+
+                    <Label StyleClass=""footnote, text-interface-strong""
+                        Text=""{{ attendance.Schedule.NextStartDateTime | Date:'dddd h:mmtt' }}"" 
+                        MaxLines=""1""
+                        LineBreakMode=""TailTruncation"" />
+                </VerticalStackLayout>
+
+                {% if status == 'Upcoming' %}
+                    <StackLayout Spacing=""8"" 
+                        Grid.Column=""1"" 
+                        StyleClass=""spacing-8""
+                        Orientation=""Horizontal"">
+        
+                        <Label StyleClass=""footnote, text-success-strong""
+                            VerticalOptions=""Center""
+                            Text=""Confirmed"" />
+
+                        <Rock:Icon IconClass=""ellipsis-v"" 
+                            VerticalOptions=""Center""
+                            StyleClass=""text-interface-stronger, footnote""
+                            Command=""{Binding ShowActionPanel}"">
+                            <Rock:Icon.CommandParameter>
+                                <Rock:ShowActionPanelParameters 
+                                    Title=""{{ attendance.OccurrenceStartDate | Date:'sd' }} - {{ attendance.Schedule.NextStartDateTime | Date:'dddd h:mmtt' }}"" 
+                                    CancelTitle=""Exit"">
+                                    <Rock:ActionPanelButton Title=""Cancel Confirmation"" 
+                                        Command=""{Binding ScheduleToolbox.SetPending}"" 
+                                        CommandParameter=""{{ attendance.Guid }}"" />
+                                </Rock:ShowActionPanelParameters>
+                            </Rock:Icon.CommandParameter>
+                        </Rock:Icon>
+                    </StackLayout>
+                {% elseif status == 'Pending' %}
+                    <StackLayout Spacing=""8"" 
+                        Grid.Column=""1"" 
+                        StyleClass=""spacing-8""
+                        HorizontalOptions=""Center""
+                        Orientation=""Horizontal"">
+                        <Button StyleClass=""btn, btn-success"" 
+                            Text=""Accept""
+                            Command=""{Binding ScheduleToolbox.ConfirmAttend}""
+                            HorizontalOptions=""Center""
+                            CommandParameter=""{{ attendance.Guid }}"" />
+    
+                        <Button StyleClass=""btn, btn-outline-danger"" 
+                            Text=""Decline""              
+                            Command=""{Binding ScheduleToolbox.PushScheduleConfirmModal}""
+                            HorizontalOptions=""Center""
+                            CommandParameter=""{{ attendance.Guid }}"" />
+                    </StackLayout>
+                {% elseif status == ""Unavailable"" %}
+                    <StackLayout Spacing=""8"" 
+                        Grid.Column=""1"" 
+                        StyleClass=""spacing-8""
+                        Orientation=""Horizontal"">
+        
+                        <Label StyleClass=""footnote, text-danger-strong""
+                            VerticalOptions=""Center""
+                            Text=""Declined"" />
+
+                        <Rock:Icon IconClass=""ellipsis-v"" 
+                            VerticalOptions=""Center""
+                            StyleClass=""text-interface-stronger, footnote""
+                            Command=""{Binding ShowActionPanel}"">
+                            <Rock:Icon.CommandParameter>
+                                <Rock:ShowActionPanelParameters 
+                                    Title=""{{ attendance.OccurrenceStartDate | Date:'sd' }} - {{ attendance.Schedule.NextStartDateTime | Date:'dddd h:mmtt' }}"" 
+                                    CancelTitle=""Exit"">
+                                    <Rock:ActionPanelButton Title=""Cancel Declination"" 
+                                        Command=""{Binding ScheduleToolbox.SetPending}"" 
+                                        CommandParameter=""{{ attendance.Guid }}"" />
+                                </Rock:ShowActionPanelParameters>
+                            </Rock:Icon.CommandParameter>
+                        </Rock:Icon>
+                    </StackLayout>
+                {% endif %}
+
+                <!-- Divider -->
+                {% unless forloop.last %}
+                    <Rock:Divider Grid.Row=""1"" 
+                        Grid.Column=""0"" 
+                        Grid.ColumnSpan=""2""
+                        VerticalOptions=""Center""
+                        StyleClass=""my-8"" />
+                {% endunless %}
+            </Grid>
+        {% endfor %}
+    </VerticalStackLayout>
+</Rock:StyledBorder>";
+        private const string _scheduleToolboxLegacyTemplate = @"<StackLayout StyleClass=""schedule-toolbox"">
+        {% if ScheduleList == empty %}
+        
+        <Rock:NotificationBox Text=""You currently have no pending or confirmed schedules. Reach out to a church administrator if you are interested!"" />
+    
+        {% endif %}
+
+        {% for attendance in ScheduleList %}
+
+        {% assign status = attendance.GroupScheduleType %}
+        
+        <Grid ColumnSpacing=""12"" Padding=""8"">
+            <StackLayout Spacing=""4"" Grid.Column=""0""  StyleClass=""schedule-toolbox-container"">
+                <Label  StyleClass=""detail-title""
+                        Text=""{{ attendance.OccurrenceStartDate | Date:'sd' }}""
+                        MaxLines=""1""
+                        LineBreakMode=""TailTruncation"" />
+
+            <Label StyleClass=""detail""
+                        Text=""{{ attendance.Group.Name | Escape }} - {{ attendance.Location.Name }}""
+                        MaxLines=""2""
+                        LineBreakMode=""TailTruncation"" />
+
+            <Label StyleClass=""detail""
+                        Text=""{{ attendance.Schedule.NextStartDateTime | Date:'dddd h:mmtt' }}"" 
+                        MaxLines=""1""
+                        LineBreakMode=""TailTruncation"" />
+            </StackLayout>
+
+        {% if status == 'Upcoming' %}
+            <StackLayout Spacing=""8"" Grid.Column=""1"" StyleClass=""schedule-toolbox-confirmations-container""
+                    VerticalOptions=""Center""
+                    HorizontalOptions=""End""
+                    Orientation=""Horizontal"">
+
+            <Label StyleClass=""confirmed-text""
+                    HorizontalOptions=""Start"" VerticalOptions=""Center""
+                    Padding=""8""
+                    Text=""Confirmed"" />
+            <Rock:Icon IconClass=""Ellipsis-v"" 
+                    HorizontalOptions=""End""
+                    VerticalOptions=""Center""
+                    Padding=""8""
+                    Command=""{Binding ShowActionPanel}"">
+                    <Rock:Icon.CommandParameter>
+                        <Rock:ShowActionPanelParameters 
+                            Title=""{{ attendance.OccurrenceStartDate | | Date:'sd' }} - {{ attendance.Schedule.NextStartDateTime | Date:'dddd h:mmtt' }}"" 
+                            CancelTitle=""Exit"">
+                            <Rock:ActionPanelButton Title=""Cancel Confirmation"" 
+                                Command=""{Binding ScheduleToolbox.SetPending}"" 
+                                CommandParameter=""{{ attendance.Guid }}"" />
+                        </Rock:ShowActionPanelParameters>
+                    </Rock:Icon.CommandParameter>
+                </Rock:Icon>
+            </StackLayout>
+        {% endif %}
+
+        {% if status == 'Unavailable' %}
+            <StackLayout Spacing=""8"" Grid.Column=""1"" StyleClass=""schedule-toolbox-confirmations-container""
+                    VerticalOptions=""Center""
+                    HorizontalOptions=""End""
+                    Orientation=""Horizontal"">
+
+            <Label StyleClass=""declined-text""
+                    HorizontalOptions=""Start"" VerticalOptions=""Center""
+                    Padding=""8""
+                    Text=""Declined"" />
+            <Rock:Icon IconClass=""Ellipsis-v"" 
+                    HorizontalOptions=""End""
+                    VerticalOptions=""Center""
+                    Padding=""8""
+                    Command=""{Binding ShowActionPanel}"">
+                    <Rock:Icon.CommandParameter>
+                        <Rock:ShowActionPanelParameters 
+                            Title=""{{ attendance.OccurrenceStartDate | | Date:'sd' }} - {{ attendance.Schedule.NextStartDateTime | Date:'dddd h:mmtt' }}"" 
+                            CancelTitle=""Exit"">
+                            <Rock:ActionPanelButton Title=""Cancel Declination"" 
+                                Command=""{Binding ScheduleToolbox.SetPending}"" 
+                                CommandParameter=""{{ attendance.Guid }}"" />
+                        </Rock:ShowActionPanelParameters>
+                    </Rock:Icon.CommandParameter>
+                </Rock:Icon>
+            </StackLayout>
+        {% endif %}
+
+        {% if status == 'Pending' %}
+                
+            <StackLayout Spacing=""8"" Grid.Column=""1"" StyleClass=""schedule-toolbox-pending-container""
+                    VerticalOptions=""Center""
+                    HorizontalOptions=""End""
+                    Orientation=""Horizontal"">
+                    <Button StyleClass=""btn,btn-success,accept-button"" 
+                        Text=""Accept""
+                        Command=""{Binding ScheduleToolbox.ConfirmAttend}""
+                        CommandParameter=""{{ attendance.Guid }}""
+                        HorizontalOptions=""Fill"" />
+
+                    <Button StyleClass=""btn,btn-outline-danger,decline-button"" 
+                        Text=""Decline""              
+                        Command=""{Binding ScheduleToolbox.PushScheduleConfirmModal}""
+                        CommandParameter=""{{ attendance.Guid }}""
+                        HorizontalOptions=""Fill""  />
+            </StackLayout>
+
+        {% endif %}
+        </Grid>
+        <Rock:Divider />
+        {% endfor %}
+</StackLayout>";
+
+        private const string _scheduleToolboxDeclineReasonTemplate = @"<VerticalStackLayout>
+    <Label StyleClass=""title2, bold, text-interface-strongest""
+        Text=""Can't make it, {{ Attendance.PersonAlias.Person.NickName }}? "" />
+
+    <Label StyleClass=""body, text-interface-stronger"" Grid.Row=""1""
+        Text=""Thanks for letting us know. We’ll try to schedule another person for {{ Attendance.StartDateTime | Date:'dddd @ h:mmtt'}}."" />
+</VerticalStackLayout>";
+        private const string _scheduleToolboxDeclineReasonLegacyTemplate = @"<StackLayout Spacing=""0"">
+    <Frame HasShadow=""False"">
+        <Grid RowDefinitions=""1*, 1*, 1*"">
+            <Label StyleClass=""h2, schedule-toolbox-confirm-title""
+                Text=""Can't make it, {{ Attendance.PersonAlias.Person.NickName }}? "" />
+            <Label StyleClass=""schedule-toolbox-confirm-title"" Grid.Row=""1""
+                Text=""Thanks for letting us know. We’ll try to schedule another person for {{ Attendance.StartDateTime | Date:'dddd @ h:mmtt'}}."" />
+        </Grid>
+    </Frame>
+</StackLayout>";
+
+        private const string _schedulePreferenceLandingTemplate = @"<StackLayout StyleClass=""spacing-24"">
+    <VerticalStackLayout>
+        <Label StyleClass=""title1, bold, text-interface-strongest""
+            Text=""Serving Areas"" />
+    
+        <Label StyleClass=""footnote, text-interface-strong""
+            Text=""You are registered to serve in the following areas. Please select an area to update your scheduling preferences."" />
+    </VerticalStackLayout>
+
+    <StackLayout StyleClass=""spacing-8"">
+        {% for group in SchedulingGroupList %}
+            <Button StyleClass=""btn, btn-primary""
+                Text=""{{ group.Name | Escape }}""
+                Command=""{Binding SchedulePreference.ShowPreferences}"" 
+                CommandParameter=""{{ group.Guid }}"" /> 
+        {% endfor %} 
+    </StackLayout>
+</StackLayout>";
+        private const string _schedulePreferenceLandingLegacyTemplate = @"<StackLayout>
+<StackLayout Padding=""16"" HorizontalOptions=""Center"" VerticalOptions=""Center"">
+    
+    <Label StyleClass=""h3"" 
+        Text=""Serving Areas""
+        />
+
+    <Label StyleClass=""""
+        Text=""You are registered to serve in the following areas. Please select an area to update your scheduling preferences."" />
+    {% if SchedulingGroupList == empty %}
+        <Rock:NotificationBox Text=""You are currently not enrolled in any groups with scheduling options. Contact a church administrator if you are interested!"" />
+    {% endif %}
+    
+    {% for group in SchedulingGroupList %}
+    <Grid> 
+        <Button StyleClass=""btn,btn-primary,group-selection-button"" Text=""{{ group.Name }}"" HorizontalOptions=""FillAndExpand""
+            Command=""{Binding SchedulePreference.PushToPreferencePage}"" 
+            CommandParameter=""{{ group.Guid }}"" /> 
+    </Grid> 
+    {% endfor %} 
+
+</StackLayout>
+</StackLayout>";
+
+        private const string _scheduleUnavailabilityTemplate = @"<VerticalStackLayout Spacing=""8"">
+    <Rock:StyledBorder StyleClass=""border, border-interface-soft, bg-interface-softest, rounded, p-16"">
+        <VerticalStackLayout>
+            {% if ScheduleExclusionsList == empty %}
+                <Label Text=""You currently have no dates excluded from your schedule.""
+                    StyleClass=""body, text-interface-stronger"" />
+            {% endif %}
+    
+            {% for exclusion in ScheduleExclusionsList %}
+                {% if exclusion.Group %}
+                    {% assign GroupName = exclusion.Group.Name %}
+                {% else %} 
+                    {% assign GroupName = ""All Groups"" %}
+                {% endif %}
+    
+                <Grid RowDefinitions=""80, Auto""
+                    ColumnDefinitions=""*, Auto"">
+    
+                    <VerticalStackLayout VerticalOptions=""Center"">
+                        <Label StyleClass=""body, bold, text-interface-stronger""
+                            Text=""{{ exclusion.OccurrenceStartDate | Date:'sd' }} - {{ exclusion.OccurrenceEndDate | Date:'sd' }}""
+                            MaxLines=""1""
+                            LineBreakMode=""TailTruncation"" />
+    
+                        <Label StyleClass=""footnote, text-interface-strong""
+                            Text=""{{ exclusion.PersonAlias.Person.FullName }}""
+                            MaxLines=""1""
+                            LineBreakMode=""TailTruncation"" />
+        
+                        <Label StyleClass=""footnote, text-interface-strong""
+                            Text=""{{ GroupName | Escape }}"" 
+                            MaxLines=""1""
+                            LineBreakMode=""TailTruncation"" />
+    
+                        {% if exclusion.Title %}
+                            <Label StyleClass=""footnote, text-interface-strong""
+                                Text=""&quot;{{ exclusion.Title | Escape }}&quot;"" 
+                                MaxLines=""1""
+                                LineBreakMode=""TailTruncation"" />
+                        {% endif %}
+                    </VerticalStackLayout>
+    
+                    
+                    <Rock:Icon IconClass=""times"" 
+                        StyleClass=""text-interface-stronger, body""
+                        VerticalOptions=""Center""
+                        Grid.Column=""1""
+                        Command=""{Binding ShowActionPanel}"">
+                        <Rock:Icon.CommandParameter>
+                            <Rock:ShowActionPanelParameters 
+                                Title=""{{ exclusion.OccurrenceStartDate | Date:'sd' }} - {{ exclusion.OccurrenceEndDate | Date:'sd' }}"" 
+                                CancelTitle=""Exit"">
+    
+                                <Rock:ShowActionPanelParameters.DestructiveButton>
+                                    <Rock:ActionPanelButton Title=""Cancel My Request"" 
+                                        Command=""{Binding ScheduleUnavailability.DeleteScheduledUnavailability}""
+                                        CommandParameter=""{{ exclusion.Guid }}"" />
+                                </Rock:ShowActionPanelParameters.DestructiveButton>
+                            </Rock:ShowActionPanelParameters>
+                        </Rock:Icon.CommandParameter>
+                    </Rock:Icon>
+    
+                    {% unless forloop.last %}
+                        <Rock:Divider Grid.Row=""1"" 
+                            Grid.Column=""0"" 
+                            Grid.ColumnSpan=""2""
+                            StyleClass=""my-8"" />
+                    {% endunless %}
+                </Grid>
+            {% endfor %}
+        </VerticalStackLayout>  
+    </Rock:StyledBorder>
+
+    <Button Text=""Schedule Unavailability""
+        HorizontalOptions=""End"" 
+        StyleClass=""btn, btn-primary, schedule-unavailabilty-button""       
+        Command=""{Binding ScheduleUnavailability.PushScheduleUnavailabilityModal}"" />
+</VerticalStackLayout>";
+        private const string _scheduleUnavailabilityLegacyTemplate = @"<StackLayout StyleClass=""schedule-toolbox"">
+    {% if ScheduleExclusionsList == empty %}
+        
+    <Rock:NotificationBox Text=""You currently have no blackout dates inputted."" />
+    
+    {% endif %}
+    
+    {% for attendance in ScheduleExclusionsList %}
+
+        {% if attendance.Group %}
+            {% assign GroupName = attendance.Group.Name %}
+        {% else %} 
+            {% assign GroupName = ""All Groups"" %}
+        {% endif %}
+        
+        <Grid ColumnSpacing=""12"" Padding=""4"" Margin=""8"">
+            <StackLayout Spacing=""4"" Grid.Column=""0""  StyleClass=""schedule-toolbox-container"">
+                <Label  StyleClass=""detail-title""
+                        Text=""{{ attendance.OccurrenceStartDate | Date:'sd' }} - {{ attendance.OccurrenceEndDate | Date:'sd' }} ""
+                        MaxLines=""1""
+                        LineBreakMode=""TailTruncation"" />
+
+                <Label StyleClass=""detail""
+                        Text=""{{ attendance.PersonAlias.Person.FullName }}""
+                        MaxLines=""1""
+                        LineBreakMode=""TailTruncation"" />
+
+                <Label StyleClass=""detail""
+                        Text=""{{ GroupName }}"" 
+                        MaxLines=""1""
+                        LineBreakMode=""TailTruncation"" />
+
+                {% if attendance.Title %}
+                <Label StyleClass=""detail""
+                        Text=""&quot;{{ attendance.Title }}&quot;"" 
+                        MaxLines=""1""
+                        LineBreakMode=""TailTruncation"" />
+                {% endif %}
+            </StackLayout>
+
+            <Rock:Icon IconClass=""times"" 
+                    StyleClass=""""
+                    HorizontalOptions=""End""
+                    VerticalOptions=""Center""
+                    Padding=""8""
+                    Command=""{Binding ShowActionPanel}"">
+                    <Rock:Icon.CommandParameter>
+                        <Rock:ShowActionPanelParameters 
+                            Title=""{{ attendance.OccurrenceStartDate | Date:'sd' }} - {{ attendance.OccurrenceEndDate | Date:'sd' }}"" 
+                            CancelTitle=""Exit"">
+
+                            <Rock:ShowActionPanelParameters.DestructiveButton>
+                                <Rock:ActionPanelButton Title=""Cancel My Request"" 
+                                    Command=""{Binding ScheduleUnavailability.DeleteScheduledUnavailability}""
+                                    CommandParameter=""{{ attendance.Guid }}""
+                                    />
+                            </Rock:ShowActionPanelParameters.DestructiveButton>
+                        </Rock:ShowActionPanelParameters>
+                    </Rock:Icon.CommandParameter>
+                </Rock:Icon>
+        </Grid>
+        <Rock:Divider />
+
+        {% endfor %}
+    <Button Margin=""8"" HorizontalOptions=""End"" StyleClass=""btn,btn-primary,schedule-unavailabilty-button""
+                  Text=""Schedule Unavailability""
+                  Command=""{Binding ScheduleUnavailability.PushScheduleUnavailabilityModal}"">
+    </Button>
 </StackLayout>";
 
         #endregion
