@@ -86,6 +86,9 @@ namespace Rock.Migrations
 
             // Group Finder
             UpdateTemplate( "4EA2A456-8164-48DA-851A-1F8979EB8B8E", SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_GROUPS_GROUP_FINDER, _groupFinderTemplate, "CC117DBB-5C3C-4A32-8ABA-88A7493C7F70", _groupFinderLegacyTemplate );
+
+            // Prayer Session Startup
+            UpdateTemplate( "C0FCA573-D341-4B33-B097-3FB7028B3816", SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_PRAYER_SESSION, _prayerSessionTemplate, "2B0F4548-8DA7-4236-9BF9-5FA3C07D762F", _prayerSessionLegacyTemplate );
         }
 
         /// <summary>
@@ -1943,6 +1946,185 @@ namespace Rock.Migrations
         <Rock:Divider />
         {% endfor %}
     </StackLayout>
+{% endif %}";
+
+        #endregion
+
+        #region Prayer Blocks
+
+        private const string _prayerSessionTemplate = @"{% if Request != null %}
+    {% if Request.RequestedByPersonAlias != null %}
+        {% assign photoUrl = Request.RequestedByPersonAlias.Person.PhotoUrl %}
+    {% else %}
+        {% assign photoUrl = 'Assets/Images/person-no-photo-unknown.svg' %}
+    {% endif %}
+
+    <Grid RowDefinitions=""Auto, Auto, Auto, Auto, Auto""
+        ColumnDefinitions=""*, Auto""
+        StyleClass=""gap-row-8"">
+        
+        <Label Text=""{{ Request.Category.Name | Escape }}""
+            StyleClass=""body, text-interface-medium""
+            Grid.Column=""0""
+            Grid.Row=""0"" />
+
+        <Rock:Icon IconFamily=""FontAwesomeRegular""
+            IconClass=""Times-Circle""
+            FontSize=""24""
+            StyleClass=""text-interface-medium""
+            Grid.Column=""1""
+            Grid.Row=""0""
+            Command=""{Binding PopPage}"" />
+
+        <Rock:Avatar Source=""{{ 'Global' | Attribute:'PublicApplicationRoot' | Append:photoUrl | Escape }}""
+            HeightRequest=""80""
+            Grid.Column=""0""
+            WidthRequest=""80""
+            HorizontalOptions=""Start""
+            Grid.Row=""1"" />
+
+        <Rock:FollowingIcon VerticalOptions=""Start""
+            EntityTypeId=""{{ Request.TypeId }}""
+            EntityId=""{{ Request.Id }}""
+            FontSize=""24""
+            IsFollowed=""{{ Request | IsFollowed }}""
+            FollowingIconClass=""Heart""
+            FollowingIconFamily=""FontAwesomeSolid""
+            FollowingIconColor=""#b91c1c""
+            NotFollowingIconClass=""Heart""
+            NotFollowingIconFamily=""FontAwesomeRegular""
+            NotFollowingIconColor=""#9aa7b3""
+            Grid.Column=""1"" 
+            Grid.Row=""1"" />
+
+        <VerticalStackLayout Grid.Column=""0""
+            Grid.Row=""2"">
+            <Label StyleClass=""title1, bold, text-interface-strongest""
+                Text=""Pray for {{ Request.FirstName | Escape }}"" />
+
+            {% if Request.Campus and Request.Campus.Name != '' %}
+                <Label Text=""{{ Request.Campus.Name | Escape }}""
+                    StyleClass=""body, text-interface-strong"" />
+            {% endif %}
+        </VerticalStackLayout>
+
+        <Label StyleClass=""mt-16, body, text-interface-strong""
+            Grid.Row=""3""
+            Grid.ColumnSpan=""2"">{{ Request.Text | XamlWrap }}</Label>
+
+        <VerticalStackLayout Grid.Row=""4""
+            Grid.ColumnSpan=""2""
+            StyleClass=""mt-16"">
+            <Button StyleClass=""btn, btn-primary""
+                Text=""{{ PrayedButtonText | Escape }}""
+                Command=""{Binding Callback}""
+                CommandParameter=""{Rock:CallbackParameters Name=':NextRequest', Parameters={Rock:Parameter Name='SessionContext', Value='{{ SessionContext }}'}}"" />
+
+            {% if ShowInappropriateButton %}
+                <Button StyleClass=""btn, btn-link""
+                    Text=""Report prayer as inappropriate""
+                    Command=""{Binding ShowActionPanel}"">
+                    <Button.CommandParameter>
+                        <Rock:ShowActionPanelParameters Title=""Report Prayer Request""
+                                                        CancelTitle=""Cancel"">
+                            <Rock:ShowActionPanelParameters.DestructiveButton>
+                                <Rock:ActionPanelButton Title=""Report""
+                                                        Command=""{Binding Callback}""
+                                                        CommandParameter=""{Rock:CallbackParameters Name=':FlagRequest', Parameters={Rock:Parameter Name='SessionContext', Value='{{ SessionContext }}'}}"" />
+                            </Rock:ShowActionPanelParameters.DestructiveButton>
+                        </Rock:ShowActionPanelParameters>
+                    </Button.CommandParameter>
+                </Button>
+            {% endif %}
+        </VerticalStackLayout>
+    </Grid>
+{% else %}
+    <StackLayout StyleClass=""spacing-8"">
+        <Label Text=""You have completed your prayer session."" 
+            StyleClass=""body, text-interface-stronger""
+            HorizontalOptions=""Center"" />
+        <Button StyleClass=""btn, btn-primary""
+            Text=""Done""
+            Command=""{Binding PopPage}"" />
+    </StackLayout>
+{% endif %}";
+        private const string _prayerSessionLegacyTemplate = @"{% if Request != null %}
+<StackLayout Spacing=""0"">
+    {% if Request.RequestedByPersonAlias != null %}
+        {% if Request.RequestedByPersonAlias.Person.PhotoId != null %}
+            {% assign photoUrl = Request.RequestedByPersonAlias.Person.PhotoUrl | Append:'&width=120' | Escape %}
+        {% else %}
+            {% assign photoUrl = Request.RequestedByPersonAlias.Person.PhotoUrl %}
+        {% endif %}
+    {% else %}
+        {% assign photoUrl = 'Assets/Images/person-no-photo-unknown.svg' %}
+    {% endif %}
+
+    <StackLayout Orientation=""Horizontal"">
+        <Label Text=""{{ Request.Category.Name | Escape }}""
+                    HorizontalOptions=""StartAndExpand"" />
+        <Rock:Icon IconFamily=""FontAwesomeRegular""
+                           IconClass=""Times-Circle""
+                          FontSize=""28""
+                          TextColor=""#afafaf""
+                          Command=""{Binding PopPage}"" />
+    </StackLayout>
+
+    <StackLayout Orientation=""Horizontal"">
+        <Rock:Image Source=""{{ 'Global' | Attribute:'PublicApplicationRoot' | Append:photoUrl | Escape}}""
+                              HeightRequest=""80""
+                              BackgroundColor=""#afafaf""
+                              HorizontalOptions=""StartAndExpand"">
+            <Rock:CircleTransformation />
+        </Rock:Image>
+        <Rock:FollowingIcon HorizontalOptions=""End""
+                                          VerticalOptions=""Center""
+                                          EntityTypeId=""{{ Request.TypeId }}""
+                                          EntityId=""{{ Request.Id }}""
+                                          FontSize=""28""
+                                          IsFollowed=""{{ Request | IsFollowed }}""
+                                          FollowingIconClass=""Heart""
+                                          FollowingIconFamily=""FontAwesomeSolid""
+                                          FollowingIconColor=""#ff3434""
+                                          NotFollowingIconClass=""Heart""
+                                          NotFollowingIconFamily=""FontAwesomeRegular""
+                                          NotFollowingIconColor=""#afafaf"" />
+    </StackLayout>
+
+    <Label StyleClass=""h1""
+                Text=""Pray for {{ Request.FirstName | Escape }}"" />
+    <Label Text=""{{ Request.Campus.Name }}"" />
+    <Label Margin=""0,30,0,60"">{{ Request.Text | XamlWrap }}</Label>
+
+    <Button StyleClass=""btn,btn-primary""
+                  Text=""{{ PrayedButtonText | Escape }}""
+                  Command=""{Binding Callback}""
+                  CommandParameter=""{Rock:CallbackParameters Name=':NextRequest', Parameters={Rock:Parameter Name='SessionContext', Value='{{ SessionContext }}'}}"" />
+
+    {% if ShowInappropriateButton %}
+    <Button StyleClass=""btn,btn-link""
+                  Text=""Report prayer as inappropriate""
+                  Command=""{Binding ShowActionPanel}"">
+        <Button.CommandParameter>
+            <Rock:ShowActionPanelParameters Title=""Report Prayer Request""
+                                            CancelTitle=""Cancel"">
+                <Rock:ShowActionPanelParameters.DestructiveButton>
+                    <Rock:ActionPanelButton Title=""Report""
+                                            Command=""{Binding Callback}""
+                                            CommandParameter=""{Rock:CallbackParameters Name=':FlagRequest', Parameters={Rock:Parameter Name='SessionContext', Value='{{ SessionContext }}'}}"" />
+                </Rock:ShowActionPanelParameters.DestructiveButton>
+            </Rock:ShowActionPanelParameters>
+        </Button.CommandParameter>
+    </Button>
+    {% endif %}
+</StackLayout>
+{% else %}
+<StackLayout Spacing=""0"">
+    <Label Text=""You have completed your prayer session."" />
+    <Button StyleClass=""btn,btn-primary""
+                  Text=""Ok""
+                  Command=""{Binding PopPage}"" />
+</StackLayout>
 {% endif %}";
 
         #endregion
