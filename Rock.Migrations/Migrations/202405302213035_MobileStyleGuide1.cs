@@ -83,6 +83,9 @@ namespace Rock.Migrations
 
             // Group View
             UpdateTemplate( "95FF4A7D-6512-4C5F-9A01-523E42CA10D6", SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_GROUP_VIEW, _groupViewTemplate, "6207AF10-B6C9-40B5-8AA5-4C11FA6D0966", _groupViewLegacyTemplate );
+
+            // Group Finder
+            UpdateTemplate( "4EA2A456-8164-48DA-851A-1F8979EB8B8E", SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_GROUPS_GROUP_FINDER, _groupFinderTemplate, "CC117DBB-5C3C-4A32-8ABA-88A7493C7F70", _groupFinderLegacyTemplate );
         }
 
         /// <summary>
@@ -140,7 +143,7 @@ namespace Rock.Migrations
                         </StackLayout>
 
                         {% unless forloop.last %}
-                            <Rock:Divider StyleClass=""my-16"" />
+                            <Rock:Divider StyleClass=""my-8"" />
                         {% endunless %}
                     </StackLayout>
                 {% endfor %}
@@ -218,7 +221,7 @@ namespace Rock.Migrations
                         </StackLayout>
 
                         {% unless forloop.last %}
-                            <Rock:Divider StyleClass=""my-16"" />
+                            <Rock:Divider StyleClass=""my-8"" />
                         {% endunless %}
                     </StackLayout>
                 {% endfor %}
@@ -1837,6 +1840,110 @@ namespace Rock.Migrations
         <Button StyleClass=""btn,btn-primary,mt-32"" Text=""Edit"" Command=""{Binding PushPage}"" CommandParameter=""{{ GroupMemberEditPage }}?GroupMemberGuid={{ Member.Guid }}"" />
     {% endif %}
 </StackLayout>";
+
+        private const string _groupFinderTemplate = @"{% if Groups == empty %}
+    <Rock:NotificationBox NotificationType=""Warning"" Text=""No groups match your search criteria."" />
+{% else %}
+    <Rock:StyledBorder StyleClass=""bg-interface-softest, border, border-interface-soft, rounded, p-16"">
+        <StackLayout>
+            {% for group in Groups %}
+                <Grid RowDefinitions=""64, Auto""
+                    ColumnDefinitions=""*, Auto""
+                    StyleClass=""gap-column-8""
+                    VerticalOptions=""Center"">
+                    
+                    <VerticalStackLayout VerticalOptions=""Center"">
+                        {% if group.Schedule.WeeklyDayOfWeek != null %}
+                            <Label Text=""{{ group.Schedule.WeeklyDayOfWeek }}"" 
+                                StyleClass=""text-info-strong, footnote"" />
+                        {% endif %}
+    
+                        <Label Text=""{{ group.Name | Escape }}""
+                            StyleClass=""body, bold, text-interface-stronger""
+                            VerticalOptions=""Center"" />
+
+                        <StackLayout Orientation=""Horizontal""
+                            StyleClass=""spacing-8"">
+                            {% if group.Schedule.WeeklyTimeOfDay != null %}
+                                <Label Text=""Weekly at {{ group.Schedule.WeeklyTimeOfDayText }}"" 
+                                    StyleClass=""text-interface-strong, footnote"" />
+                            {% elsif group.Schedule != null %}
+                                <Label Text=""{{ group.Schedule.FriendlyScheduleText }}"" 
+                                    StyleClass=""text-interface-strong, footnote"" />
+                            {% endif %}
+                            {% assign topic = group | Attribute:'Topic' %}
+                            {% if topic != empty %}
+                                <Label Text=""{{ topic | Escape }}"" 
+                                    StyleClass=""text-interface-strong, footnote"" />
+                            {% endif %}
+                        </StackLayout>
+                    </VerticalStackLayout>
+    
+                    {% if DetailPage != null %}
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command=""{Binding PushPage}""
+                                CommandParameter=""{{ DetailPage }}?GroupGuid={{ group.Guid }}"" />
+                        </Grid.GestureRecognizers>
+                        
+                        <Rock:Icon Grid.Column=""1""
+                            IconClass=""chevron-right"" 
+                            VerticalOptions=""Center""
+                            StyleClass=""caption1, text-interface-medium"" /> 
+                    {% endif %}
+    
+                    {% unless forloop.last %}
+                        <Rock:Divider Grid.Row=""1""
+                            Grid.Column=""0"" 
+                            Grid.ColumnSpan=""2""
+                            VerticalOptions=""Center""
+                            StyleClass=""my-8"" />
+                    {% endunless %}
+                </Grid>
+            {% endfor %}
+        </StackLayout>
+    </Rock:StyledBorder>
+{% endif %}";
+        private const string _groupFinderLegacyTemplate = @"{% if Groups == empty %}
+    <Rock:NotificationBox NotificationType=""Warning"" Text=""No groups match your search criteria."" />
+{% else %}
+    <StackLayout>
+        <Rock:Divider />
+        {% for group in Groups %}
+        {% assign distance = Distances[group.Id] %}
+        <Grid ColumnDefinitions=""1*, 15"" ColumnSpacing=""12"" StyleClass=""group-content"">
+            {% if DetailPage != null %}
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Command=""{Binding PushPage}"" CommandParameter=""{{ DetailPage }}?GroupGuid={{ group.Guid }}"" />
+                </Grid.GestureRecognizers>
+            {% endif %}
+            <StackLayout Grid.Column=""0"" StyleClass=""group-primary-content"">
+                {% if group.Schedule.WeeklyDayOfWeek != null %}
+                    <Label Text=""{{ group.Schedule.WeeklyDayOfWeek }}"" StyleClass=""group-meeting-day"" />
+                {% endif %}
+                <Label Text=""{{ group.Name | Escape }}"" StyleClass=""group-name"" />
+                <StackLayout Orientation=""Horizontal"">
+                    {% if group.Schedule.WeeklyTimeOfDay != null %}
+                        <Label Text=""Weekly at {{ group.Schedule.WeeklyTimeOfDayText }}"" HorizontalOptions=""Start"" StyleClass=""group-meeting-time"" />
+                    {% elsif group.Schedule != null %}
+                        <Label Text=""{{ group.Schedule.FriendlyScheduleText }}"" HorizontalOptions=""Start"" StyleClass=""group-meeting-time"" />
+                    {% endif %}
+                    {% assign topic = group | Attribute:'Topic' %}
+                    {% if topic != empty %}
+                        <Label Text=""{{ topic | Escape }}"" HorizontalTextAlignment=""End"" HorizontalOptions=""EndAndExpand"" StyleClass=""group-topic"" />
+                    {% endif %}
+                </StackLayout>
+                {% if distance != null %}
+                    <Label Text=""{{ distance | Format:'#,##0.0' }} mi"" StyleClass=""group-distance"" />
+                {% endif %}
+            </StackLayout>
+
+            <Rock:Icon IconClass=""chevron-right"" Grid.Column=""1"" HorizontalOptions=""End"" VerticalOptions=""Center"" StyleClass=""group-more-icon"" />
+        </Grid>
+
+        <Rock:Divider />
+        {% endfor %}
+    </StackLayout>
+{% endif %}";
 
         #endregion
 
