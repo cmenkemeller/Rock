@@ -89,6 +89,9 @@ namespace Rock.Migrations
 
             // Prayer Session Startup
             UpdateTemplate( "C0FCA573-D341-4B33-B097-3FB7028B3816", SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_PRAYER_SESSION, _prayerSessionTemplate, "2B0F4548-8DA7-4236-9BF9-5FA3C07D762F", _prayerSessionLegacyTemplate );
+
+            // Answer to Prayer
+            UpdateTemplate( "D0B57F68-DD15-4C91-84B9-A9D421937980", SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_ANSWER_TO_PRAYER, _answerToPrayerTemplate, "91C29610-1D77-49A8-A46B-5A35EC67C551", _answerToPrayerLegacyTemplate );
         }
 
         /// <summary>
@@ -2126,6 +2129,38 @@ namespace Rock.Migrations
                   Command=""{Binding PopPage}"" />
 </StackLayout>
 {% endif %}";
+
+        private const string _answerToPrayerTemplate = @"<Grid RowDefinitions=""Auto, Auto, Auto""
+    ColumnDefinitions=""*, Auto"">
+    <Label StyleClass=""body, text-interface-medium""
+        Text=""{{ PrayerRequest.Category.Name | Escape }}""
+        Grid.Row=""0""
+        Grid.Column=""0"" />
+
+    <Label StyleClass=""body, text-interface-medium""
+        Text=""{{ PrayerRequest.EnteredDateTime | Date:'MMM d, yyyy' }}""
+        Grid.Row=""0""
+        Grid.Column=""1"" />
+
+    <Label StyleClass=""body, text-interface-stronger, mt-24""
+        Grid.ColumnSpan=""2"">
+        <Label.Text><![CDATA[{{ PrayerRequest.Text }}]]></Label.Text>
+    </Label>
+</Grid>";
+        private const string _answerToPrayerLegacyTemplate = @"<StackLayout StyleClass=""prayer-request"">
+    <StackLayout StyleClass=""prayer-header""
+        Orientation=""Horizontal"">
+        <Label StyleClass=""prayer-category,text-gray-500""
+            Text=""{{ PrayerRequest.Category.Name | Escape }}""
+            HorizontalOptions=""StartAndExpand"" />
+        <Label StyleClass=""prayer-date,text-gray-500""
+            Text=""{{ PrayerRequest.EnteredDateTime | Date:'MMM d, yyyy' }}"" />
+    </StackLayout>
+
+    <Label StyleClass=""prayer-text"">
+        <Label.Text><![CDATA[{{ PrayerRequest.Text }}]]></Label.Text>
+    </Label>
+</StackLayout>";
 
         #endregion
 
