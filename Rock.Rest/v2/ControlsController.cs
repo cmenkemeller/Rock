@@ -49,7 +49,6 @@ using Rock.Storage.AssetStorage;
 using Rock.Utility;
 using Rock.Utility.CaptchaApi;
 using Rock.ViewModels.Controls;
-using Rock.ViewModels.Crm;
 using Rock.ViewModels.Rest.Controls;
 using Rock.ViewModels.Utility;
 using Rock.Web;
@@ -711,7 +710,7 @@ namespace Rock.Rest.v2
 
             if ( parsedAsset.ProviderId == null || parsedAsset.FullPath == null )
             {
-                return Ok( new List<TreeItemBag>() );
+                return Ok( new List<AssetManagerTreeItemBag>() );
             }
 
             if ( parsedAsset.IsAssetProviderAsset )
@@ -725,7 +724,7 @@ namespace Rock.Rest.v2
                 return Ok( tree );
             }
 
-            return Ok( new List<TreeItemBag>() );
+            return Ok( new List<AssetManagerTreeItemBag>() );
         }
 
         /// <summary>
@@ -748,7 +747,7 @@ namespace Rock.Rest.v2
 
             if ( asset.IsLocalAsset )
             {
-                var files = GetFilesInFolder( asset, options.BrowseMode, options.EditFilePage ?? string.Empty );
+                var files = GetFilesInFolder( asset, options.BrowseMode );
 
                 return Ok( files );
             }
@@ -768,7 +767,8 @@ namespace Rock.Rest.v2
 
                 return Ok( new AssetManagerGetFilesResultsBag<Asset>
                 {
-                    Files = files
+                    Files = files,
+                    IsFolderUploadRestricted = true
                 } );
             }
 
@@ -821,7 +821,7 @@ namespace Rock.Rest.v2
 
             var parsedAsset = ParseAssetKey( options.AssetFolderId );
 
-            if ( parsedAsset.ProviderId == null || parsedAsset.FullPath == null )
+            if ( parsedAsset == null || parsedAsset.ProviderId == null || parsedAsset.FullPath == null )
             {
                 return BadRequest();
             }
@@ -849,12 +849,13 @@ namespace Rock.Rest.v2
 
             if ( component.CreateFolder( provider.ToEntity(), asset ) )
             {
-                return Ok( new TreeItemBag
+                return Ok( new AssetManagerTreeItemBag
                 {
                     Text = options.NewFolderName,
-                    Value = $"{provider.Id},{parsedAsset.FullPath + options.NewFolderName}/",
+                    Value = $"{provider.Id},{parsedAsset.EncryptedRoot},{Path.Combine( parsedAsset.SubPath, options.NewFolderName )}/",
                     IconCssClass = "fa fa-folder",
-                    HasChildren = false
+                    HasChildren = false,
+                    UnencryptedRoot = parsedAsset.Root
                 } );
             }
 
@@ -870,13 +871,13 @@ namespace Rock.Rest.v2
         [System.Web.Http.Route( "AssetManagerDeleteFiles" )]
         [Authenticate]
         [Rock.SystemGuid.RestActionGuid( "55ADD16B-0FC1-4F33-BB0A-03C29018866F" )]
-        public Boolean AssetManagerDeleteFiles( [FromBody] AssetManagerDeleteFilesOptionsBag options )
+        public IHttpActionResult AssetManagerDeleteFiles( [FromBody] AssetManagerDeleteFilesOptionsBag options )
         {
             var (provider, component) = GetAssetStorageProvider( options.AssetStorageProviderId );
 
             if ( provider == null || component == null )
             {
-                return false;
+                return BadRequest();
             }
 
             foreach ( string file in options.Files )
@@ -884,7 +885,7 @@ namespace Rock.Rest.v2
                 component.DeleteAsset( provider.ToEntity(), new Asset { Key = file, Type = AssetType.File } );
             }
 
-            return true;
+            return Ok( true );
         }
 
         /// <summary>
@@ -929,20 +930,17 @@ namespace Rock.Rest.v2
         [System.Web.Http.Route( "AssetManagerRenameFile" )]
         [Authenticate]
         [Rock.SystemGuid.RestActionGuid( "150AAF48-33C5-47F8-BD53-2CF3A75F88FB" )]
-        public bool AssetManagerRenameFile( [FromBody] AssetManagerRenameFileOptionsBag options )
+        public IHttpActionResult AssetManagerRenameFile( [FromBody] AssetManagerRenameFileOptionsBag options )
         {
             var (provider, component) = GetAssetStorageProvider( options.AssetStorageProviderId );
 
             if ( provider == null || component == null || options.File.IsNullOrWhiteSpace() || options.NewFileName.IsNullOrWhiteSpace() )
             {
-                return false;
+                return BadRequest();
             }
 
-            return component.RenameAsset( provider.ToEntity(), new Asset { Key = options.File, Type = AssetType.File }, options.NewFileName );
+            return Ok( component.RenameAsset( provider.ToEntity(), new Asset { Key = options.File, Type = AssetType.File }, options.NewFileName ) );
         }
-
-
-
 
 
 
@@ -1022,7 +1020,7 @@ namespace Rock.Rest.v2
         /// Get a tree of all the folders in the given root of the local file system
         /// </summary>
         /// <returns>A tree of all the folder</returns>
-        private (TreeItemBag, List<string> updatedExpandedFolders) GetRootFolder( string encryptedRootFolder, List<string> expandedFolders )
+        private (AssetManagerTreeItemBag, List<string> updatedExpandedFolders) GetRootFolder( string encryptedRootFolder, List<string> expandedFolders )
         {
             var rootAssetKey = $"0,{encryptedRootFolder},,True";
             var parsedAsset = ParseAssetKey( rootAssetKey );
@@ -1072,12 +1070,13 @@ namespace Rock.Rest.v2
                     // Empty. Just mark as having no children.
                 }
 
-                var folderBag = new TreeItemBag
+                var folderBag = new AssetManagerTreeItemBag
                 {
                     Text = folder.Name,
                     Value = folderKey,
                     IconCssClass = "fa fa-folder",
-                    HasChildren = hasChildren
+                    HasChildren = hasChildren,
+                    UnencryptedRoot = parsedAsset.Root
                 };
 
                 if ( hasChildren && expandedFolders.Contains( $"0,{parsedAsset.Root}" ) )
@@ -1129,7 +1128,7 @@ namespace Rock.Rest.v2
                 {
                     var subDirInfo = new DirectoryInfo( subDir );
                     var hasChildren = false;
-                    var subDirKey = $"0,{asset.EncryptedRoot},{subDir.Replace( localPath, string.Empty )}/";
+                    var subDirKey = $"0,{asset.EncryptedRoot},{subDir.Replace( localRoot, string.Empty ).Replace( "\\", "/" )}/";
                     var subDirAsset = ParseAssetKey( subDirKey );
 
                     try
@@ -1144,12 +1143,13 @@ namespace Rock.Rest.v2
                         // Empty. Just mark as having no children.
                     }
 
-                    var subDirItemBag = new TreeItemBag
+                    var subDirItemBag = new AssetManagerTreeItemBag
                     {
                         Text = subDirInfo.Name,
                         Value = subDirKey,
                         IconCssClass = "fa fa-folder",
                         HasChildren = hasChildren,
+                        UnencryptedRoot = asset.Root
                     };
 
                     if ( hasChildren && expandedFolders.Contains( $"0,{subDirAsset.FullDirectoryPath}" ) )
@@ -1178,7 +1178,7 @@ namespace Rock.Rest.v2
         /// </summary>
         /// <param name="asset"></param>
         /// <returns></returns>
-        private AssetManagerGetFilesResultsBag<Asset> GetFilesInFolder( AssetManagerAsset asset, string browseMode /* image or doc */, string editFilePage )
+        private AssetManagerGetFilesResultsBag<Asset> GetFilesInFolder( AssetManagerAsset asset, string browseMode /* image or doc */ )
         {
             var physicalRootFolder = System.Web.HttpContext.Current.Server.MapPath( asset.Root );
             var physicalFolder = System.Web.HttpContext.Current.Server.MapPath( asset.FullDirectoryPath );
@@ -1206,37 +1206,47 @@ namespace Rock.Rest.v2
                 fileList.AddRange( Directory.GetFiles( physicalFolder, filter ).OrderBy( a => a ).ToList() );
             }
 
+            var dir = new DirectoryInfo( physicalFolder );
+            var fileInfoList = dir.GetFiles();
+
+
             foreach ( var filePath in fileList )
             {
                 var file = new Asset();
 
-                string ext = Path.GetExtension( filePath );
+                var fileInfo = new FileInfo( Path.Combine( physicalFolder, filePath ) );
                 string fileName = Path.GetFileName( filePath ).Replace( "'", "&#39;" );
                 string relativeFilePath = filePath.Replace( physicalRootFolder, string.Empty );
-                string imagePath = asset.Root.TrimEnd( '/', '\\' ) + "/" + relativeFilePath.TrimStart( '/', '\\' ).Replace( "\\", "/" );
-                string imageUrl = RockApp.Current.ResolveRockUrl( "~/api/FileBrowser/GetFileThumbnail?relativeFilePath=" + HttpUtility.UrlEncode( imagePath ) );
-                var fileDateTime = File.GetLastWriteTimeUtc( filePath );
-                string editUrl = string.Empty;
+                string rootRelativePath = asset.Root.TrimEnd( '/', '\\' ) + "/" + relativeFilePath.TrimStart( '/', '\\' ).Replace( "\\", "/" );
+                string thumbUrl = RockApp.Current.ResolveRockUrl( "~/api/FileBrowser/GetFileThumbnail?relativeFilePath=" + HttpUtility.UrlEncode( rootRelativePath ) );
+                string downloadUrl = RockApp.Current.ResolveRockUrl( rootRelativePath );
+                //string editUrl = string.Empty;
 
-                if ( IsEditableFile( filePath ) && !string.IsNullOrWhiteSpace( editFilePage ) )
-                {
-                    editUrl = editFilePage + "?RelativeFilePath=" + HttpUtility.UrlEncode( imagePath );
-                }
+                //if ( IsEditableFileType( fileInfo.Extension ) && !string.IsNullOrWhiteSpace( editFilePage ) )
+                //{
+                //    editUrl = editFilePage + "?RelativeFilePath=" + HttpUtility.UrlEncode( rootRelativePath );
+                //}
 
                 file = new Asset
                 {
                     AssetStorageProviderId = 0,
-                    Name = fileName,
-                    Key = imagePath,
-                    Uri = imageUrl,
+                    Name = fileInfo.Name,
+                    Key = rootRelativePath,
+                    Uri = downloadUrl,
                     Type = AssetType.File,
-                    IconPath = imageUrl
+                    IconPath = thumbUrl,
+                    LastModifiedDateTime = fileInfo.LastWriteTime,
+                    FileSize = fileInfo.Length
                 };
+
+                files.Add( file );
             }
 
             return new AssetManagerGetFilesResultsBag<Asset>
             {
-                Files = files
+                Files = files,
+                IsFolderRestricted = IsRestrictedFolder( asset.FullPath ),
+                IsFolderUploadRestricted = IsUploadRestrictedFolder( asset.FullPath )
             };
         }
 
@@ -1257,12 +1267,13 @@ namespace Rock.Rest.v2
                 var rootFolder = component.GetRootFolder( provider.ToEntity() );
                 var encryptedRootFolder = Rock.Security.Encryption.EncryptString( rootFolder );
 
-                var providerBag = new TreeItemBag
+                var providerBag = new AssetManagerTreeItemBag
                 {
                     Text = provider.Name,
                     Value = $"{provider.Id},{encryptedRootFolder},,{true}",
                     IconCssClass = component.IconCssClass,
-                    HasChildren = true
+                    HasChildren = true,
+                    UnencryptedRoot = rootFolder
                 };
 
                 if ( expandedFolders.Contains( $"{provider.Id},{rootFolder}" ) )
@@ -1288,12 +1299,18 @@ namespace Rock.Rest.v2
             return (tree, updatedExpandedFolders);
         }
 
-        private (List<TreeItemBag> children, List<string> updatedExpandedFolders) GetChildrenOfAsset( AssetManagerAsset parsedAsset, List<string> expandedFolders )
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parentAsset"></param>
+        /// <param name="expandedFolders"></param>
+        /// <returns></returns>
+        private (List<TreeItemBag> children, List<string> updatedExpandedFolders) GetChildrenOfAsset( AssetManagerAsset parentAsset, List<string> expandedFolders )
         {
             var tree = new List<TreeItemBag>();
             var updatedExpandedFolders = new List<string>();
 
-            var (provider, component) = GetAssetStorageProvider( parsedAsset.ProviderId.Value );
+            var (provider, component) = GetAssetStorageProvider( parentAsset.ProviderId.Value );
 
             if ( provider == null || component == null )
             {
@@ -1304,27 +1321,35 @@ namespace Rock.Rest.v2
             compontentRoot = compontentRoot.EndsWith( "/" ) ? compontentRoot : compontentRoot + "/";
 
             // Cannot request assets from a root other than the configured one
-            if ( compontentRoot != parsedAsset.Root )
+            if ( compontentRoot != parentAsset.Root )
             {
                 return (tree, updatedExpandedFolders);
             }
 
-            var asset = new Asset { Type = AssetType.Folder, Key = parsedAsset.FullPath ?? string.Empty };
+            var asset = new Asset { Type = AssetType.Folder, Key = parentAsset.FullPath.TrimStart( '/', '\\' ) ?? string.Empty };
             var folders = component.ListFoldersInFolder( provider.ToEntity(), asset );
 
             foreach ( Asset folder in folders )
             {
-                var folderBag = new TreeItemBag
+                //var key = folder.Key;
+
+                //if ( parsedAsset.Root != null && key.StartsWith( parsedAsset.Root ) )
+                //{
+                //    key = key.Substring( parsedAsset.Root.Length );
+                //}
+
+                var folderBag = new AssetManagerTreeItemBag
                 {
                     Text = folder.Name,
-                    Value = $"{parsedAsset.ProviderId},{parsedAsset.EncryptedRoot},{folder.Key.Replace( parsedAsset.FullDirectoryPath, string.Empty )}",
+                    Value = $"{parentAsset.ProviderId},{parentAsset.EncryptedRoot},{Path.Combine( parentAsset.SubPath, folder.Name ).TrimEnd( '/', '\\' ) + "/"}",
                     IconCssClass = "fa fa-folder",
                     // Verifying if it has any children is slow, so we just say true and it gets fixed
                     // on the client when attempting to expand children
-                    HasChildren = true
+                    HasChildren = true,
+                    UnencryptedRoot = parentAsset.Root
                 };
 
-                if ( expandedFolders?.Contains( $"{parsedAsset.ProviderId},{folder.Key}" ) ?? false )
+                if ( expandedFolders?.Contains( $"{parentAsset.ProviderId},{folder.Key}" ) ?? false )
                 {
                     var (children, exFolders) = GetChildrenOfAsset( ParseAssetKey( folderBag.Value ), expandedFolders );
                     folderBag.Children = children;
@@ -1369,6 +1394,11 @@ namespace Rock.Rest.v2
             return HiddenFolders.Any( a => pathName.IndexOf( a, StringComparison.OrdinalIgnoreCase ) > -1 );
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pathName"></param>
+        /// <returns></returns>
         private bool IsRestrictedFolder( string pathName )
         {
             var restrictedFolders = new List<string>()
@@ -1388,19 +1418,16 @@ namespace Rock.Rest.v2
                 "Webhooks"
             };
 
-            if ( pathName.StartsWith( "~/" ) || pathName.StartsWith( "~\\" ) )
-            {
-                pathName = pathName.Substring( 2 );
-            }
-
-            if ( pathName.StartsWith( "/" ) || pathName.StartsWith( "\\" ) )
-            {
-                pathName = pathName.TrimStart( '/', '\\' );
-            }
+            pathName = pathName.TrimStart( '~' ).TrimStart( '/', '\\' ).TrimEnd( '/', '\\' );
 
             return restrictedFolders.Contains( pathName, StringComparer.OrdinalIgnoreCase );
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pathName"></param>
+        /// <returns></returns>
         private bool IsUploadRestrictedFolder( string pathName )
         {
             var restrictedFolders = new List<string>()
@@ -1409,22 +1436,18 @@ namespace Rock.Rest.v2
                 "App_Code"
             };
 
-            if ( pathName.StartsWith( "~/" ) || pathName.StartsWith( "~\\" ) )
-            {
-                pathName = pathName.Substring( 2 );
-            }
-
-            if ( pathName.StartsWith( "/" ) || pathName.StartsWith( "\\" ) )
-            {
-                pathName = pathName.TrimStart( '/', '\\' );
-            }
+            pathName = pathName.TrimStart( '~' ).TrimStart( '/', '\\' ).TrimEnd( '/', '\\' );
 
             return restrictedFolders.Any( a => pathName.StartsWith( a, StringComparison.OrdinalIgnoreCase ) );
         }
 
-        private bool IsEditableFile( string filePath )
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fileExt"></param>
+        /// <returns></returns>
+        private bool IsEditableFileType( string fileExt )
         {
-            string ext = Path.GetExtension( filePath );
             var uneditableFiles = new List<string>()
             {
                 ".bin",
@@ -1438,7 +1461,7 @@ namespace Rock.Rest.v2
                 ".woff2"
             };
 
-            return !uneditableFiles.Any( a => ext.Equals( a, StringComparison.OrdinalIgnoreCase ) );
+            return !uneditableFiles.Any( a => fileExt.Equals( a, StringComparison.OrdinalIgnoreCase ) );
         }
 
         #endregion

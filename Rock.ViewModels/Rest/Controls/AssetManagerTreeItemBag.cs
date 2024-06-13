@@ -15,17 +15,18 @@
 // </copyright>
 //
 
+using Rock.ViewModels.Utility;
+
 namespace Rock.ViewModels.Rest.Controls
 {
     /// <summary>
-    /// The options that can be passed to the AddFolder API action of
-    /// the AssetManager control.
+    /// TODO
     /// </summary>
-    public class AssetManagerGetFilesOptionsBag : AssetManagerBaseOptionsBag
+    public class AssetManagerTreeItemBag : TreeItemBag
     {
         /// <summary>
-        /// Either "image" or "doc"
+        /// TODO
         /// </summary>
-        public string BrowseMode { get; set; } = "doc";
+        public string UnencryptedRoot { get; set; }
     }
 }

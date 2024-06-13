@@ -37,7 +37,7 @@ namespace Rock.ViewModels.Rest.Controls
         {
             get
             {
-                return Regex.Replace( Root + SubPath, "[" + Regex.Escape( string.Concat( System.IO.Path.GetInvalidPathChars() ) ) + "]", string.Empty, RegexOptions.CultureInvariant ).Replace( '\\', '/' );
+                return Regex.Replace( Root + SubPath, "[" + Regex.Escape( string.Concat( System.IO.Path.GetInvalidPathChars() ) ) + "]", string.Empty, RegexOptions.CultureInvariant ).Replace( '\\', '/' ).TrimStart( '/' );
             }
         }
 

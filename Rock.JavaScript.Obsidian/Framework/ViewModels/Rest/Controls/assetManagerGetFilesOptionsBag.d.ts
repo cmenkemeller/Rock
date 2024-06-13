@@ -30,6 +30,4 @@ export type AssetManagerGetFilesOptionsBag = {
 
     /** Either "image" or "doc" */
     browseMode?: string | null;
-
-    editFilePage?: string | null;
 };

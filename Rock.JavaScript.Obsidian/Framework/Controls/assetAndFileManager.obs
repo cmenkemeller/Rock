@@ -195,6 +195,7 @@
     import { useVModelPassthrough } from "@Obsidian/Utility/component";
     import { AssetManagerTreeItemProvider } from "@Obsidian/Utility/treeItemProviders";
     import { AssetManagerBaseOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerBaseOptionsBag";
+    import { AssetManagerTreeItemBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerTreeItemBag";
     import { AssetManagerAddFolderOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerAddFolderOptionsBag";
     import { AssetManagerGetFilesOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetFilesOptionsBag";
     import { AssetManagerGetFilesResultsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetFilesResultsBag";
@@ -276,7 +277,7 @@
 
     const itemProvider = ref(initializeTreeProvider());
     const openFolders = computed(() => Array.from(itemProvider.value.openFolders));
-    const folders = ref<TreeItemBag[]>([]);
+    const folders = ref<AssetManagerTreeItemBag[]>([]);
 
     const selectedFolderArray = ref<string[]>([]);
     const selectedFolder = computed<string | null>(() => decodeURIComponent(selectedFolderArray.value[0] ?? "") || null);
@@ -337,7 +338,7 @@
             newFolderName: newFolderName.value
         };
         const url = "/api/v2/Controls/AssetManagerAddFolder";
-        const response = await post<TreeItemBag>(url, undefined, options);
+        const response = await post<AssetManagerTreeItemBag>(url, undefined, options);
 
         if (response.isSuccess && response.data) {
             hideAddFolder();
@@ -413,17 +414,24 @@
     }
 
     function onRefreshFolders(): void {
-        // itemProvider.value.getRootItems();
         treeRefreshKey.value++;
     }
 
-    function parseFolderName(name: string): { providerId: string, folderPath: string } {
-        const parts = name.split(",");
+    function parseFolderName(key: string): { providerId: string, folderPath: string } {
+        const { folder } = findFolder(folders.value, key);
 
-        if (parts.length >= 2) {
+        const parts = key.split(",");
+
+        if (parts.length >= 3) {
+            let root = (folder as AssetManagerTreeItemBag).unencryptedRoot;
+
+            if (root == "/") {
+                root = "";
+            }
+
             return {
                 providerId: parts[0],
-                folderPath: parts[1]
+                folderPath: root + parts[2]
             };
         }
         else {
@@ -494,7 +502,7 @@
     const fileInputElement = ref<HTMLInputElement | null>(null);
     const zipFileInputElement = ref<HTMLInputElement | null>(null);
 
-    const isUploadDisabled = computed(() => !isFolderSelected.value || isUploadingFile.value);
+    const isUploadDisabled = computed(() => !isFolderSelected.value || isUploadingFile.value || isLoadingFiles.value);
     const isZipUploadDisabled = computed(() => isUploadDisabled.value || isUploadRestricted.value);
 
     const isFilePaneActionLoading = ref(false);
@@ -655,7 +663,8 @@
     }
 
     function getFileDropDownMenuItems(file: FileAsset): MenuAction[] {
-        /** TODO: Detect file type and return appropriate menu items */
+        // TODO: Detect file type and return appropriate menu items
+        // editUrl = editFilePage + "?RelativeFilePath=" + UrlEncode( file.key );
 
         return [{
             //     title: "Edit",

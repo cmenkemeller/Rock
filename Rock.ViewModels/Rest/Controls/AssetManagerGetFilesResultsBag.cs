@@ -29,8 +29,8 @@ namespace Rock.ViewModels.Rest.Controls
         /// </summary>
         public List<T> Files { get; set; } = null;
 
-        public bool isFolderRestricted { get; set; } = false;
+        public bool IsFolderRestricted { get; set; } = false;
 
-        public bool isFolderUploadRestricted { get; set; } = false;
+        public bool IsFolderUploadRestricted { get; set; } = false;
     }
 }

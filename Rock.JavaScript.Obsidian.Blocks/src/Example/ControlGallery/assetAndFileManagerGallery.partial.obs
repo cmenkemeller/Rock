@@ -49,7 +49,10 @@
     const height = computed(() => isStaticHeight.value ? staticHeight.value : "flexible");
     const enableAssetManager = ref(false);
     const enableFileManager = ref(true);
-    const encryptedRootFolder = ref("EAAAAI5wiBY4SMrjA6A6W0j6tcLcNlC3Lti9xvjVPk4iT8KU");
+    // ~/
+    // const encryptedRootFolder = ref("EAAAAI5wiBY4SMrjA6A6W0j6tcLcNlC3Lti9xvjVPk4iT8KU");
+    // ~/Content
+    const encryptedRootFolder = ref("EAAAADKu4UpeD3p9uFXZ5WLZMaToEPXLfHZ6a0U7LuvfyZUy");
 
     const importCode = getSfcControlImportPath("assetAndFileManager");
     const exampleCode = computed(() => {
