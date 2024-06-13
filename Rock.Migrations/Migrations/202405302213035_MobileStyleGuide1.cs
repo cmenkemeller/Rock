@@ -92,6 +92,9 @@ namespace Rock.Migrations
 
             // Answer to Prayer
             UpdateTemplate( "D0B57F68-DD15-4C91-84B9-A9D421937980", SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_ANSWER_TO_PRAYER, _answerToPrayerTemplate, "91C29610-1D77-49A8-A46B-5A35EC67C551", _answerToPrayerLegacyTemplate );
+
+            // My Prayer Requests
+            UpdateTemplate( "2E867AB7-700D-41A7-85D0-7FA1E6FD4662", SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_MY_PRAYER_REQUESTS, _myPrayerRequestsTemplate, "DED26289-4746-4233-A5BD-D4095248023D", _myPrayerRequestsLegacyTemplate );
         }
 
         /// <summary>
@@ -2161,6 +2164,150 @@ namespace Rock.Migrations
         <Label.Text><![CDATA[{{ PrayerRequest.Text }}]]></Label.Text>
     </Label>
 </StackLayout>";
+
+        private const string _myPrayerRequestsTemplate = @"{% if PrayerRequestItems == empty %}
+    <Rock:NotificationBox NotificationType=""Information"" 
+        Text=""Looks like you don't have any prayer requests."" />
+{% else %}
+    <Rock:StyledBorder StyleClass=""bg-interface-softest, border, border-interface-soft, rounded, p-16"">
+        <VerticalStackLayout>
+            {% for PrayerRequest in PrayerRequestItems %}
+                <Grid RowDefinitions=""Auto, Auto, Auto, Auto, Auto""
+                    ColumnDefinitions=""*, Auto"">
+                    
+                    <Label StyleClass=""body, text-interface-medium""
+                        Text=""{{ PrayerRequest.Category.Name | Escape }}""
+                        Grid.Row=""0""
+                        Grid.Column=""0"" />
+
+                    <Label StyleClass=""body, text-interface-medium""
+                        Text=""{{ PrayerRequest.EnteredDateTime | Date:'MMM d, yyyy' }}""
+                        Grid.Row=""0""
+                        Grid.Column=""1"" /> 
+
+                    <Label StyleClass=""body, text-interface-stronger, mt-24""
+                        Grid.Row=""1""
+                        Grid.ColumnSpan=""2"">
+                        <Label.Text><![CDATA[{{ PrayerRequest.Text }}]]></Label.Text>
+                    </Label>
+
+                    {% if PrayerRequest.Answer != null and PrayerRequest.Answer != '' %}
+                        <VerticalStackLayout StyleClass=""mt-8""
+                            Grid.Row=""2"">
+                            <Label Text=""Answer:"" StyleClass=""answer-header, body, text-interface-stronger"" />
+                            <Label StyleClass=""answer-text, body, text-interface-strong"">
+                                <Label.Text><![CDATA[{{ PrayerRequest.Answer }}]]></Label.Text>
+                            </Label>
+                        </VerticalStackLayout>
+                    {% endif %}
+
+                    <Grid ColumnDefinitions=""Auto, *, Auto, Auto""
+                        Grid.Row=""3""
+                        Grid.ColumnSpan=""2""
+                        StyleClass=""mt-24"">
+                        {% if AnswerPage != null %}
+                            <Button StyleClass=""btn, btn-primary, btn-sm, add-answer-button""
+                                Text=""{% if PrayerRequest.Answer != null and PrayerRequest.Answer != '' %}Edit Answer{% else %}Answer{% endif %}""
+                                Command=""{Binding PushPage}""
+                                CommandParameter=""{{ AnswerPage }}?RequestGuid={{ PrayerRequest.Guid}}"" />
+                        {% endif %}
+                        
+                        {% if EditPage != null %}
+                            <Button StyleClass=""btn, btn-link, btn-sm, edit-button""
+                                Text=""Edit""
+                                Command=""{Binding PushPage}""
+                                Grid.Column=""2""
+                                CommandParameter=""{{ EditPage }}?RequestGuid={{ PrayerRequest.Guid}}"" />
+                        {% endif %}
+
+                        <Button StyleClass=""btn, btn-link, btn-sm, delete-button""
+                            Text=""Delete""
+                            Command=""{Binding ShowActionPanel}""
+                            Grid.Column=""3"">
+                            <Button.CommandParameter>
+                                <Rock:ShowActionPanelParameters Title=""Delete Prayer?"" CancelTitle=""Cancel"">
+                                    <Rock:ShowActionPanelParameters.DestructiveButton>
+                                        <Rock:ActionPanelButton Title=""Delete""
+                                            Command=""{Binding Callback}""
+                                            CommandParameter="":Delete?requestGuid={{ PrayerRequest.Guid }}"" />
+                                    </Rock:ShowActionPanelParameters.DestructiveButton>
+                                </Rock:ShowActionPanelParameters>
+                            </Button.CommandParameter>
+                        </Button>
+                    </Grid>
+
+                    {% unless forloop.last %}
+                        <Rock:Divider Grid.Row=""4""
+                            StyleClass=""my-8""
+                            Grid.ColumnSpan=""2"" />
+                    {% endunless %}
+                </Grid>
+            {% endfor %}
+        </VerticalStackLayout>
+    </Rock:StyledBorder>
+{% endif %}";
+        private const string _myPrayerRequestsLegacyTemplate = @"{% if PrayerRequestItems == empty %}
+    <Rock:NotificationBox NotificationType=""Information"" Text=""Looks like you don't have any prayer requests."" />
+{% else %}
+    <StackLayout StyleClass=""prayer-request-list"">
+        {% for PrayerRequest in PrayerRequestItems %}
+            {% if forloop.index > 1 %}<Rock:Divider />{% endif %}
+            <StackLayout StyleClass=""prayer-request"">
+                <StackLayout StyleClass=""prayer-header""
+                    Orientation=""Horizontal"">
+                    <Label StyleClass=""prayer-category,text-gray-500""
+                        Text=""{{ PrayerRequest.Category.Name | Escape }}""
+                        HorizontalOptions=""StartAndExpand"" />
+                    <Label StyleClass=""prayer-date,text-gray-500""
+                        Text=""{{ PrayerRequest.EnteredDateTime | Date:'MMM d, yyyy' }}"" />
+                </StackLayout>
+
+                <Label StyleClass=""prayer-text"">
+                    <Label.Text><![CDATA[{{ PrayerRequest.Text }}]]></Label.Text>
+                </Label>
+                
+                {% if PrayerRequest.Answer != null and PrayerRequest.Answer != '' %}
+                    <Label Text=""Answer:"" StyleClass=""answer-header,text-gray-500"" />
+                    <Label StyleClass=""answer-text,text-gray-500"">
+                        <Label.Text><![CDATA[{{ PrayerRequest.Answer }}]]></Label.Text>
+                    </Label>
+                {% endif %}
+
+                <StackLayout Orientation=""Horizontal"" StyleClass=""actions"">
+                    {% if AnswerPage != null %}
+                        <Button StyleClass=""btn,btn-primary,btn-sm,add-answer-button""
+                            Text=""{% if PrayerRequest.Answer != null and PrayerRequest.Answer != '' %}Edit Answer{% else %}Add an Answer{% endif %}""
+                            Command=""{Binding PushPage}""
+                            CommandParameter=""{{ AnswerPage }}?requestGuid={{ PrayerRequest.Guid}}"" />
+                    {% endif %}
+                    
+                    <ContentView HorizontalOptions=""FillAndExpand"" />
+
+                    {% if EditPage != null %}
+                        <Button StyleClass=""btn,btn-link,btn-sm,edit-button""
+                            Text=""Edit Request""
+                            Command=""{Binding PushPage}""
+                            CommandParameter=""{{ EditPage }}?requestGuid={{ PrayerRequest.Guid}}"" />
+                    {% endif %}
+                    
+                    <Button StyleClass=""btn,btn-link,btn-sm,delete-button""
+                        Text=""Delete""
+                        Command=""{Binding ShowActionPanel}"">
+                        <Button.CommandParameter>
+                            <Rock:ShowActionPanelParameters Title=""Delete Prayer?"" CancelTitle=""Cancel"">
+                                <Rock:ShowActionPanelParameters.DestructiveButton>
+                                    <Rock:ActionPanelButton Title=""Delete""
+                                        Command=""{Binding Callback}""
+                                        CommandParameter="":Delete?requestGuid={{ PrayerRequest.Guid }}"" />
+                                </Rock:ShowActionPanelParameters.DestructiveButton>
+                            </Rock:ShowActionPanelParameters>
+                        </Button.CommandParameter>
+                    </Button>
+                </StackLayout>
+            </StackLayout>
+        {% endfor %}
+    </StackLayout>
+{% endif %}";
 
         #endregion
 
