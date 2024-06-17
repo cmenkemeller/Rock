@@ -793,14 +793,33 @@ namespace Rock.Rest.v2
                 return BadRequest();
             }
 
-            var (provider, component) = GetAssetStorageProvider( asset.ProviderId.Value );
-
-            if ( provider == null || component == null )
+            if ( asset.IsLocalAsset )
             {
-                return BadRequest();
+                try
+                {
+                    var physicalFolder = System.Web.HttpContext.Current.Server.MapPath( asset.FullPath );
+                    Directory.Delete( physicalFolder, true );
+                }
+                catch ( Exception ex )
+                {
+                    return InternalServerError( ex );
+                }
+
+                return Ok( true );
+            }
+            else if ( asset.IsAssetProviderAsset )
+            {
+                var (provider, component) = GetAssetStorageProvider( asset.ProviderId.Value );
+
+                if ( provider == null || component == null )
+                {
+                    return BadRequest();
+                }
+
+                return Ok( component.DeleteAsset( provider.ToEntity(), new Asset { Key = asset.FullPath, Type = AssetType.Folder } ) );
             }
 
-            return Ok( component.DeleteAsset( provider.ToEntity(), new Asset { Key = asset.FullPath, Type = AssetType.Folder } ) );
+            return BadRequest();
         }
 
         /// <summary>
@@ -826,37 +845,54 @@ namespace Rock.Rest.v2
                 return BadRequest();
             }
 
-            var (provider, component) = GetAssetStorageProvider( parsedAsset.ProviderId.Value );
-
-            if ( provider == null || component == null )
+            if ( parsedAsset.IsLocalAsset )
             {
-                return BadRequest();
-            }
+                var physicalFolder = System.Web.HttpContext.Current.Server.MapPath( parsedAsset.FullPath );
+                Directory.CreateDirectory( Path.Combine( physicalFolder, options.NewFolderName ) );
 
-            var asset = new Asset { Type = AssetType.Folder };
-
-            // Selecting the root does not put a value for the selected folder, so we have to make sure
-            // if it does not have a value that we use name instead of key so the root folder is used
-            // by the component.
-            if ( parsedAsset.FullPath.IsNotNullOrWhiteSpace() )
-            {
-                asset.Key = parsedAsset.FullPath + options.NewFolderName;
-            }
-            else
-            {
-                asset.Name = options.NewFolderName;
-            }
-
-            if ( component.CreateFolder( provider.ToEntity(), asset ) )
-            {
                 return Ok( new AssetManagerTreeItemBag
                 {
                     Text = options.NewFolderName,
-                    Value = $"{provider.Id},{parsedAsset.EncryptedRoot},{Path.Combine( parsedAsset.SubPath, options.NewFolderName )}/",
+                    Value = $"0,{parsedAsset.EncryptedRoot},{Path.Combine( parsedAsset.SubPath, options.NewFolderName )}",
                     IconCssClass = "fa fa-folder",
                     HasChildren = false,
                     UnencryptedRoot = parsedAsset.Root
                 } );
+            }
+            else if ( parsedAsset.IsAssetProviderAsset )
+            {
+                var (provider, component) = GetAssetStorageProvider( parsedAsset.ProviderId.Value );
+
+                if ( provider == null || component == null )
+                {
+                    return BadRequest();
+                }
+
+                var asset = new Asset { Type = AssetType.Folder };
+
+                // Selecting the root does not put a value for the selected folder, so we have to make sure
+                // if it does not have a value that we use name instead of key so the root folder is used
+                // by the component.
+                if ( parsedAsset.FullPath.IsNotNullOrWhiteSpace() )
+                {
+                    asset.Key = parsedAsset.FullPath + options.NewFolderName;
+                }
+                else
+                {
+                    asset.Name = options.NewFolderName;
+                }
+
+                if ( component.CreateFolder( provider.ToEntity(), asset ) )
+                {
+                    return Ok( new AssetManagerTreeItemBag
+                    {
+                        Text = options.NewFolderName,
+                        Value = $"{provider.Id},{parsedAsset.EncryptedRoot},{Path.Combine( parsedAsset.SubPath, options.NewFolderName )}/",
+                        IconCssClass = "fa fa-folder",
+                        HasChildren = false,
+                        UnencryptedRoot = parsedAsset.Root
+                    } );
+                }
             }
 
             return null;
@@ -1380,7 +1416,16 @@ namespace Rock.Rest.v2
         private bool IsValidAssetFolderName( string folderName )
         {
             Regex regularExpression = new Regex( @"^[^*/><?\\\\|:,~]+$" );
-            return regularExpression.IsMatch( folderName );
+            var isValid = regularExpression.IsMatch( folderName );
+
+            var invalidChars = Path.GetInvalidPathChars().ToList();
+            invalidChars.Add( '\\' );
+            invalidChars.Add( '/' );
+            invalidChars.Add( '~' );
+
+            isValid = isValid && !( folderName.ToList().Any( a => invalidChars.Contains( a ) ) || folderName.StartsWith( ".." ) || folderName.EndsWith( "." ) );
+
+            return isValid;
         }
 
         /// <summary>
