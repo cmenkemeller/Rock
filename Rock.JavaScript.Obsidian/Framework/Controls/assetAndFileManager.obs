@@ -208,8 +208,9 @@
     import { findFolder, folderNameComparator, isValidFolderName } from "@Obsidian/Utility/assetProvider";
     import { MenuAction } from "@Obsidian/Types/Controls/dropDownMenu";
     import { RockDateTime, DateTimeFormat } from "@Obsidian/Utility/rockDateTime";
+    import { confirm } from "@Obsidian/Utility/dialogs";
     import { ValidationRule } from "@Obsidian/ValidationRules";
-    import { uploadAssetProviderFile } from "@Obsidian/Utility/http";
+    import { uploadAssetProviderFile, uploadContentFile } from "@Obsidian/Utility/http";
 
     const props = defineProps({
         modelValue: {
@@ -246,7 +247,7 @@
 
         enableZipUpload: {
             type: Boolean,
-            default: true
+            default: false
         }
     });
 
@@ -283,6 +284,7 @@
     const selectedFolder = computed<string | null>(() => decodeURIComponent(selectedFolderArray.value[0] ?? "") || null);
     const isFolderSelected = computed(() => !!selectedFolder.value);
     const isRootSelected = computed(() => isFolderSelected.value && selectedFolder.value?.endsWith(",True"));
+    const isFolderLocal = computed(() => selectedFolder.value?.startsWith("0,"));
 
     const isFolderRestricted = ref(false);
 
@@ -307,12 +309,12 @@
             title: "Rename",
             type: "default",
             handler: () => console.log("RENAME"), // TODO
-            disabled: true // TODO
+            disabled: !isFolderLocal.value
         }, {
             title: "Move",
             type: "default",
             handler: () => console.log("MOVE"), // TODO
-            disabled: true // TODO
+            disabled: !isFolderLocal.value
         },
         {
             title: "Delete",
@@ -417,13 +419,19 @@
         treeRefreshKey.value++;
     }
 
-    function parseFolderName(key: string): { providerId: string, folderPath: string } {
+    function parseFolderName(key: string): {
+        providerId: string,
+        encryptedRoot: string,
+        folderPath: string,
+        unencryptedRoot: string,
+        subPath: string
+    } {
         const { folder } = findFolder(folders.value, key);
 
         const parts = key.split(",");
 
         if (parts.length >= 3) {
-            let root = (folder as AssetManagerTreeItemBag).unencryptedRoot;
+            let root = (folder as AssetManagerTreeItemBag).unencryptedRoot ?? "";
 
             if (root == "/") {
                 root = "";
@@ -431,13 +439,19 @@
 
             return {
                 providerId: parts[0],
-                folderPath: root + parts[2]
+                encryptedRoot: parts[1],
+                folderPath: root + parts[2],
+                unencryptedRoot: root,
+                subPath: parts[2]
             };
         }
         else {
             return {
                 providerId: "",
-                folderPath: ""
+                encryptedRoot: "",
+                folderPath: "",
+                unencryptedRoot: "",
+                subPath: ""
             };
         }
     }
@@ -573,12 +587,20 @@
         }
 
         try {
+
             isUploadingFile.value = true;
 
             if (fileInputElement.value && fileInputElement.value.files && fileInputElement.value.files.length > 0) {
-                const { providerId, folderPath } = parseFolderName(selectedFolder.value ?? "");
+                const file = fileInputElement.value.files[0];
+                if (isFolderLocal.value) {
+                    const { encryptedRoot, subPath } = parseFolderName(selectedFolder.value ?? "");
+                    await uploadContentFile(file, encryptedRoot, subPath);
+                }
+                else {
+                    const { providerId, folderPath } = parseFolderName(selectedFolder.value ?? "");
 
-                await uploadAssetProviderFile(fileInputElement.value.files[0], folderPath, providerId);
+                    await uploadAssetProviderFile(file, folderPath, providerId);
+                }
                 refreshFiles();
             }
         }
@@ -598,35 +620,37 @@
     }
 
     async function deleteFiles(files: string[]): Promise<void> {
-        fileListErrorAction.value = "";
-        fileListErrorMessage.value = "";
+        if (await confirm(`Are you sure you want to delete the selected file${files.length > 1 ? "s" : ""}?`)) {
+            fileListErrorAction.value = "";
+            fileListErrorMessage.value = "";
 
-        try {
-            isFilePaneActionLoading.value = true;
-            const { providerId } = parseFolderName(selectedFolder.value ?? "");
+            try {
+                isFilePaneActionLoading.value = true;
+                const { providerId } = parseFolderName(selectedFolder.value ?? "");
 
-            const url = "/api/v2/Controls/AssetManagerDeleteFiles";
-            const options: AssetManagerDeleteFilesOptionsBag = {
-                files,
-                assetStorageProviderId: Number(providerId)
-            };
+                const url = "/api/v2/Controls/AssetManagerDeleteFiles";
+                const options: AssetManagerDeleteFilesOptionsBag = {
+                    files,
+                    assetStorageProviderId: Number(providerId)
+                };
 
-            const response = await post<TreeItemBag>(url, undefined, options);
+                const response = await post<TreeItemBag>(url, undefined, options);
 
-            if (response.isSuccess && response.data) {
-                // Empty: Nothing to do, except what's already being done in the `finally` block
+                if (response.isSuccess && response.data) {
+                    // Empty: Nothing to do, except what's already being done in the `finally` block
+                }
+                else {
+                    throw response.errorMessage;
+                }
             }
-            else {
-                throw response.errorMessage;
+            catch (e) {
+                fileListErrorMessage.value = (e as Error).message || "An unknown error occurred while deleting the file(s).";
+                fileListErrorAction.value = "Deleting File";
             }
-        }
-        catch (e) {
-            fileListErrorMessage.value = (e as Error).message || "An unknown error occurred while deleting the file(s).";
-            fileListErrorAction.value = "Deleting File";
-        }
-        finally {
-            isFilePaneActionLoading.value = false;
-            refreshFiles();
+            finally {
+                isFilePaneActionLoading.value = false;
+                refreshFiles();
+            }
         }
     }
 

@@ -1,7 +1,7 @@
 <template>
     <GalleryAndResult :importCode="importCode" :exampleCode="exampleCode">
 
-        <AssetAndFileManager :height="height" v-model="value" v-model:openFolders="openFolders" :enableAssetManager="enableAssetManager" :enableFileManager="enableFileManager" :encryptedRootFolder="encryptedRootFolder" />
+        <AssetAndFileManager :height="height" v-model="value" v-model:openFolders="openFolders" :enableAssetManager="enableAssetManager" :enableFileManager="enableFileManager" :enableZipUpload="enableZipUpload" :encryptedRootFolder="encryptedRootFolder" />
 
         <div class="my-5">
             <label>Selected Files:</label> {{ value }}
@@ -18,6 +18,9 @@
                 </div>
                 <div class="col-md-3">
                     <CheckBox v-model="enableAssetManager" label="Enable Asset Storage Providers" help="If true, all asset storage providers configured in system settings will appear in the left column." />
+                </div>
+                <div class="col-md-3">
+                    <CheckBox v-model="enableZipUpload" label="Enable Uploading Zip Packages" help="If true, zip files can be uploaded to local file servers and they will be automatically unzipped and have their contents placed in the selected folder." />
                 </div>
             </div>
             <div class="row">
@@ -42,13 +45,14 @@
     import { FileAsset } from "@Obsidian/ViewModels/Controls/fileAsset";
 
     const value = ref<FileAsset[]>([]);
-    const openFolders = ref<string[]>(["1,EAAAABoMLQ7sxQnuAw5xJ6fMyNpOWavdmnjvI21yclYPMFnm,,True", "1,EAAAAE7cu51UBwj12ozhSL3ocnErk4IIkGrNdWKOW0qL/ReB,ExternalSite/"]);
+    const openFolders = ref<string[]>(["0,EAAAABoMLQ7sxQnuAw5xJ6fMyNpOWavdmnjvI21yclYPMFnm,,True", "0,EAAAAE7cu51UBwj12ozhSL3ocnErk4IIkGrNdWKOW0qL/ReB,ExternalSite/"]);
 
     const isStaticHeight = ref(true);
     const staticHeight = ref("400px");
     const height = computed(() => isStaticHeight.value ? staticHeight.value : "flexible");
-    const enableAssetManager = ref(false);
+    const enableAssetManager = ref(true);
     const enableFileManager = ref(true);
+    const enableZipUpload = ref(true);
     // ~/
     // const encryptedRootFolder = ref("EAAAAI5wiBY4SMrjA6A6W0j6tcLcNlC3Lti9xvjVPk4iT8KU");
     // ~/Content
@@ -58,8 +62,9 @@
     const exampleCode = computed(() => {
         const enableAssetManagerProp = enableAssetManager.value ? " enableAssetManager" : "";
         const enableFileManagerProp = enableFileManager.value ? " enableFileManager" : "";
+        const enableZipUploadProp = enableZipUpload.value ? " enableZipUpload" : "";
         const heightProp = isStaticHeight.value ? ` height="${height.value}"` : "";
         const rootFolderProp = enableFileManager.value ? ` encryptedRootFolder="${encryptedRootFolder.value}"` : "";
-        return `<AssetAndFileManager v-model="value"${enableAssetManagerProp}${enableFileManagerProp}${heightProp}${rootFolderProp} />`;
+        return `<AssetAndFileManager v-model="value"${rootFolderProp}${enableAssetManagerProp}${enableFileManagerProp}${enableZipUploadProp}${heightProp} />`;
     });
 </script>

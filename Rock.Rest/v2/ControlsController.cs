@@ -909,16 +909,34 @@ namespace Rock.Rest.v2
         [Rock.SystemGuid.RestActionGuid( "55ADD16B-0FC1-4F33-BB0A-03C29018866F" )]
         public IHttpActionResult AssetManagerDeleteFiles( [FromBody] AssetManagerDeleteFilesOptionsBag options )
         {
-            var (provider, component) = GetAssetStorageProvider( options.AssetStorageProviderId );
-
-            if ( provider == null || component == null )
+            try
             {
-                return BadRequest();
+                if ( options.AssetStorageProviderId == 0 )
+                {
+                    foreach ( string file in options.Files )
+                    {
+                        var physicalPath = System.Web.HttpContext.Current.Server.MapPath( file );
+                        File.Delete( physicalPath );
+                    }
+                }
+                else
+                {
+                    var (provider, component) = GetAssetStorageProvider( options.AssetStorageProviderId );
+
+                    if ( provider == null || component == null )
+                    {
+                        return BadRequest();
+                    }
+
+                    foreach ( string file in options.Files )
+                    {
+                        component.DeleteAsset( provider.ToEntity(), new Asset { Key = file, Type = AssetType.File } );
+                    }
+                }
             }
-
-            foreach ( string file in options.Files )
+            catch ( Exception ex )
             {
-                component.DeleteAsset( provider.ToEntity(), new Asset { Key = file, Type = AssetType.File } );
+                return InternalServerError();
             }
 
             return Ok( true );
@@ -935,24 +953,44 @@ namespace Rock.Rest.v2
         [Rock.SystemGuid.RestActionGuid( "C810774B-8B15-42D0-BAC2-85503AB23BC0" )]
         public IHttpActionResult AssetManagerDownloadFile( [FromUri] AssetManagerDownloadFileOptionsBag options )
         {
-            var (provider, component) = GetAssetStorageProvider( options.AssetStorageProviderId );
+            Stream stream;
+            string fileName = "";
 
-            if ( provider == null || component == null || options.File.IsNullOrWhiteSpace() )
+            try
             {
-                return BadRequest( "Invalid Asset Storage Provider ID or file key." );
+                if ( options.AssetStorageProviderId == 0 )
+                {
+                    var physicalPath = System.Web.HttpContext.Current.Server.MapPath( options.File );
+                    fileName = Path.GetFileName( physicalPath );
+                    stream = File.Open( physicalPath, FileMode.Open );
+                }
+                else
+                {
+                    var (provider, component) = GetAssetStorageProvider( options.AssetStorageProviderId );
+
+                    if ( provider == null || component == null || options.File.IsNullOrWhiteSpace() )
+                    {
+                        return BadRequest( "Invalid Asset Storage Provider ID or file key." );
+                    }
+
+                    Asset asset = component.GetObject( provider.ToEntity(), new Asset { Key = options.File, Type = AssetType.File }, false );
+                    fileName = asset.Name;
+                    byte[] bytes = asset.AssetStream.ReadBytesToEnd();
+                    stream = new MemoryStream( bytes );
+                }
             }
-
-            Asset asset = component.GetObject( provider.ToEntity(), new Asset { Key = options.File, Type = AssetType.File }, false );
-
-            byte[] bytes = asset.AssetStream.ReadBytesToEnd();
+            catch ( Exception ex )
+            {
+                return InternalServerError();
+            }
 
             var result = new System.Net.Http.HttpResponseMessage( System.Net.HttpStatusCode.OK )
             {
-                Content = new System.Net.Http.StreamContent( new MemoryStream( bytes ) )
+                Content = new System.Net.Http.StreamContent( stream )
             };
 
             result.Content.Headers.ContentType = new MediaTypeHeaderValue( "application/octet-stream" );
-            result.Content.Headers.Add( "content-disposition", "attachment; filename=" + HttpUtility.UrlEncode( asset.Name ) );
+            result.Content.Headers.Add( "content-disposition", "attachment; filename=" + HttpUtility.UrlEncode( fileName ) );
 
             return new ResponseMessageResult( result );
         }
@@ -968,14 +1006,34 @@ namespace Rock.Rest.v2
         [Rock.SystemGuid.RestActionGuid( "150AAF48-33C5-47F8-BD53-2CF3A75F88FB" )]
         public IHttpActionResult AssetManagerRenameFile( [FromBody] AssetManagerRenameFileOptionsBag options )
         {
-            var (provider, component) = GetAssetStorageProvider( options.AssetStorageProviderId );
-
-            if ( provider == null || component == null || options.File.IsNullOrWhiteSpace() || options.NewFileName.IsNullOrWhiteSpace() )
+            try
             {
-                return BadRequest();
+                if ( options.AssetStorageProviderId == 0 )
+                {
+                    var physicalPath = System.Web.HttpContext.Current.Server.MapPath( options.File );
+                    var renamedPath = Path.Combine( Path.GetDirectoryName( physicalPath ), options.NewFileName );
+                    File.Move( physicalPath, renamedPath );
+
+                    return Ok( true );
+                }
+                else
+                {
+                    var (provider, component) = GetAssetStorageProvider( options.AssetStorageProviderId );
+
+                    if ( provider == null || component == null || options.File.IsNullOrWhiteSpace() || options.NewFileName.IsNullOrWhiteSpace() )
+                    {
+                        return BadRequest();
+                    }
+
+                    return Ok( component.RenameAsset( provider.ToEntity(), new Asset { Key = options.File, Type = AssetType.File }, options.NewFileName ) );
+                }
+            }
+            catch ( Exception ex )
+            {
+                return InternalServerError();
             }
 
-            return Ok( component.RenameAsset( provider.ToEntity(), new Asset { Key = options.File, Type = AssetType.File }, options.NewFileName ) );
+            return BadRequest();
         }
 
 
