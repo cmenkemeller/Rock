@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Reflection;
@@ -1032,10 +1033,72 @@ namespace Rock.Rest.v2
             {
                 return InternalServerError();
             }
-
-            return BadRequest();
         }
 
+        /// <summary>
+        /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
+        /// </summary>
+        /// <param name="options">The options that describe which items to load.</param>
+        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        [HttpPost]
+        [System.Web.Http.Route( "AssetManagerExtractFile" )]
+        [Authenticate]
+        [Rock.SystemGuid.RestActionGuid( "150AAF48-33C5-47F8-BD53-2CF3A75F88FB" )]
+        public IHttpActionResult AssetManagerExtractFile( [FromBody] AssetManagerExtractFileOptionsBag options )
+        {
+            if ( options == null || options.EncryptedRoot.IsNullOrWhiteSpace() || options.FileName.IsNullOrWhiteSpace() )
+            {
+                return BadRequest();
+            }
+
+            var root = Rock.Security.Encryption.DecryptString( options.EncryptedRoot );
+            var fullPath = Path.Combine( root, options.FileName );
+            var physicalZipFile = System.Web.HttpContext.Current.Server.MapPath( fullPath );
+            var directoryPath = Path.GetDirectoryName( physicalZipFile );
+
+            try
+            {
+                if ( File.Exists( physicalZipFile ) )
+                {
+                    FileInfo fileInfo = new FileInfo( physicalZipFile );
+                    if ( fileInfo.Extension.Equals( ".zip", StringComparison.OrdinalIgnoreCase ) )
+                    {
+                        using ( ZipArchive archive = ZipFile.OpenRead( physicalZipFile ) )
+                        {
+                            foreach ( ZipArchiveEntry file in archive.Entries )
+                            {
+                                string completeFileName = Path.Combine( directoryPath, file.FullName );
+                                if ( file.Name == string.Empty )
+                                {
+                                    // Assuming Empty for Directory
+                                    Directory.CreateDirectory( Path.GetDirectoryName( completeFileName ) );
+                                    continue;
+                                }
+
+                                file.ExtractToFile( completeFileName, true );
+                            }
+                        }
+                    }
+                    else
+                    {
+                        File.Delete( physicalZipFile );
+                        throw new Exception( "Invalid File Uploaded." );
+                    }
+                    File.Delete( physicalZipFile );
+                }
+                else
+                {
+                    throw new Exception( "Error Extracting the File." );
+                }
+
+                return Ok( true );
+            }
+            catch ( Exception ex )
+            {
+                File.Delete( physicalZipFile );
+                return InternalServerError( ex );
+            }
+        }
 
 
 

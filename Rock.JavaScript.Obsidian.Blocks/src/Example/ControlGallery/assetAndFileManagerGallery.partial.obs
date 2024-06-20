@@ -54,9 +54,9 @@
     const enableFileManager = ref(true);
     const enableZipUpload = ref(true);
     // ~/
-    // const encryptedRootFolder = ref("EAAAAI5wiBY4SMrjA6A6W0j6tcLcNlC3Lti9xvjVPk4iT8KU");
+    const encryptedRootFolder = ref("EAAAAOkA/1SamAbdx1EJX3OXaY7FkiG6ha9rDeDXaRPjfGcr");
     // ~/Content
-    const encryptedRootFolder = ref("EAAAADKu4UpeD3p9uFXZ5WLZMaToEPXLfHZ6a0U7LuvfyZUy");
+    // const encryptedRootFolder = ref("EAAAADKu4UpeD3p9uFXZ5WLZMaToEPXLfHZ6a0U7LuvfyZUy");
 
     const importCode = getSfcControlImportPath("assetAndFileManager");
     const exampleCode = computed(() => {

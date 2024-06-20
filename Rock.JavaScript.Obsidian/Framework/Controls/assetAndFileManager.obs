@@ -66,20 +66,17 @@
 
         <div class="picker-files d-flex flex-column p-3 mh-100 flex-shrink-0 position-relative">
             <div class="mb-3 d-flex align-items-center">
-                <div v-if="isUploadingFile" class="js-upload-progress upload-progress-sm">
-                    <!-- TODO -->
-                    <i class="fa fa-refresh fa-lg fa-spin"></i>
+                <div v-if="isUploadingFile" class="js-upload-progress upload-progress-sm mr-2">
+                    <i class="fa fa-refresh fa-spin"></i>
                 </div>
-                <label class="btn btn-xs btn-default mr-2" title="Upload a file to the selected location." v-bind="isUploadDisabled ? { disabled: true } : {}">
+                <RockButton type="button" btnSize="xs" class="mr-2" title="Upload a file to the selected location." :disabled="isUploadDisabled" @click.prevent="fileInputElement?.click()">
                     <i class="fa fa-upload"></i> <span class="hidden-xs">Upload File</span>
-                    <!-- TODO -->
-                    <input type="file" ref="fileInputElement" class="hidden" @change="uploadFile" :disabled="isUploadDisabled">
-                </label>
-                <label class="btn btn-xs btn-default mr-2" v-if="enableFileManager && enableZipUpload" v-bind="isZipUploadDisabled ? { disabled: true } : {}">
+                </RockButton>
+                <input type="file" ref="fileInputElement" class="hidden" @change="uploadFile" :disabled="isUploadDisabled">
+                <RockButton type="button" btnSize="xs" class="mr-2" title="Upload and extract a zip file in the selected location. The extracted files will overwrite existing files of the same name." v-if="enableFileManager && enableZipUpload" :disabled="isZipUploadDisabled" @click.prevent="zipFileInputElement?.click()">
                     <i class="fa fa-archive"></i> <span class="hidden-xs">Upload Package</span>
-                    <!-- TODO -->
-                    <input type="file" ref="zipFileInputElement" class="hidden" accept=".zip" @change="uploadZipFile" :disabled="isZipUploadDisabled">
-                </label>
+                </RockButton>
+                <input type="file" ref="zipFileInputElement" class="hidden" accept=".zip" @change="uploadZipFile" :disabled="isZipUploadDisabled">
                 <RockButton type="button" btnSize="xs" title="Delete selected files" class="mr-2" :disabled="selectedFileKeys.length < 1" @click="deleteFiles(selectedFileKeys)">
                     <i class="fa fa-trash-alt"></i> <span class="hidden-xs">Delete Selected</span>
                 </RockButton>
@@ -140,6 +137,19 @@
             </Transition>
         </div>
     </div>
+    <Modal v-model="isRenameFolderModalVisible" title="Rename Folder" @close="isRenameFolderModalVisible = false" @save="arg => console.log(arg)" saveText="Save">
+        <div>
+            <div class="margin-b-sm">
+                <dt>Current Location</dt>
+                <dd>{{ selectedFolderSubPath }}</dd>
+            </div>
+            <TextBox v-model="renameFolderName" rules="required" label="New Folder Name">
+                <template #inputGroupPrepend>
+                    <span class="input-group-addon">{{ selectedFolderParentSubPath }}\</span>
+                </template>
+            </TextBox>
+        </div>
+    </Modal>
 </template>
 
 <style scoped>
@@ -192,6 +202,7 @@
     import LoadingIndicator from "./loadingIndicator.obs";
     import DropDownMenu from "./dropDownMenu.obs";
     import NotificationBox from "./notificationBox.obs";
+    import Modal from "./modal.obs";
     import { useVModelPassthrough } from "@Obsidian/Utility/component";
     import { AssetManagerTreeItemProvider } from "@Obsidian/Utility/treeItemProviders";
     import { AssetManagerTreeItemBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerTreeItemBag";
@@ -201,6 +212,7 @@
     import { AssetManagerGetFilesResultsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetFilesResultsBag";
     import { AssetManagerDeleteFilesOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerDeleteFilesOptionsBag";
     import { AssetManagerRenameFileOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerRenameFileOptionsBag";
+    import { AssetManagerExtractFileOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerExtractFileOptionsBag";
     import { FileAsset } from "@Obsidian/ViewModels/Controls/fileAsset";
     import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
     import { TreeItemBag } from "@Obsidian/ViewModels/Utility/treeItemBag";
@@ -211,6 +223,7 @@
     import { confirm } from "@Obsidian/Utility/dialogs";
     import { ValidationRule } from "@Obsidian/ValidationRules";
     import { uploadAssetProviderFile, uploadContentFile } from "@Obsidian/Utility/http";
+    import * as Path from "@Obsidian/Utility/path";
 
     const props = defineProps({
         modelValue: {
@@ -282,11 +295,17 @@
 
     const selectedFolderArray = ref<string[]>([]);
     const selectedFolder = computed<string | null>(() => decodeURIComponent(selectedFolderArray.value[0] ?? "") || null);
+    const selectedFolderBag = computed(() => findFolder(folders.value, selectedFolder.value).folder);
+    const selectedFolderSubPath = computed(() => parseFolderName(selectedFolder.value ?? "").subPath);
+    const selectedFolderParentSubPath = computed(() => Path.getDirectoryName(parseFolderName(selectedFolder.value ?? "").subPath));
     const isFolderSelected = computed(() => !!selectedFolder.value);
     const isRootSelected = computed(() => isFolderSelected.value && selectedFolder.value?.endsWith(",True"));
     const isFolderLocal = computed(() => selectedFolder.value?.startsWith("0,"));
 
     const isFolderRestricted = ref(false);
+
+    const renameFolderName = ref("");
+    const isRenameFolderModalVisible = ref(false);
 
     const isFolderPaneActionLoading = ref(false);
     const folderScrollContainer = ref<HTMLElement | null>(null);
@@ -308,7 +327,10 @@
         return [{
             title: "Rename",
             type: "default",
-            handler: () => console.log("RENAME"), // TODO
+            handler: () => {
+                isRenameFolderModalVisible.value = true;
+                renameFolderName.value = selectedFolderSubPath.value ?? ""; // TODO GET END OF PATH
+            },
             disabled: !isFolderLocal.value
         }, {
             title: "Move",
@@ -344,7 +366,7 @@
 
         if (response.isSuccess && response.data) {
             hideAddFolder();
-            const { folder } = findFolder(folders.value, selectedFolder.value);
+            const folder = selectedFolderBag.value;
             if (folder) {
                 if (!folder.children) {
                     folder.children = [];
@@ -431,7 +453,7 @@
         const parts = key.split(",");
 
         if (parts.length >= 3) {
-            let root = (folder as AssetManagerTreeItemBag).unencryptedRoot ?? "";
+            let root = Path.normalize((folder as AssetManagerTreeItemBag).unencryptedRoot ?? "");
 
             if (root == "/") {
                 root = "";
@@ -614,9 +636,59 @@
         }
     }
 
-    function uploadZipFile(): void {
-        // TODO
-        console.log("UPLOAD ZIP FILE");
+    async function uploadZipFile(): Promise<void> {
+        fileListErrorAction.value = "";
+        fileListErrorMessage.value = "";
+
+        if (isUploadingFile.value || !isFolderLocal.value || !zipFileInputElement.value || !zipFileInputElement.value.files || zipFileInputElement.value.files.length <= 0) {
+            return;
+        }
+
+        try {
+            isUploadingFile.value = true;
+
+            const file = zipFileInputElement.value.files[0];
+            const { encryptedRoot, subPath } = parseFolderName(selectedFolder.value ?? "");
+            const { text: fileName } = await uploadContentFile(file, encryptedRoot, subPath);
+
+            if (!fileName) {
+                throw new Error("Cannot extract file because of an issue with the upload.");
+            }
+
+            const url = "/api/v2/Controls/AssetManagerExtractFile";
+            const options: AssetManagerExtractFileOptionsBag = {
+                fileName,
+                encryptedRoot
+            };
+
+            const response = await post<boolean>(url, undefined, options);
+
+            if (response.isSuccess && response.data) {
+                // If successful, there might be new subfolders because the zip file had folders, so fetch those
+                // children so user doesn't need to refresh folders to see that their are new children
+                if (selectedFolderBag.value) {
+                    const items = await itemProvider.value.getChildItems(selectedFolderBag.value);
+
+                    if (items && items.length > 0) {
+                        selectedFolderBag.value.hasChildren = true;
+                        selectedFolderBag.value.children = items;
+                    }
+                }
+            }
+            else {
+                fileListErrorMessage.value = response.errorMessage ?? "An unknown error occurred while extracting the file.";
+                fileListErrorAction.value = "Extracting File";
+            }
+        }
+        catch (e) {
+            fileListErrorMessage.value = (e as Error).message ?? "An unknown error occurred while uploading the file.";
+            fileListErrorAction.value = "Uploading Package File";
+        }
+        finally {
+            refreshFiles();
+            zipFileInputElement.value!.files = null;
+            isUploadingFile.value = false;
+        }
     }
 
     async function deleteFiles(files: string[]): Promise<void> {
