@@ -704,7 +704,7 @@ namespace Rock.Rest.v2
         [HttpPost]
         [System.Web.Http.Route( "AssetManagerGetChildren" )]
         [Authenticate]
-        [Rock.SystemGuid.RestActionGuid( "9A96E14F-99DB-4F9A-95EB-DF17D3B5EE25" )]
+        [Rock.SystemGuid.RestActionGuid( "68C50BAE-C50C-4143-B37F-58C80BF5E1BF" )]
         public IHttpActionResult AssetManagerGetChildren( [FromBody] AssetManagerBaseOptionsBag options )
         {
             var parsedAsset = ParseAssetKey( options.AssetFolderId );
@@ -905,6 +905,34 @@ namespace Rock.Rest.v2
         /// <param name="options">The options that describe which items to load.</param>
         /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
         [HttpPost]
+        [System.Web.Http.Route( "AssetManagerRenameFolder" )]
+        [Authenticate]
+        [Rock.SystemGuid.RestActionGuid( "8DF6054E-6F52-4A08-A7F5-C11F44B8465C" )]
+        public IHttpActionResult AssetManagerRenameFolder( [FromBody] AssetManagerRenameFolderOptionsBag options )
+        {
+            try
+            {
+                var asset = ParseAssetKey( options.AssetFolderId );
+                var physicalPath = System.Web.HttpContext.Current.Server.MapPath( asset.FullPath );
+                var renamedPath = Path.Combine( Path.GetDirectoryName( physicalPath.TrimEnd( '/', '\\' ) ), options.NewFolderName );
+                Directory.Move( physicalPath, renamedPath );
+
+                var newKey = $"0,{asset.EncryptedRoot},{Path.Combine( Path.GetDirectoryName( asset.SubPath.TrimEnd( '/', '\\' ) ), options.NewFolderName ).Replace( "\\", "/" )}";
+
+                return Ok( newKey );
+            }
+            catch ( Exception ex )
+            {
+                return InternalServerError( ex );
+            }
+        }
+
+        /// <summary>
+        /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
+        /// </summary>
+        /// <param name="options">The options that describe which items to load.</param>
+        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        [HttpPost]
         [System.Web.Http.Route( "AssetManagerDeleteFiles" )]
         [Authenticate]
         [Rock.SystemGuid.RestActionGuid( "55ADD16B-0FC1-4F33-BB0A-03C29018866F" )]
@@ -1043,7 +1071,7 @@ namespace Rock.Rest.v2
         [HttpPost]
         [System.Web.Http.Route( "AssetManagerExtractFile" )]
         [Authenticate]
-        [Rock.SystemGuid.RestActionGuid( "150AAF48-33C5-47F8-BD53-2CF3A75F88FB" )]
+        [Rock.SystemGuid.RestActionGuid( "07CECA87-B9F9-4130-AC09-584AC9DBBE8C" )]
         public IHttpActionResult AssetManagerExtractFile( [FromBody] AssetManagerExtractFileOptionsBag options )
         {
             if ( options == null || options.EncryptedRoot.IsNullOrWhiteSpace() || options.FileName.IsNullOrWhiteSpace() )

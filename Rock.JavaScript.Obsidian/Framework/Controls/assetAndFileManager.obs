@@ -40,12 +40,13 @@
                 </RockButton>
             </RockForm>
 
+            <NotificationBox v-if="folderListErrorMessage" alertType="danger" :heading="`Error ${folderListErrorAction}`" dismissible @dismiss="folderListErrorMessage = ''" #details>
+                {{ folderListErrorMessage }}
+            </NotificationBox>
+
             <div v-if="folderListScrolled" class="scroll-shadow"></div>
 
             <div ref="folderScrollContainer" class="overflow-y-auto overflow-x-auto mh-100" style="z-index:0">
-                <NotificationBox v-if="deleteFolderError" alertType="danger" heading="Error Deleting Folder" dismissible @dismiss="deleteFolderError = ''" #details>
-                    {{ deleteFolderError }}
-                </NotificationBox>
                 <TreeList v-model="selectedFolderArray"
                           :provider="itemProvider"
                           v-model:items="folders"
@@ -137,15 +138,15 @@
             </Transition>
         </div>
     </div>
-    <Modal v-model="isRenameFolderModalVisible" title="Rename Folder" @close="isRenameFolderModalVisible = false" @save="arg => console.log(arg)" saveText="Save">
-        <div>
+    <Modal v-model="isRenameFolderModalVisible" title="Rename Folder" @close="isRenameFolderModalVisible = false" @save="renameFolder" saveText="Save">
+        <div ref="renameFolderWrapper">
             <div class="margin-b-sm">
                 <dt>Current Location</dt>
                 <dd>{{ selectedFolderSubPath }}</dd>
             </div>
             <TextBox v-model="renameFolderName" rules="required" label="New Folder Name">
                 <template #inputGroupPrepend>
-                    <span class="input-group-addon">{{ selectedFolderParentSubPath }}\</span>
+                    <span class="input-group-addon">{{ selectedFolderParentSubPath }}/</span>
                 </template>
             </TextBox>
         </div>
@@ -193,7 +194,7 @@
 </style>
 
 <script setup lang="ts">
-    import { PropType, computed, nextTick, ref, watch } from "vue";
+    import { PropType, VNode, computed, nextTick, ref, watch } from "vue";
     import RockButton from "./rockButton.obs";
     import RockForm from "./rockForm.obs";
     import TextBox from "./textBox.obs";
@@ -208,6 +209,7 @@
     import { AssetManagerTreeItemBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerTreeItemBag";
     import { AssetManagerBaseOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerBaseOptionsBag";
     import { AssetManagerAddFolderOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerAddFolderOptionsBag";
+    import { AssetManagerRenameFolderOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerRenameFolderOptionsBag";
     import { AssetManagerGetFilesOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetFilesOptionsBag";
     import { AssetManagerGetFilesResultsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetFilesResultsBag";
     import { AssetManagerDeleteFilesOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerDeleteFilesOptionsBag";
@@ -296,8 +298,18 @@
     const selectedFolderArray = ref<string[]>([]);
     const selectedFolder = computed<string | null>(() => decodeURIComponent(selectedFolderArray.value[0] ?? "") || null);
     const selectedFolderBag = computed(() => findFolder(folders.value, selectedFolder.value).folder);
-    const selectedFolderSubPath = computed(() => parseFolderName(selectedFolder.value ?? "").subPath);
-    const selectedFolderParentSubPath = computed(() => Path.getDirectoryName(parseFolderName(selectedFolder.value ?? "").subPath));
+    const selectedFolderSubPath = computed(() => {
+        let path = parseFolderName(selectedFolder.value ?? "").subPath;
+        if (path.endsWith("/")) {
+            path = path.slice(0, -1);
+        }
+        return path;
+    });
+    const selectedFolderParentSubPath = computed(() => {
+        const folderName = parseFolderName(selectedFolder.value ?? "").subPath;
+        const path = Path.getDirectoryName(folderName);
+        return path;
+    });
     const isFolderSelected = computed(() => !!selectedFolder.value);
     const isRootSelected = computed(() => isFolderSelected.value && selectedFolder.value?.endsWith(",True"));
     const isFolderLocal = computed(() => selectedFolder.value?.startsWith("0,"));
@@ -305,6 +317,7 @@
     const isFolderRestricted = ref(false);
 
     const renameFolderName = ref("");
+    const renameFolderWrapper = ref<HTMLDivElement | null>(null);
     const isRenameFolderModalVisible = ref(false);
 
     const isFolderPaneActionLoading = ref(false);
@@ -315,7 +328,8 @@
     const newFolderName = ref("");
     const addFolderError = ref("");
 
-    const deleteFolderError = ref("");
+    const folderListErrorMessage = ref("");
+    const folderListErrorAction = ref("");
     const treeRefreshKey = ref(1);
 
     const addFolderValidation: ValidationRule[] = [
@@ -327,10 +341,7 @@
         return [{
             title: "Rename",
             type: "default",
-            handler: () => {
-                isRenameFolderModalVisible.value = true;
-                renameFolderName.value = selectedFolderSubPath.value ?? ""; // TODO GET END OF PATH
-            },
+            handler: showRenameFolderModal,
             disabled: !isFolderLocal.value
         }, {
             title: "Move",
@@ -391,6 +402,54 @@
         addFolderError.value = "";
     }
 
+    async function showRenameFolderModal(): Promise<void> {
+        isRenameFolderModalVisible.value = true;
+        renameFolderName.value = Path.getFileName(selectedFolderSubPath.value ?? ""); // TODO GET END OF PATH
+
+        await nextTick();
+
+        const input = renameFolderWrapper.value?.querySelector("input[type=text]") as HTMLInputElement | null;
+
+        if (input) {
+            input.select();
+        }
+    }
+
+    async function renameFolder(): Promise<void> {
+        isFolderPaneActionLoading.value = true;
+
+        try {
+            const newFolderName = renameFolderName.value;
+            const options: AssetManagerRenameFolderOptionsBag = {
+                assetFolderId: selectedFolder.value,
+                newFolderName
+            };
+            const url = "/api/v2/Controls/AssetManagerRenameFolder";
+            const response = await post<string>(url, undefined, options);
+            if (response.isSuccess && response.data) {
+                if (selectedFolderBag.value) {
+                    selectedFolderBag.value.text = newFolderName;
+                    selectedFolderBag.value.value = response.data;
+                    selectedFolderArray.value = [response.data];
+
+                    // TODO: If has children already loaded, we need to update the children array because their key is based off the old name
+                }
+            }
+            else {
+                folderListErrorAction.value = "Renaming Folder";
+                folderListErrorMessage.value = response.errorMessage || "An unknown error occurred while renaming the folder.";
+            }
+        }
+        catch (e) {
+            folderListErrorAction.value = "Renaming Folder";
+            folderListErrorMessage.value = (e as Error)?.message || "An unknown error occurred while renaming the folder.";
+        }
+        finally {
+            isRenameFolderModalVisible.value = false;
+            isFolderPaneActionLoading.value = false;
+        }
+    }
+
     async function deleteSelectedFolder(): Promise<void> {
         isFolderPaneActionLoading.value = true;
 
@@ -411,7 +470,8 @@
             selectedFolderArray.value = [];
         }
         else {
-            deleteFolderError.value = response.errorMessage || "An unknown error occurred while deleting the folder.";
+            folderListErrorMessage.value = response.errorMessage || "An unknown error occurred while deleting the folder.";
+            folderListErrorAction.value = "Deleting Folder";
         }
 
         isFolderPaneActionLoading.value = false;
@@ -556,7 +616,7 @@
 
         if (inputField) {
             inputField.focus();
-            const baseFileName = getBaseFileName(file.name);
+            const baseFileName = Path.getFileNameWithoutExtension(file.name);
             inputField.setSelectionRange(0, baseFileName.length);
         }
     }
@@ -787,26 +847,6 @@
                 deleteFiles([file.key]); /* Explicitly don't return promise so dropdown will hide immediately */
             }
         }];
-    }
-
-    /**
-     * Gets the name of the file without the extension
-     */
-    function getBaseFileName(fileName: string): string {
-        // Regex captures two parts. The first part is the base name and the second is a dot
-        // followed by at least 1 non-dot character at the end of the string.
-        const parser = /(.*)(\.[^.]+)$/;
-
-        // For example "file.name.ext" would return ["file.name.ext", "file.name", ".ext"]
-        const results = parser.exec(fileName);
-
-        // If we have anything in the base name capture element, return it.
-        if (results && results[1]) {
-            return results[1];
-        }
-
-        // If we couldn't parse out the base, just return the entire file name.
-        return fileName;
     }
 
     watch(selectedFileKeys, () => {

@@ -297,6 +297,179 @@ export function normalize(path: string): string {
 }
 
 /**
+ * Returns the extension of the path, from the last occurrence of the . character to end of string in the last portion
+ * of the path. If there is no . in the last portion of the path, or if there are no . characters other than the first
+ * character of the basename of path, an empty string is returned.
+ *
+ * Adapted from Node.js's path.extname
+ */
+export function getExtension(path: string): string {
+    let start = 0;
+    let startDot = -1;
+    let startPart = 0;
+    let end = -1;
+    let matchedSlash = true;
+    // Track the state of characters (if any) we see before our first dot and
+    // after any path separator we find
+    let preDotState = 0;
+
+    // Check for a drive letter prefix so as not to mistake the following
+    // path separator as an extra separator at the end of the path that can be
+    // disregarded
+
+    if (path.length >= 2 && path.charCodeAt(1) === CHAR_COLON && isWindowsDeviceRoot(path.charCodeAt(0))) {
+        start = startPart = 2;
+    }
+
+    for (let i = path.length - 1; i >= start; --i) {
+        const code = path.charCodeAt(i);
+        if (isPathSeparator(code)) {
+            // If we reached a path separator that was not part of a set of path
+            // separators at the end of the string, stop now
+            if (!matchedSlash) {
+                startPart = i + 1;
+                break;
+            }
+            continue;
+        }
+        if (end === -1) {
+            // We saw the first non-path separator, mark this as the end of our
+            // extension
+            matchedSlash = false;
+            end = i + 1;
+        }
+        if (code === CHAR_DOT) {
+            // If this is our first dot, mark it as the start of our extension
+            if (startDot === -1) {
+                startDot = i;
+            }
+            else if (preDotState !== 1) {
+                preDotState = 1;
+            }
+        }
+        else if (startDot !== -1) {
+            // We saw a non-dot and non-path separator before our dot, so we should
+            // have a good chance at having a non-empty extension
+            preDotState = -1;
+        }
+    }
+
+    if (startDot === -1 ||
+        end === -1 ||
+        // We saw a non-dot character immediately before the dot
+        preDotState === 0 ||
+        // The (right-most) trimmed path component is exactly '..'
+        (preDotState === 1 &&
+            startDot === end - 1 &&
+            startDot === startPart + 1)) {
+        return "";
+    }
+    return path.slice(startDot, end);
+}
+
+/**
+ * Returns the last portion of a path, similar to the Unix basename command. Trailing directory separators are ignored.
+ * Unlike the C# equivalent, if there is a trailing slash, this will still return the last part that comes before the trailing
+ * slash, whereas C# will treat it as a folder and will return an empty string. Also, unlike the C# version, this function
+ * allows you to specify an suffix to strip off the end of the result.
+ *
+ * Adapted from Node.js's path.basename()
+ */
+export function getFileName(path: string, suffix?: string): string {
+    let start = 0;
+    let end = -1;
+    let matchedSlash = true;
+
+    // Check for a drive letter prefix so as not to mistake the following
+    // path separator as an extra separator at the end of the path that can be
+    // disregarded
+    if (path.length >= 2 && isWindowsDeviceRoot(path.charCodeAt(0)) && path.charCodeAt(1) === CHAR_COLON) {
+        start = 2;
+    }
+
+    if (suffix !== undefined && suffix.length > 0 && suffix.length <= path.length) {
+        if (suffix === path) {
+            return "";
+        }
+        let extIdx = suffix.length - 1;
+        let firstNonSlashEnd = -1;
+        for (let i = path.length - 1; i >= start; --i) {
+            const code = path.charCodeAt(i);
+            if (isPathSeparator(code)) {
+                // If we reached a path separator that was not part of a set of path
+                // separators at the end of the string, stop now
+                if (!matchedSlash) {
+                    start = i + 1;
+                    break;
+                }
+            }
+            else {
+                if (firstNonSlashEnd === -1) {
+                    // We saw the first non-path separator, remember this index in case
+                    // we need it if the extension ends up not matching
+                    matchedSlash = false;
+                    firstNonSlashEnd = i + 1;
+                }
+                if (extIdx >= 0) {
+                    // Try to match the explicit extension
+                    if (code === suffix.charCodeAt(extIdx)) {
+                        if (--extIdx === -1) {
+                            // We matched the extension, so mark this as the end of our path
+                            // component
+                            end = i;
+                        }
+                    }
+                    else {
+                        // Extension does not match, so our result is the entire path
+                        // component
+                        extIdx = -1;
+                        end = firstNonSlashEnd;
+                    }
+                }
+            }
+        }
+
+        if (start === end) {
+            end = firstNonSlashEnd;
+        }
+        else if (end === -1) {
+            end = path.length;
+        }
+        return path.slice(start, end);
+    }
+    for (let i = path.length - 1; i >= start; --i) {
+        if (isPathSeparator(path.charCodeAt(i))) {
+            // If we reached a path separator that was not part of a set of path
+            // separators at the end of the string, stop now
+            if (!matchedSlash) {
+                start = i + 1;
+                break;
+            }
+        }
+        else if (end === -1) {
+            // We saw the first non-path separator, mark this as the end of our
+            // path component
+            matchedSlash = false;
+            end = i + 1;
+        }
+    }
+
+    if (end === -1) {
+        return "";
+    }
+    return path.slice(start, end);
+}
+
+/**
+ * Returns the same thing as `getFileName`, but doesn't require you to know the extension and pass it in in order to
+ * exclude the extension.
+ */
+export function getFileNameWithoutExtension(path: string): string {
+    const ext = getExtension(path);
+    return getFileName(path, ext);
+}
+
+/**
  * Determine if given character code is a path separator.
  */
 function isPathSeparator(code: number): boolean {
