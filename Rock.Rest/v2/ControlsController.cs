@@ -33,6 +33,7 @@ using Rock.Attribute;
 using Rock.Badge;
 using Rock.ClientService.Core.Category;
 using Rock.ClientService.Core.Category.Options;
+using Rock.Cms.StructuredContent;
 using Rock.Communication;
 using Rock.Configuration;
 using Rock.Data;
@@ -7552,6 +7553,21 @@ namespace Rock.Rest.v2
             {
                 ToolsScript = structuredContentToolsConfiguration
             } );
+        }
+
+        /// <summary>
+        /// Gets the value of structured content as HTML.
+        /// </summary>
+        /// <param name="content">The raw content of the StructuredContentEditor.</param>
+        /// <returns>The structured content converted to HTML.</returns>
+        [HttpPost]
+        [System.Web.Http.Route( "StructuredContentAsHtml" )]
+        [Authenticate]
+        [Rock.SystemGuid.RestActionGuid( "aec4bf60-bdcc-44e6-b7c5-8c019612deb6" )]
+        public IHttpActionResult StructuredContentAsHtml( [FromBody] object content )
+        {
+            var contentAsHtml = new StructuredContentHelper( content.ToString() ).Render();
+            return Ok( contentAsHtml );
         }
 
         #endregion
