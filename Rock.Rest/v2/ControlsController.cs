@@ -1129,7 +1129,65 @@ namespace Rock.Rest.v2
             }
         }
 
+        [HttpPost]
+        [System.Web.Http.Route( "AssetManagerGetListOfAllFolders" )]
+        [Authenticate]
+        [Rock.SystemGuid.RestActionGuid( "1008C9C5-E33E-43F6-BB02-D1BDF2CCE205" )]
+        public IHttpActionResult AssetManagerGetListOfAllFolders( [FromBody] AssetManagerGetListOfAllFoldersOptionsBag options )
+        {
+            if ( options == null || options.EncryptedRoot.IsNullOrWhiteSpace() || options.FileName.IsNullOrWhiteSpace() )
+            {
+                return BadRequest();
+            }
 
+            var root = Rock.Security.Encryption.DecryptString( options.EncryptedRoot );
+            var fullPath = Path.Combine( root, options.FileName );
+            var physicalZipFile = System.Web.HttpContext.Current.Server.MapPath( fullPath );
+            var directoryPath = Path.GetDirectoryName( physicalZipFile );
+
+            try
+            {
+                if ( File.Exists( physicalZipFile ) )
+                {
+                    FileInfo fileInfo = new FileInfo( physicalZipFile );
+                    if ( fileInfo.Extension.Equals( ".zip", StringComparison.OrdinalIgnoreCase ) )
+                    {
+                        using ( ZipArchive archive = ZipFile.OpenRead( physicalZipFile ) )
+                        {
+                            foreach ( ZipArchiveEntry file in archive.Entries )
+                            {
+                                string completeFileName = Path.Combine( directoryPath, file.FullName );
+                                if ( file.Name == string.Empty )
+                                {
+                                    // Assuming Empty for Directory
+                                    Directory.CreateDirectory( Path.GetDirectoryName( completeFileName ) );
+                                    continue;
+                                }
+
+                                file.ExtractToFile( completeFileName, true );
+                            }
+                        }
+                    }
+                    else
+                    {
+                        File.Delete( physicalZipFile );
+                        throw new Exception( "Invalid File Uploaded." );
+                    }
+                    File.Delete( physicalZipFile );
+                }
+                else
+                {
+                    throw new Exception( "Error Extracting the File." );
+                }
+
+                return Ok( true );
+            }
+            catch ( Exception ex )
+            {
+                File.Delete( physicalZipFile );
+                return InternalServerError( ex );
+            }
+        }
 
 
 
@@ -1581,12 +1639,12 @@ namespace Rock.Rest.v2
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="pathName"></param>
+        /// <param name="localPathName"></param>
         /// <returns></returns>
-        private bool IsHiddenFolder( string pathName )
+        private bool IsHiddenFolder( string localPathName )
         {
             var HiddenFolders = new List<string> { "Content\\ASM_Thumbnails" };
-            return HiddenFolders.Any( a => pathName.IndexOf( a, StringComparison.OrdinalIgnoreCase ) > -1 );
+            return HiddenFolders.Any( a => localPathName.IndexOf( a, StringComparison.OrdinalIgnoreCase ) > -1 );
         }
 
         /// <summary>
