@@ -1124,7 +1124,7 @@ export class AssetManagerTreeItemProvider implements ITreeItemProvider {
             return response.data.tree;
         }
         else {
-            console.log("Error", response.errorMessage);
+            console.error("Error Fetching Root Asset Manager Items", response.errorMessage);
             return [];
         }
     }
@@ -1143,7 +1143,7 @@ export class AssetManagerTreeItemProvider implements ITreeItemProvider {
             return response.data;
         }
         else {
-            console.log("Error", response.errorMessage);
+            console.error("Error Fetching Asset Manager Children", response.errorMessage);
             return [];
         }
     }

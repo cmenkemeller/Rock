@@ -917,7 +917,7 @@ namespace Rock.Rest.v2
                 var renamedPath = Path.Combine( Path.GetDirectoryName( physicalPath.TrimEnd( '/', '\\' ) ), options.NewFolderName );
                 Directory.Move( physicalPath, renamedPath );
 
-                var newKey = $"0,{asset.EncryptedRoot},{Path.Combine( Path.GetDirectoryName( asset.SubPath.TrimEnd( '/', '\\' ) ), options.NewFolderName ).Replace( "\\", "/" )}";
+                var newKey = $"0,{asset.EncryptedRoot},{Path.Combine( Path.GetDirectoryName( asset.SubPath.TrimEnd( '/', '\\' ) ), options.NewFolderName ).Replace( "\\", "/" ).TrimEnd( '/', '\\' ) + "/"}";
 
                 return Ok( newKey );
             }

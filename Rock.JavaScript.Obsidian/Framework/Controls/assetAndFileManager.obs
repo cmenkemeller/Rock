@@ -194,7 +194,7 @@
 </style>
 
 <script setup lang="ts">
-    import { PropType, VNode, computed, nextTick, ref, watch } from "vue";
+    import { PropType, Ref, VNode, computed, nextTick, ref, watch } from "vue";
     import RockButton from "./rockButton.obs";
     import RockForm from "./rockForm.obs";
     import TextBox from "./textBox.obs";
@@ -426,18 +426,33 @@
             };
             const url = "/api/v2/Controls/AssetManagerRenameFolder";
             const response = await post<string>(url, undefined, options);
-            if (response.isSuccess && response.data) {
-                if (selectedFolderBag.value) {
-                    selectedFolderBag.value.text = newFolderName;
-                    selectedFolderBag.value.value = response.data;
-                    selectedFolderArray.value = [response.data];
 
-                    // TODO: If has children already loaded, we need to update the children array because their key is based off the old name
-                }
+            if (response.isError) {
+                throw new Error(response.errorMessage ?? "An unknown error occurred while renaming the folder.");
             }
-            else {
-                folderListErrorAction.value = "Renaming Folder";
-                folderListErrorMessage.value = response.errorMessage || "An unknown error occurred while renaming the folder.";
+
+            if (!response.isSuccess || !response.data) {
+                throw new Error("An unknown error occurred while renaming the folder.");
+            }
+
+            // If this folder has been expanded, make sure the list of open folders is updated with the new value
+            if (itemProvider.value.openFolders.has(selectedFolder.value ?? "")) {
+                itemProvider.value.openFolders.delete(selectedFolder.value!);
+                itemProvider.value.openFolders.add(response.data);
+            }
+
+            // Update the selected folder with the new data from the server
+            if (selectedFolderBag.value) {
+                selectedFolderBag.value.text = newFolderName;
+                selectedFolderBag.value.value = response.data;
+
+                // Since the bag is updated with a new key, we need to update the selected folder array to reflect the new key
+                selectedFolderArray.value = [response.data];
+
+                if (selectedFolderBag.value.children && selectedFolderBag.value.children.length > 0) {
+                    // If has children already loaded, we need to update the children array because their key is based off the old name
+                    getChildFolders(selectedFolderBag);
+                }
             }
         }
         catch (e) {
@@ -546,6 +561,23 @@
         provider.encryptedRootFolder = props.encryptedRootFolder || "";
 
         return provider;
+    }
+
+    async function getChildFolders(folderBag: Ref<TreeItemBag | null>) {
+        if (folderBag.value) {
+            const items = await itemProvider.value.getChildItems(folderBag.value);
+
+            if (items && items.length > 0) {
+                folderBag.value.hasChildren = true;
+                folderBag.value.children = items;
+                folderBag.value.childCount = items.length;
+            }
+            else {
+                folderBag.value.hasChildren = true; // So they can try again via the expand button
+                folderBag.value.children = null;
+                folderBag.value.childCount = 0;
+            }
+        }
     }
 
     watch(() => props.openFolders, () => {
@@ -726,14 +758,7 @@
             if (response.isSuccess && response.data) {
                 // If successful, there might be new subfolders because the zip file had folders, so fetch those
                 // children so user doesn't need to refresh folders to see that their are new children
-                if (selectedFolderBag.value) {
-                    const items = await itemProvider.value.getChildItems(selectedFolderBag.value);
-
-                    if (items && items.length > 0) {
-                        selectedFolderBag.value.hasChildren = true;
-                        selectedFolderBag.value.children = items;
-                    }
-                }
+                getChildFolders(selectedFolderBag);
             }
             else {
                 fileListErrorMessage.value = response.errorMessage ?? "An unknown error occurred while extracting the file.";
