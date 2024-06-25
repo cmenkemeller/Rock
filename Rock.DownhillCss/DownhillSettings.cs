@@ -289,9 +289,19 @@ namespace Rock.DownhillCss
         public bool SupplyTailwindCss { get; set; } = true;
 
         /// <summary>
-        /// Whether or not legacy colors are supported.
+        /// The mobile style framework to use.
         /// </summary>
-        public bool EnableLegacyStyles { get; set; } = false;
+        public MobileStyleFramework MobileStyleFramework { get; set; } = MobileStyleFramework.Standard;
+    }
+
+    /// <summary>
+    /// Used to define the style framework to use for the mobile shell.
+    /// </summary>
+    public enum MobileStyleFramework
+    {
+        Legacy,
+        Blended,
+        Standard
     }
 
     /// <summary>

@@ -261,6 +261,12 @@ namespace RockWeb.Blocks.Mobile
             ddlEditLockTabletOrientation.Items.Add( new ListItem( "Portrait", ( ( int ) DeviceOrientation.Portrait ).ToString() ) );
             ddlEditLockTabletOrientation.Items.Add( new ListItem( "Landscape", ( ( int ) DeviceOrientation.Landscape ).ToString() ) );
 
+            ddlCssFramework.Items.Clear();
+            ddlCssFramework.Items.Add( new ListItem( "Default (.NET MAUI)", ( ( int ) MobileStyleFramework.Standard ).ToString() ) );
+
+            ddlCssFramework.Items.Add( new ListItem( "Blended (XF + MAUI)", ( ( int ) MobileStyleFramework.Blended ).ToString() ) );
+            ddlCssFramework.Items.Add( new ListItem( "Legacy (Xamarin Forms)", ( ( int ) MobileStyleFramework.Legacy ).ToString() ) );
+
             imgEditHeaderImage.BinaryFileTypeGuid = Rock.SystemGuid.BinaryFiletype.DEFAULT.AsGuid();
             imgEditPreviewThumbnail.BinaryFileTypeGuid = Rock.SystemGuid.BinaryFiletype.DEFAULT.AsGuid();
 
@@ -272,6 +278,17 @@ namespace RockWeb.Blocks.Mobile
             cpEditPersonAttributeCategories.EntityTypeQualifierValue = EntityTypeCache.Get( typeof( Person ) ).Id.ToString();
 
             dvpCampusFilter.EntityTypeId = EntityTypeCache.GetId( Rock.SystemGuid.EntityType.CAMPUS ) ?? 0;
+        }
+
+        /// <summary>
+        /// Called when the selected index of the style framework drop down list changes.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public void StyleFramework_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            var styleFramework = ( MobileStyleFramework ) ddlCssFramework.SelectedValue.AsInteger();
+            UpdateStyleFrameworkVisibility( styleFramework );
         }
 
         /// <summary>
@@ -565,7 +582,9 @@ namespace RockWeb.Blocks.Mobile
                 }
 
                 var colors = additionalSettings.DownhillSettings.ApplicationColors;
+                UpdateStyleFrameworkVisibility( additionalSettings.DownhillSettings.MobileStyleFramework );
 
+                ddlCssFramework.SetValue( ( int ) additionalSettings.DownhillSettings.MobileStyleFramework );
                 cpInterfaceStrongest.Value = colors.InterfaceStrongest;
                 cpInterfaceStronger.Value = colors.InterfaceStronger;
                 cpInterfaceStrong.Value = colors.InterfaceStrong;
@@ -590,7 +609,19 @@ namespace RockWeb.Blocks.Mobile
                 cpWarningStrong.Value = colors.WarningStrong;
                 cpWarningSoft.Value = colors.WarningSoft;
 
-                cbEnableLegacyStyles.Checked = additionalSettings.DownhillSettings.EnableLegacyStyles;
+#pragma warning disable CS0618 // Type or member is obsolete
+                cpPrimary.Value = additionalSettings.DownhillSettings.ApplicationColors.Primary;
+                cpSecondary.Value = additionalSettings.DownhillSettings.ApplicationColors.Secondary;
+                cpSuccess.Value = additionalSettings.DownhillSettings.ApplicationColors.Success;
+                cpInfo.Value = additionalSettings.DownhillSettings.ApplicationColors.Info;
+                cpDanger.Value = additionalSettings.DownhillSettings.ApplicationColors.Danger;
+                cpWarning.Value = additionalSettings.DownhillSettings.ApplicationColors.Warning;
+                cpLight.Value = additionalSettings.DownhillSettings.ApplicationColors.Light;
+                cpDark.Value = additionalSettings.DownhillSettings.ApplicationColors.Dark;
+                cpBrand.Value = additionalSettings.DownhillSettings.ApplicationColors.Brand;
+                cpInfo.Value = additionalSettings.DownhillSettings.ApplicationColors.Info;
+#pragma warning restore CS0618 // Type or member is obsolete
+
 
                 cbNavbarTransclucent.Checked = additionalSettings.IOSEnableBarTransparency;
                 ddlNavbarBlurStyle.Visible = cbNavbarTransclucent.Checked;
@@ -610,6 +641,29 @@ namespace RockWeb.Blocks.Mobile
         public void CbNavbarTransclucent_CheckedChanged( object sender, EventArgs e )
         {
             ddlNavbarBlurStyle.Visible = ( sender as CheckBox ).Checked;
+        }
+
+        /// <summary>
+        /// Updates the visible panels based on the provided style framework.
+        /// </summary>
+        /// <param name="styleFramework"></param>
+        private void UpdateStyleFrameworkVisibility( MobileStyleFramework styleFramework )
+        {
+            switch ( styleFramework )
+            {
+                case MobileStyleFramework.Standard:
+                    pnlLegacyStyles.Visible = false;
+                    pnlMauiStyles.Visible = true;
+                    break;
+                case MobileStyleFramework.Blended:
+                    pnlLegacyStyles.Visible = true;
+                    pnlMauiStyles.Visible = true;
+                    break;
+                case MobileStyleFramework.Legacy:
+                    pnlLegacyStyles.Visible = true;
+                    pnlMauiStyles.Visible = false;
+                    break;
+            }
         }
 
         /// <summary>
@@ -716,9 +770,9 @@ namespace RockWeb.Blocks.Mobile
             var match = Regex.Match( color, "rgb *\\( *([0-9]+) *, *([0-9]+) *, *([0-9]+) *\\)" );
             if ( match.Success )
             {
-                int red = match.Groups[ 1 ].Value.AsInteger();
-                int green = match.Groups[ 2 ].Value.AsInteger();
-                int blue = match.Groups[ 3 ].Value.AsInteger();
+                int red = match.Groups[1].Value.AsInteger();
+                int green = match.Groups[2].Value.AsInteger();
+                int blue = match.Groups[3].Value.AsInteger();
                 return string.Format( "#{0:x2}{1:x2}{2:x2}", red, green, blue );
             }
 
@@ -728,9 +782,9 @@ namespace RockWeb.Blocks.Mobile
             match = Regex.Match( color, "rgba *\\( *([0-9]+) *, *([0-9]+) *, *([0-9]+) *, *([\\.0-9]+) *\\)" );
             if ( match.Success )
             {
-                int red = match.Groups[ 1 ].Value.AsInteger();
-                int green = match.Groups[ 2 ].Value.AsInteger();
-                int blue = match.Groups[ 3 ].Value.AsInteger();
+                int red = match.Groups[1].Value.AsInteger();
+                int green = match.Groups[2].Value.AsInteger();
+                int blue = match.Groups[3].Value.AsInteger();
                 return string.Format( "#{0:x2}{1:x2}{2:x2}", red, green, blue );
             }
 
@@ -1157,33 +1211,59 @@ namespace RockWeb.Blocks.Mobile
                 additionalSettings.IOSEnableBarTransparency = cbNavbarTransclucent.Checked;
                 additionalSettings.IOSBarBlurStyle = ddlNavbarBlurStyle.SelectedValueAsEnumOrNull<IOSBlurStyle>() ?? IOSBlurStyle.None;
 
-                additionalSettings.DownhillSettings.ApplicationColors.InterfaceStrongest = cpInterfaceStrongest.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.InterfaceStronger = cpInterfaceStronger.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.InterfaceStrong = cpInterfaceStrong.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.InterfaceMedium = cpInterfaceMedium.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.InterfaceSoft = cpInterfaceSoft.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.InterfaceSofter = cpInterfaceSofter.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.InterfaceSoftest = cpInterfaceSoftest.Value;
+                var mobileStyleFramework = ddlCssFramework.SelectedValueAsEnum<MobileStyleFramework>();
+                if( mobileStyleFramework == MobileStyleFramework.Blended || mobileStyleFramework == MobileStyleFramework.Legacy )
+                {
+                    additionalSettings.MenuButtonColor = cpEditMenuButtonColor.Value;
+                    additionalSettings.ActivityIndicatorColor = cpEditActivityIndicatorColor.Value;
+                    additionalSettings.DownhillSettings.TextColor = cpTextColor.Value;
+                    additionalSettings.DownhillSettings.HeadingColor = cpHeadingColor.Value;
+                    additionalSettings.DownhillSettings.BackgroundColor = cpBackgroundColor.Value;
 
-                additionalSettings.DownhillSettings.ApplicationColors.PrimaryStrong = cpPrimaryStrong.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.PrimarySoft = cpPrimarySoft.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.SecondaryStrong = cpSecondaryStrong.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.SecondarySoft = cpSecondarySoft.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.BrandStrong = cpBrandStrong.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.BrandSoft = cpBrandSoft.Value;
+#pragma warning disable CS0618 // Type or member is obsolete
+                    additionalSettings.DownhillSettings.ApplicationColors.Primary = cpPrimary.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.Secondary = cpSecondary.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.Success = cpSuccess.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.Info = cpInfo.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.Danger = cpDanger.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.Warning = cpWarning.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.Light = cpLight.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.Dark = cpDark.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.Brand = cpBrand.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.Info = cpInfo.Value;
+#pragma warning restore CS0618 // Type or member is obsolete
+                }
 
-                additionalSettings.DownhillSettings.ApplicationColors.SuccessStrong = cpSuccessStrong.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.SuccessSoft = cpSuccessSoft.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.InfoStrong = cpInfoStrong.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.InfoSoft = cpInfoSoft.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.DangerStrong = cpDangerStrong.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.DangerSoft = cpDangerSoft.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.WarningStrong = cpWarningStrong.Value;
-                additionalSettings.DownhillSettings.ApplicationColors.WarningSoft = cpWarningSoft.Value;
+                if( mobileStyleFramework == MobileStyleFramework.Blended || mobileStyleFramework == MobileStyleFramework.Standard )
+                {
+                    additionalSettings.DownhillSettings.ApplicationColors.InterfaceStrongest = cpInterfaceStrongest.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.InterfaceStronger = cpInterfaceStronger.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.InterfaceStrong = cpInterfaceStrong.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.InterfaceMedium = cpInterfaceMedium.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.InterfaceSoft = cpInterfaceSoft.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.InterfaceSofter = cpInterfaceSofter.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.InterfaceSoftest = cpInterfaceSoftest.Value;
+
+                    additionalSettings.DownhillSettings.ApplicationColors.PrimaryStrong = cpPrimaryStrong.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.PrimarySoft = cpPrimarySoft.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.SecondaryStrong = cpSecondaryStrong.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.SecondarySoft = cpSecondarySoft.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.BrandStrong = cpBrandStrong.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.BrandSoft = cpBrandSoft.Value;
+
+                    additionalSettings.DownhillSettings.ApplicationColors.SuccessStrong = cpSuccessStrong.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.SuccessSoft = cpSuccessSoft.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.InfoStrong = cpInfoStrong.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.InfoSoft = cpInfoSoft.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.DangerStrong = cpDangerStrong.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.DangerSoft = cpDangerSoft.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.WarningStrong = cpWarningStrong.Value;
+                    additionalSettings.DownhillSettings.ApplicationColors.WarningSoft = cpWarningSoft.Value;
+                }
 
                 additionalSettings.DownhillSettings.FontSizeDefault = nbFontSizeDefault.Text.AsDecimal();
                 additionalSettings.DownhillSettings.Platform = Rock.DownhillCss.DownhillPlatform.Mobile;
-                additionalSettings.DownhillSettings.EnableLegacyStyles = cbEnableLegacyStyles.Checked;
+                additionalSettings.DownhillSettings.MobileStyleFramework = mobileStyleFramework;
 
                 additionalSettings.CssStyle = ceEditCssStyles.Text;
 
@@ -1468,11 +1548,11 @@ namespace RockWeb.Blocks.Mobile
                 return;
             }
 
-            int? pageId = gPages.DataKeys[ e.Row.RowIndex ].Values[ 0 ].ToString().AsIntegerOrNull();
+            int? pageId = gPages.DataKeys[e.Row.RowIndex].Values[0].ToString().AsIntegerOrNull();
             if ( pageId == defaultPageId )
             {
                 var deleteFieldColumnIndex = gPages.GetColumnIndex( deleteField );
-                var deleteButton = e.Row.Cells[ deleteFieldColumnIndex ].ControlsOfTypeRecursive<LinkButton>().FirstOrDefault();
+                var deleteButton = e.Row.Cells[deleteFieldColumnIndex].ControlsOfTypeRecursive<LinkButton>().FirstOrDefault();
                 if ( deleteButton != null )
                 {
                     deleteButton.Visible = false;

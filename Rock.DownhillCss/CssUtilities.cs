@@ -130,11 +130,13 @@ namespace Rock.DownhillCss
             {
                 if ( Platform == DownhillPlatform.Mobile )
                 {
-                    _cssBuilder.Append( baseStylesMobile );
-
-                    if ( Settings.EnableLegacyStyles )
+                    if ( Settings.MobileStyleFramework == MobileStyleFramework.Legacy || Settings.MobileStyleFramework == MobileStyleFramework.Blended )
                     {
                         _cssBuilder.Append( legacyStylesMobile );
+                    }
+                    else if( Settings.MobileStyleFramework == MobileStyleFramework.Standard || Settings.MobileStyleFramework == MobileStyleFramework.Blended )
+                    {
+                        _cssBuilder.Append( baseStylesMobile );
                     }
                 }
                 else
@@ -189,7 +191,7 @@ namespace Rock.DownhillCss
                     cssStyles = ReplaceCssVariable( cssStyles, key, value );
                 }
 
-                if ( Settings.SupplyTailwindCss && false )
+                if ( Settings.SupplyTailwindCss || true )
                 {
                     foreach ( var color in ColorPalette.ColorMaps )
                     {
@@ -236,7 +238,7 @@ namespace Rock.DownhillCss
             /// <returns></returns>
             private string ParseLegacyCss( string cssStyles )
             {
-                if ( Settings.EnableLegacyStyles )
+                if ( Settings.MobileStyleFramework == MobileStyleFramework.Legacy || Settings.MobileStyleFramework == MobileStyleFramework.Blended )
                 {
                     // Text and heading colors
                     cssStyles = cssStyles.Replace( "?color-text", Settings.TextColor );
@@ -300,7 +302,7 @@ namespace Rock.DownhillCss
                 AddColorUtilityClasses( defaultColors, string.Empty );
                 AddColorUtilityClasses( flippedColors, "dark-mode" );
 
-                if ( Settings.SupplyTailwindCss || false )
+                if ( Settings.SupplyTailwindCss || true )
                 {
                     foreach ( var color in ColorPalette.ColorMaps )
                     {
@@ -331,6 +333,32 @@ namespace Rock.DownhillCss
                     {
                         var colorName = GetHyphenatedPropertyName( color.Name );
                         var colorValue = color.GetValue( colors ).ToString();
+
+                        // There is kind of some unique logic to manage all states of compatibility for
+                        // the downhill generated.
+                        // If the Style Framework is set to Legacy, we want to skip any new colors.
+                        // If the Style Framework is set to Standard, we want to skip any legacy colors.
+                        // If the Style Framework is set to Blended, we want to include all colors.
+                        if( Settings.MobileStyleFramework == MobileStyleFramework.Legacy )
+                        {
+                            var obsoleteAttribute = color.GetCustomAttribute<ObsoleteAttribute>();
+
+                            // Skip all NON obsolete attributes.
+                            if ( obsoleteAttribute == null )
+                            {
+                                continue;
+                            }
+                        }
+                        else if( Settings.MobileStyleFramework == MobileStyleFramework.Standard )
+                        {
+                            var obsoleteAttribute = color.GetCustomAttribute<ObsoleteAttribute>();
+
+                            // Skip all obsolete attributes.
+                            if ( obsoleteAttribute != null )
+                            {
+                                continue;
+                            }
+                        }
 
                         _cssBuilder.AppendLine( $"/* Color: {colorName} {prefix} */" );
 
@@ -1064,7 +1092,8 @@ formfield.required .required-indicator,
 }
 
 ^picker,
-^datepicker {
+^datepicker,
+^personpicker {
     -rock-picker-placeholder-color: ?color-interface-medium;
     rock-placeholder-text-color: ?color-interface-medium;
 }
@@ -1073,7 +1102,8 @@ formfield.required .required-indicator,
 ^datepicker,
 ^picker,
 ^entry, 
-^editor {
+^editor,
+^personpicker {
     color: ?color-interface-strong;
     rock-placeholder-text-color: ?color-interface-medium;
 }
@@ -1087,6 +1117,107 @@ formfield.required .required-indicator,
 }
 formfield, .unlabeled {
     padding: 8 12;    
+}
+
+formfield.grouped {
+    padding: 8, 16, 16, 16;
+}
+
+^TabbedShell {
+    -maui-bar-background-color: ?color-interface-softest;
+    -rock-unselected-tab-color: ?color-interface-medium;
+    -rock-selected-tab-color: ?color-primary-strong;
+}
+
+^TabbedShell.dark-mode {
+    -maui-bar-background-color: ?color-interface-strongest;
+    -rock-selected-tab-color: ?color-primary-strong;
+}
+
+.navigation-bar {
+    -maui-bar-background-color: ?color-interface-softest;
+    -maui-bar-text-color: ?color-interface-stronger;
+}
+
+.dark-mode .navigation-bar {
+    -maui-bar-background-color: ?color-interface-strongest;
+    -maui-bar-text-color: ?color-interface-softer;
+}
+
+/*** Cover Sheets ***/
+.cover-sheet .cover-sheet-title {
+  color: ?color-interface-stronger;
+  font-style: bold;
+  font-size: 17;
+}
+
+.dark-mode.cover-sheet .cover-sheet-title {
+  color: ?color-interface-softer;
+}
+
+.cover-sheet {
+  -maui-bar-background-color: ?color-interface-softest;
+}
+
+.android.cover-sheet {
+ -xf-bar-background-color: ?color-interface-softest;
+ -xf-bar-text-color: ?color-interface-stronger;
+}
+
+.dark-mode.cover-sheet {
+ -xf-bar-background-color: ?color-interface-strongest;
+}
+
+.android.dark-mode.cover-sheet {
+ -xf-bar-text-color: white;
+}
+
+.cover-sheet .cover-sheet-toolbar-button {
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+  color: #007bf7;
+  font-size: 17;
+}
+
+.android.cover-sheet .cover-sheet-toolbar-button {
+  margin: 12, 0;    
+}
+
+/* Divider */
+.divider {
+    background-color: ?color-interface-soft;
+    height: 1;
+}
+
+.dark-mode .divider {
+    background-color: ?color-interface-strong;
+}
+
+.divider-thick {
+    height: 2;
+}
+
+.divider-thicker {
+    height: 4;
+}
+
+.divider-thickest {
+    height: 8;
+}
+
+^MessageBubble {
+    -rock-outbound-background-color: ?color-info-strong;
+    -rock-outbound-text-color: ?color-interface-softest;
+    -rock-inbound-background-color: ?color-interface-softest;
+    -rock-inbound-text-color: ?color-interface-strong;
+}
+
+.dark-mode ^MessageBubble {
+    -rock-outbound-background-color: ?color-info-soft;
+    -rock-outbound-text-color: ?color-interface-stronger;
+    -rock-inbound-background-color: ?color-interface-strongest;
+    -rock-inbound-text-color: ?color-interface-soft;
 }";
             private static string baseStylesWeb = @"";
 
@@ -2019,7 +2150,7 @@ formfield.required .required-indicator {
 }
 
 /* Field Stacks */
-^fieldstack {
+^fieldstack, .form-field-stack {
     border-radius: 0;
     border-color: ?color-secondary;
     border-width: 1;

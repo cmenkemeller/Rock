@@ -189,6 +189,7 @@ namespace Rock.Mobile
                 HomeAddress = GetMobileAddress( person.GetHomeLocation() ),
                 CampusGuid = person.GetCampus()?.Guid,
                 PersonAliasId = person.PrimaryAliasId.Value,
+                PersonAliasGuid = person.PrimaryAlias.Guid,
                 PhotoUrl = ( person.PhotoId.HasValue ? $"{baseUrl}{person.PhotoUrl}" : null ),
                 SecurityGroupGuids = roleGuids,
                 PersonalizationSegmentGuids = new List<Guid>(),
@@ -390,8 +391,11 @@ namespace Rock.Mobile
                 Auth0ClientId = additionalSettings.Auth0ClientId,
                 Auth0ClientDomain = additionalSettings.Auth0Domain,
                 EntraTenantId = additionalSettings.EntraTenantId,
-                EntraClientId = additionalSettings.EntraClientId
+                EntraClientId = additionalSettings.EntraClientId,
             };
+
+            package.UseStandardStyles = additionalSettings.DownhillSettings.MobileStyleFramework == MobileStyleFramework.Standard || additionalSettings.DownhillSettings.MobileStyleFramework == MobileStyleFramework.Blended;
+            package.UseLegacyStyles = additionalSettings.DownhillSettings.MobileStyleFramework == MobileStyleFramework.Legacy || additionalSettings.DownhillSettings.MobileStyleFramework == MobileStyleFramework.Blended;
 
             //
             // Setup the appearance settings.

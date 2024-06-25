@@ -41,7 +41,7 @@ namespace Rock.DownhillCss
         /// The primary.
         /// </value>
         [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
-        public string Primary { get; set; } = "#ee7625";
+        public string Primary { get; set; } = "#007bff";
 
         /// <summary>
         /// Gets or sets the secondary.
@@ -50,7 +50,7 @@ namespace Rock.DownhillCss
         /// The secondary.
         /// </value>
         [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
-        public string Secondary { get; set; } = "#4ba9df";
+        public string Secondary { get; set; } = "#6c757d";
 
         /// <summary>
         /// Gets or sets the success.
@@ -122,7 +122,7 @@ namespace Rock.DownhillCss
         /// The brand.
         /// </value>
         [Obsolete( "These are replaced by interface colors in Rock v16.4." )]
-        public string Brand { get; set; } = "#ee7625";
+        public string Brand { get; set; } = "#007bff";
 
         #endregion
 
