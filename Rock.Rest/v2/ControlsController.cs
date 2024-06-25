@@ -1129,62 +1129,39 @@ namespace Rock.Rest.v2
             }
         }
 
+        /// <summary>
+        /// TODO
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
         [HttpPost]
         [System.Web.Http.Route( "AssetManagerGetListOfAllFolders" )]
         [Authenticate]
         [Rock.SystemGuid.RestActionGuid( "1008C9C5-E33E-43F6-BB02-D1BDF2CCE205" )]
         public IHttpActionResult AssetManagerGetListOfAllFolders( [FromBody] AssetManagerGetListOfAllFoldersOptionsBag options )
         {
-            if ( options == null || options.EncryptedRoot.IsNullOrWhiteSpace() || options.FileName.IsNullOrWhiteSpace() )
+            if ( options == null || options.EncryptedRoot.IsNullOrWhiteSpace() )
             {
                 return BadRequest();
             }
 
-            var root = Rock.Security.Encryption.DecryptString( options.EncryptedRoot );
-            var fullPath = Path.Combine( root, options.FileName );
-            var physicalZipFile = System.Web.HttpContext.Current.Server.MapPath( fullPath );
-            var directoryPath = Path.GetDirectoryName( physicalZipFile );
-
             try
             {
-                if ( File.Exists( physicalZipFile ) )
-                {
-                    FileInfo fileInfo = new FileInfo( physicalZipFile );
-                    if ( fileInfo.Extension.Equals( ".zip", StringComparison.OrdinalIgnoreCase ) )
-                    {
-                        using ( ZipArchive archive = ZipFile.OpenRead( physicalZipFile ) )
-                        {
-                            foreach ( ZipArchiveEntry file in archive.Entries )
-                            {
-                                string completeFileName = Path.Combine( directoryPath, file.FullName );
-                                if ( file.Name == string.Empty )
-                                {
-                                    // Assuming Empty for Directory
-                                    Directory.CreateDirectory( Path.GetDirectoryName( completeFileName ) );
-                                    continue;
-                                }
+                var root = Rock.Security.Encryption.DecryptString( options.EncryptedRoot );
+                var physicalRootFolder = System.Web.HttpContext.Current.Server.MapPath( root );
+                var folders = GetRecursiveFolders( physicalRootFolder, physicalRootFolder );
 
-                                file.ExtractToFile( completeFileName, true );
-                            }
-                        }
-                    }
-                    else
-                    {
-                        File.Delete( physicalZipFile );
-                        throw new Exception( "Invalid File Uploaded." );
-                    }
-                    File.Delete( physicalZipFile );
-                }
-                else
+                if ( folders != null )
                 {
-                    throw new Exception( "Error Extracting the File." );
+                    var folderOptions = folders.Select( folderName => new ListItemBag { Text = folderName, Value = folderName } ).ToList();
+
+                    return Ok( folderOptions );
                 }
 
-                return Ok( true );
+                return Ok( new List<ListItemBag>() );
             }
             catch ( Exception ex )
             {
-                File.Delete( physicalZipFile );
                 return InternalServerError( ex );
             }
         }
@@ -1614,6 +1591,35 @@ namespace Rock.Rest.v2
             }
 
             return (tree, updatedExpandedFolders);
+        }
+
+        /// <summary>
+        /// TODO
+        /// </summary>
+        /// <param name="directoryPath"></param>
+        /// <param name="physicalRootFolder"></param>
+        /// <returns></returns>
+        private List<string> GetRecursiveFolders( string directoryPath, string physicalRootFolder )
+        {
+            // If this is a hidden folder, don't show it.
+            if ( IsHiddenFolder( directoryPath ) )
+            {
+                return new List<string>();
+            }
+
+            DirectoryInfo directoryInfo = new DirectoryInfo( directoryPath );
+            string relativeFolderPath = directoryPath.Replace( physicalRootFolder, string.Empty );
+
+            var folders = new List<string> { string.IsNullOrEmpty( relativeFolderPath ) ? "/" : relativeFolderPath.Replace( "\\", "/" ) };
+
+            List<string> subDirectoryList = Directory.GetDirectories( directoryPath ).OrderBy( a => a ).ToList();
+
+            foreach ( var subDirectoryPath in subDirectoryList )
+            {
+                folders.AddRange( GetRecursiveFolders( subDirectoryPath, physicalRootFolder ) );
+            }
+
+            return folders;
         }
 
         /// <summary>

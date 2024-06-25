@@ -157,123 +157,7 @@
                 <dt>Current Location</dt>
                 <dd>dev\rock-jz-obsidian\RockWebX</dd>
             </div>
-            <DropDownList v-model="selectedMoveFolder" rules="required" label="Move To Folder"
-                          :items="[
-                              { value: ' \\', text: '\\' },
-                              { value: 'App_Browsers', text: 'App_Browsers' },
-                              { value: 'App_Code', text: 'App_Code' },
-                              { value: 'App_Code/SqlServerTypes', text: 'App_Code/SqlServerTypes' },
-                              { value: 'App_Data', text: 'App_Data' },
-                              { value: 'App_Data/Avatar', text: 'App_Data/Avatar' },
-                              { value: 'App_Data/Avatar/Cache', text: 'App_Data/Avatar/Cache' },
-                              { value: 'App_Data/Avatar/Fonts', text: 'App_Data/Avatar/Fonts' },
-                              { value: 'App_Data/Avatar/Masks', text: 'App_Data/Avatar/Masks' },
-                              { value: 'App_Data/Cache', text: 'App_Data/Cache' },
-                              { value: 'App_Data/ChromeEngine', text: 'App_Data/ChromeEngine' },
-                              { value: 'App_Data/ChromeEngine/Win64-884014', text: 'App_Data/ChromeEngine/Win64-884014' },
-                              { value: 'App_Data/ChromeEngine/Win64-884014/chrome-win', text: 'App_Data/ChromeEngine/Win64-884014/chrome-win' },
-                              { value: 'App_Data/ChromeEngine/Win64-884014/chrome-win/locales', text: 'App_Data/ChromeEngine/Win64-884014/chrome-win/locales' },
-                              { value: 'App_Data/ChromeEngine/Win64-884014/chrome-win/MEIPreload', text: 'App_Data/ChromeEngine/Win64-884014/chrome-win/MEIPreload' },
-                              { value: 'App_Data/ChromeEngine/Win64-884014/chrome-win/swiftshader', text: 'App_Data/ChromeEngine/Win64-884014/chrome-win/swiftshader' },
-                              { value: 'App_Data/ChromeEngine/Win64-970485', text: 'App_Data/ChromeEngine/Win64-970485' },
-                              { value: 'App_Data/ChromeEngine/Win64-970485/chrome-win', text: 'App_Data/ChromeEngine/Win64-970485/chrome-win' },
-                              { value: 'App_Data/ChromeEngine/Win64-970485/chrome-win/locales', text: 'App_Data/ChromeEngine/Win64-970485/chrome-win/locales' },
-                              { value: 'App_Data/ChromeEngine/Win64-970485/chrome-win/MEIPreload', text: 'App_Data/ChromeEngine/Win64-970485/chrome-win/MEIPreload' },
-                              { value: 'App_Data/ChromeEngine/Win64-970485/chrome-win/swiftshader', text: 'App_Data/ChromeEngine/Win64-970485/chrome-win/swiftshader' },
-                              { value: 'App_Data/Files', text: 'App_Data/Files' },
-                              { value: 'App_Data/Logs', text: 'App_Data/Logs' },
-                              { value: 'App_Data/Uploads', text: 'App_Data/Uploads' },
-                              { value: 'Assets', text: 'Assets' },
-                              { value: 'Assets/Fonts', text: 'Assets/Fonts' },
-                              { value: 'Assets/Fonts/FontAwesome', text: 'Assets/Fonts/FontAwesome' },
-                              { value: 'Assets/Fonts/OpenSans', text: 'Assets/Fonts/OpenSans' },
-                              { value: 'Assets/Fonts/RockFont', text: 'Assets/Fonts/RockFont' },
-                              { value: 'Assets/Icons', text: 'Assets/Icons' },
-                              { value: 'Assets/Icons/FileTypes', text: 'Assets/Icons/FileTypes' },
-                              { value: 'Assets/Images', text: 'Assets/Images' },
-                              { value: 'Assets/Images/Achievements', text: 'Assets/Images/Achievements' },
-                              { value: 'Assets/Images/bootstrap-colorpicker', text: 'Assets/Images/bootstrap-colorpicker' },
-                              { value: 'Assets/Images/currency', text: 'Assets/Images/currency' },
-                              { value: 'Assets/Images/group-scheduler', text: 'Assets/Images/group-scheduler' },
-                              { value: 'Assets/Images/Kiosk', text: 'Assets/Images/Kiosk' },
-                              { value: 'Assets/Lava', text: 'Assets/Lava' },
-                              { value: 'Assets/Lava/Achievements', text: 'Assets/Lava/Achievements' },
-                              { value: 'Assets/Lava/Store', text: 'Assets/Lava/Store' },
-                              { value: 'Assets/Sounds', text: 'Assets/Sounds' },
-                              { value: 'Assets/Sounds/CheckIn', text: 'Assets/Sounds/CheckIn' },
-                              { value: 'Content', text: 'Content' },
-                              { value: 'Content/EmailTemplates', text: 'Content/EmailTemplates' },
-                              { value: 'Content/ExternalSite', text: 'Content/ExternalSite' },
-                              { value: 'Content/ExternalSite/Icons', text: 'Content/ExternalSite/Icons' },
-                              { value: 'Content/ExternalSite/Test', text: 'Content/ExternalSite/Test' },
-                              { value: 'Content/InternalSite', text: 'Content/InternalSite' },
-                              { value: 'dev', text: 'dev' },
-                              { value: 'dev/rock-jz-obsidian', text: 'dev/rock-jz-obsidian' },
-                              { value: 'dev/rock-jz-obsidian/baby', text: 'dev/rock-jz-obsidian/baby' },
-                              { value: 'Obsidian', text: 'Obsidian' },
-                              { value: 'Obsidian/Blocks', text: 'Obsidian/Blocks' },
-                              { value: 'Obsidian/Blocks/Bus', text: 'Obsidian/Blocks/Bus' },
-                              { value: 'Obsidian/Blocks/CheckIn', text: 'Obsidian/Blocks/CheckIn' },
-                              { value: 'Obsidian/Blocks/CheckIn/Config', text: 'Obsidian/Blocks/CheckIn/Config' },
-                              { value: 'Obsidian/Blocks/CMS', text: 'Obsidian/Blocks/CMS' },
-                              { value: 'Obsidian/Blocks/CMS/ContentCollectionDetail', text: 'Obsidian/Blocks/CMS/ContentCollectionDetail' },
-                              { value: 'Obsidian/Blocks/CMS/MediaAccountDetail', text: 'Obsidian/Blocks/CMS/MediaAccountDetail' },
-                              { value: 'Obsidian/Blocks/CMS/PageShortLinkDetail', text: 'Obsidian/Blocks/CMS/PageShortLinkDetail' },
-                              { value: 'Obsidian/Blocks/Communication', text: 'Obsidian/Blocks/Communication' },
-                              { value: 'Obsidian/Blocks/Communication/SnippetDetail', text: 'Obsidian/Blocks/Communication/SnippetDetail' },
-                              { value: 'Obsidian/Blocks/Communication/SnippetTypeDetail', text: 'Obsidian/Blocks/Communication/SnippetTypeDetail' },
-                              { value: 'Obsidian/Blocks/Communication/SystemPhoneNumberDetail', text: 'Obsidian/Blocks/Communication/SystemPhoneNumberDetail' },
-                              { value: 'Obsidian/Blocks/Core', text: 'Obsidian/Blocks/Core' },
-                              { value: 'Obsidian/Blocks/Core/CampusDetail', text: 'Obsidian/Blocks/Core/CampusDetail' },
-                              { value: 'Obsidian/Blocks/Crm', text: 'Obsidian/Blocks/Crm' },
-                              { value: 'Obsidian/Blocks/Crm/PersonDetail', text: 'Obsidian/Blocks/Crm/PersonDetail' },
-                              { value: 'Obsidian/Blocks/Engagement', text: 'Obsidian/Blocks/Engagement' },
-                              { value: 'Obsidian/Blocks/Engagement/SignUp', text: 'Obsidian/Blocks/Engagement/SignUp' },
-                              { value: 'Obsidian/Blocks/Engagement/SignUp/SignUpFinder', text: 'Obsidian/Blocks/Engagement/SignUp/SignUpFinder' },
-                              { value: 'Obsidian/Blocks/Engagement/SignUp/SignUpRegister', text: 'Obsidian/Blocks/Engagement/SignUp/SignUpRegister' },
-                              { value: 'Obsidian/Blocks/Engagement/StepFlow', text: 'Obsidian/Blocks/Engagement/StepFlow' },
-                              { value: 'Obsidian/Blocks/Engagement/Steps', text: 'Obsidian/Blocks/Engagement/Steps' },
-                              { value: 'Obsidian/Blocks/Engagement/Steps/StepFlow', text: 'Obsidian/Blocks/Engagement/Steps/StepFlow' },
-                              { value: 'Obsidian/Blocks/Event', text: 'Obsidian/Blocks/Event' },
-                              { value: 'Obsidian/Blocks/Event/InteractiveExperiences', text: 'Obsidian/Blocks/Event/InteractiveExperiences' },
-                              { value: 'Obsidian/Blocks/Event/InteractiveExperiences/ExperienceManager', text: 'Obsidian/Blocks/Event/InteractiveExperiences/ExperienceManager' },
-                              { value: 'Obsidian/Blocks/Event/InteractiveExperiences/ExperienceVisualizer', text: 'Obsidian/Blocks/Event/InteractiveExperiences/ExperienceVisualizer' },
-                              { value: 'Obsidian/Blocks/Event/InteractiveExperiences/InteractiveExperienceDetail', text: 'Obsidian/Blocks/Event/InteractiveExperiences/InteractiveExperienceDetail' },
-                              { value: 'Obsidian/Blocks/Event/InteractiveExperiences/LiveExperience', text: 'Obsidian/Blocks/Event/InteractiveExperiences/LiveExperience' },
-                              { value: 'Obsidian/Blocks/Event/RegistrationEntry', text: 'Obsidian/Blocks/Event/RegistrationEntry' },
-                              { value: 'Obsidian/Blocks/Example', text: 'Obsidian/Blocks/Example' },
-                              { value: 'Obsidian/Blocks/Example/ControlGallery', text: 'Obsidian/Blocks/Example/ControlGallery' },
-                              { value: 'Obsidian/Blocks/Example/ControlGallery/subdir', text: 'Obsidian/Blocks/Example/ControlGallery/subdir' },
-                              { value: 'Obsidian/Blocks/Finance', text: 'Obsidian/Blocks/Finance' },
-                              { value: 'Obsidian/Blocks/Fundraising', text: 'Obsidian/Blocks/Fundraising' },
-                              { value: 'Obsidian/Blocks/Group', text: 'Obsidian/Blocks/Group' },
-                              { value: 'Obsidian/Blocks/Group/Scheduling', text: 'Obsidian/Blocks/Group/Scheduling' },
-                              { value: 'Obsidian/Blocks/Groups', text: 'Obsidian/Blocks/Groups' },
-                              { value: 'Obsidian/Blocks/Groups/GroupAttendanceDetail', text: 'Obsidian/Blocks/Groups/GroupAttendanceDetail' },
-                              { value: 'Obsidian/Blocks/Lms', text: 'Obsidian/Blocks/Lms' },
-                              { value: 'Obsidian/Blocks/Lms/LearningProgramDetail', text: 'Obsidian/Blocks/Lms/LearningProgramDetail' },
-                              { value: 'Obsidian/Blocks/Mobile', text: 'Obsidian/Blocks/Mobile' },
-                              { value: 'Obsidian/Blocks/Prayer', text: 'Obsidian/Blocks/Prayer' },
-                              { value: 'Obsidian/Blocks/Reporting', text: 'Obsidian/Blocks/Reporting' },
-                              { value: 'Obsidian/Blocks/Reporting/ServiceMetricsEntry', text: 'Obsidian/Blocks/Reporting/ServiceMetricsEntry' },
-                              { value: 'Obsidian/Blocks/Security', text: 'Obsidian/Blocks/Security' },
-                              { value: 'Obsidian/Blocks/Security/AccountEntry', text: 'Obsidian/Blocks/Security/AccountEntry' },
-                              { value: 'Obsidian/Blocks/Security/ConfirmAccount', text: 'Obsidian/Blocks/Security/ConfirmAccount' },
-                              { value: 'Obsidian/Blocks/Security/Login', text: 'Obsidian/Blocks/Security/Login' },
-                              { value: 'Obsidian/Blocks/Steps', text: 'Obsidian/Blocks/Steps' },
-                              { value: 'Obsidian/Blocks/Tv', text: 'Obsidian/Blocks/Tv' },
-                              { value: 'Obsidian/Blocks/Utility', text: 'Obsidian/Blocks/Utility' },
-                              { value: 'Obsidian/Blocks/Utility/SmsTestTransport', text: 'Obsidian/Blocks/Utility/SmsTestTransport' },
-                              { value: 'Obsidian/Blocks/WebFarm', text: 'Obsidian/Blocks/WebFarm' },
-                              { value: 'Obsidian/Blocks/WorkFlow', text: 'Obsidian/Blocks/WorkFlow' },
-                              { value: 'Obsidian/Blocks/WorkFlow/FormBuilder', text: 'Obsidian/Blocks/WorkFlow/FormBuilder' },
-                              { value: 'Obsidian/Blocks/WorkFlow/FormBuilder/FormBuilderDetail', text: 'Obsidian/Blocks/WorkFlow/FormBuilder/FormBuilderDetail' },
-                              { value: 'Obsidian/Blocks/WorkFlow/FormBuilder/FormTemplateDetail', text: 'Obsidian/Blocks/WorkFlow/FormBuilder/FormTemplateDetail' },
-                              { value: 'Obsidian/Blocks/WorkFlow/FormBuilder/Shared', text: 'Obsidian/Blocks/WorkFlow/FormBuilder/Shared' },
-                              { value: 'Obsidian/Controls', text: 'Obsidian/Controls' },
-                              { value: 'Obsidian/Controls/Internal', text: 'Obsidian/Controls/Internal' },
-                              { value: 'Obsidian/Controls/Internal/LearningActivity', text: 'Obsidian/Controls/Internal/LearningActivity' },
-                          ]" />
+            <DropDownList v-model="selectedMoveFolder" rules="required" label="Move To Folder" :items="folderMoveOptions" />
         </div>
     </Modal>
 </template>
@@ -336,6 +220,7 @@
     import { AssetManagerBaseOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerBaseOptionsBag";
     import { AssetManagerAddFolderOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerAddFolderOptionsBag";
     import { AssetManagerRenameFolderOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerRenameFolderOptionsBag";
+    import { AssetManagerGetListOfAllFoldersOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetListOfAllFoldersOptionsBag";
     import { AssetManagerGetFilesOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetFilesOptionsBag";
     import { AssetManagerGetFilesResultsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerGetFilesResultsBag";
     import { AssetManagerDeleteFilesOptionsBag } from "@Obsidian/ViewModels/Rest/Controls/assetManagerDeleteFilesOptionsBag";
@@ -448,6 +333,7 @@
 
     const selectedMoveFolder = ref<string>("");
     const isMoveFolderModalVisible = ref(false);
+    const folderMoveOptions = ref<ListItemBag[]>([]);
 
     const isFolderPaneActionLoading = ref(false);
     const folderScrollContainer = ref<HTMLElement | null>(null);
@@ -475,7 +361,9 @@
         }, {
             title: "Move",
             type: "default",
-            handler: showMoveFolderModal,
+            handler: () => {
+                showMoveFolderModal();  /* Explicitly don't return promise so dropdown will hide immediately */
+            },
             disabled: !isFolderLocal.value
         },
         {
@@ -596,6 +484,30 @@
 
     async function showMoveFolderModal(): Promise<void> {
         isMoveFolderModalVisible.value = true;
+        // TODO: add modal loading state
+        try {
+            const options: AssetManagerGetListOfAllFoldersOptionsBag = {
+                encryptedRoot: props.encryptedRootFolder
+            };
+            const url = "/api/v2/Controls/AssetManagerGetListOfAllFolders";
+            const response = await post<ListItemBag[]>(url, undefined, options);
+
+            if (response.isError) {
+                throw new Error(response.errorMessage ?? "An unknown error occurred while preparing to move the folder.");
+            }
+
+            if (!response.isSuccess || !response.data) {
+                throw new Error("An unknown error occurred while preparing to move the folder.");
+            }
+
+            console.log(response.data);
+            folderMoveOptions.value = response.data;
+        }
+        catch (e) {
+            // TODO: Move errors into the modal
+            folderListErrorAction.value = "Moving Folder";
+            folderListErrorMessage.value = (e as Error)?.message || "An unknown error occurred while preparing to move the folder.";
+        }
     }
 
     async function moveFolder(): Promise<void> {
@@ -702,7 +614,7 @@
         return provider;
     }
 
-    async function getChildFolders(folderBag: Ref<TreeItemBag | null>) {
+    async function getChildFolders(folderBag: Ref<TreeItemBag | null>): Promise<void> {
         if (folderBag.value) {
             const items = await itemProvider.value.getChildItems(folderBag.value);
 
