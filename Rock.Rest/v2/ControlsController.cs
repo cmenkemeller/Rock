@@ -929,6 +929,44 @@ namespace Rock.Rest.v2
         }
 
         /// <summary>
+        /// TODO
+        /// </summary>
+        /// <param name="options">The options that describe which items to load.</param>
+        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        [HttpPost]
+        [System.Web.Http.Route( "AssetManagerMoveFolder" )]
+        [Authenticate]
+        [Rock.SystemGuid.RestActionGuid( "87A139A7-78B8-4CC9-8A3B-146A338A291F" )]
+        public IHttpActionResult AssetManagerMoveFolder( [FromBody] AssetManagerMoveFolderOptionsBag options )
+        {
+            try
+            {
+                var asset = ParseAssetKey( options.AssetFolderId );
+                var baseFolderName = Path.GetFileName( asset.FullPath.TrimEnd( '/', '\\' ) );
+                var currentPhysicalPath = System.Web.HttpContext.Current.Server.MapPath( asset.FullPath );
+                var targetRootRelativePath = Path.Combine( asset.Root, options.TargetFolder, baseFolderName );
+                var targetPhyicalPath = System.Web.HttpContext.Current.Server.MapPath( targetRootRelativePath );
+
+                if ( !Directory.Exists( targetPhyicalPath ) && !File.Exists( targetPhyicalPath ) )
+                {
+                    Directory.Move( currentPhysicalPath, targetPhyicalPath );
+                }
+                else
+                {
+                    return BadRequest( "Invalid target location. Something already exists there with the same name." );
+                }
+
+                var newKey = $"0,{asset.EncryptedRoot},{Path.Combine( options.TargetFolder, baseFolderName ).Replace( "\\", "/" ).TrimEnd( '/' ) + "/"}";
+
+                return Ok( newKey );
+            }
+            catch ( Exception ex )
+            {
+                return InternalServerError( ex );
+            }
+        }
+
+        /// <summary>
         /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
         /// </summary>
         /// <param name="options">The options that describe which items to load.</param>
