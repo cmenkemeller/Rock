@@ -1,7 +1,7 @@
 <template>
     <GalleryAndResult :importCode="importCode" :exampleCode="exampleCode">
 
-        <AssetAndFileManager :height="height" v-model="value" v-model:openFolders="openFolders" :enableAssetManager="enableAssetManager" :enableFileManager="enableFileManager" :enableZipUpload="enableZipUpload" :encryptedRootFolder="encryptedRootFolder" />
+        <AssetAndFileManager :height="height" v-model="value" v-model:openFolders="openFolders" :enableAssetManager="enableAssetManager" :enableFileManager="enableFileManager" :enableZipUpload="enableZipUpload" :encryptedRootFolder="encryptedRootFolder" :editFilePage="editFilePage" />
 
         <div class="my-5">
             <label>Selected Files:</label> {{ value }}
@@ -50,13 +50,14 @@
     const isStaticHeight = ref(true);
     const staticHeight = ref("400px");
     const height = computed(() => isStaticHeight.value ? staticHeight.value : "flexible");
-    const enableAssetManager = ref(true);
+    const enableAssetManager = ref(false);
     const enableFileManager = ref(true);
-    const enableZipUpload = ref(true);
+    const enableZipUpload = ref(false);
     // ~/
-    const encryptedRootFolder = ref("EAAAAOkA/1SamAbdx1EJX3OXaY7FkiG6ha9rDeDXaRPjfGcr");
+    // const encryptedRootFolder = ref("EAAAAOkA/1SamAbdx1EJX3OXaY7FkiG6ha9rDeDXaRPjfGcr");
     // ~/Content
-    // const encryptedRootFolder = ref("EAAAADKu4UpeD3p9uFXZ5WLZMaToEPXLfHZ6a0U7LuvfyZUy");
+    const encryptedRootFolder = ref("EAAAADKu4UpeD3p9uFXZ5WLZMaToEPXLfHZ6a0U7LuvfyZUy");
+    const editFilePage = ref("/admin/cms/file-manager/edit");
 
     const importCode = getSfcControlImportPath("assetAndFileManager");
     const exampleCode = computed(() => {

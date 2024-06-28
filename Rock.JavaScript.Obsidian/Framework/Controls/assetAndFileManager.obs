@@ -2,20 +2,12 @@
 <template>
     <div id="pnlAssetManager" class="picker-wrapper align-items-stretch flex-nowrap" :style="wrapperStyles">
         <div class="picker-folders d-flex flex-column bg-body p-3 mh-100 position-relative flex-shrink-0">
-            <!-- TODO What to do with these? -->
-            <input type="hidden" name="hfScriptInitialized" id="hfScriptInitialized" value="True">
-            <input type="hidden" name="hfSelectedValue" id="hfSelectedValue">
-            <input class="js-assetstorage-id" type="hidden" name="hfAssetStorageId" id="hfAssetStorageId" value="1">
-            <input class="js-selectfolder" type="hidden" name="hfSelectFolder" id="hfSelectFolder" value="~/Content/ExternalSite/Icons/">
-            <input class="js-expandedFolders" type="hidden" name="hfExpandedFolders" id="hfExpandedFolders" value="1,~/Content/,True||1,~/Content/ExternalSite/">
-            <input class="js-isroot" type="hidden" name="hfIsRoot" id="hfIsRoot" value="false">
 
             <div class="mb-3 d-flex flex-shrink-0">
                 <RockButton type="button" btnSize="xs" class="mr-2" title="Create a new folder in the selected folder" @click="showAddFolderForm" :disabled="!isFolderSelected">
                     <i class="fa fa-folder-plus"></i> <span class="hidden-xs">Add Folder</span>
                 </RockButton>
                 <RockButton type="button" btnSize="xs" title="Refresh folder list" isSquare class="ml-auto mr-2" @click="onRefreshFolders">
-                    <!-- TODO -->
                     <i class="fa fa-sync"></i>
                 </RockButton>
                 <DropDownMenu :items="folderDropDownMenuItems" align="right" class="d-flex">
@@ -44,7 +36,7 @@
                 {{ folderListErrorMessage }}
             </NotificationBox>
 
-            <div v-if="folderListScrolled" class="scroll-shadow"></div>
+            <div v-if="folderListScrolled" class="scroll-shadow"><!-- Intentionally Empty... just used to create a shadow when the container below is scrolled --></div>
 
             <div ref="folderScrollContainer" class="overflow-y-auto overflow-x-auto mh-100" style="z-index:0">
                 <TreeList v-model="selectedFolderArray"
@@ -90,7 +82,7 @@
                 {{ fileListErrorMessage }}
             </NotificationBox>
 
-            <div v-if="fileListScrolled" class="scroll-shadow"></div>
+            <div v-if="fileListScrolled" class="scroll-shadow"><!-- Intentionally Empty... just used to create a shadow when the container below is scrolled --></div>
 
             <div class="overflow-y-auto mh-100 flex-grow-1 d-flex align-items-start" ref="fileScrollContainer">
                 <table v-if="files.length > 0" class="table table-responsive table-borderless assetmanager-files">
@@ -104,10 +96,12 @@
                             </td>
                             <td>
                                 <span v-show="shownFileRenameForm != file.key">{{ file.name }}</span>
-                                <RockForm class="d-flex align-items-center" v-if="shownFileRenameForm == file.key" @submit="() => renameFile(file)" @keyup.esc="hideRenameFileForm">
-                                    <TextBox v-model="renameFileName" size="small" formGroupClasses="mr-2 mb-0" disableLabel id="asset-manager-current-file-rename-input" />
-                                    <RockButton type="submit" btnType="default" btnSize="xs" class="mr-2 flex-shrink-0" title="Rename File" isSquare><i class="fa fa-check"></i></RockButton>
-                                    <RockButton type="button" btnType="default" btnSize="xs" class="flex-shrink-0" title="Cancel" isSquare @click="hideRenameFileForm"><i class="fa fa-times"></i></RockButton>
+                                <RockForm v-if="shownFileRenameForm == file.key" @submit="() => renameFile(file)" @keyup.esc="hideRenameFileForm">
+                                    <div class="d-flex align-items-center">
+                                        <TextBox v-model="renameFileName" size="small" formGroupClasses="mb-0" rules="required" label="File Name" disableLabel id="asset-manager-current-file-rename-input" /><span class="mr-2">{{ renameFileExtension }}</span>
+                                        <RockButton type="submit" btnType="default" btnSize="xs" class="mr-2 flex-shrink-0" title="Rename File" isSquare><i class="fa fa-check"></i></RockButton>
+                                        <RockButton type="button" btnType="default" btnSize="xs" class="flex-shrink-0" title="Cancel" isSquare @click="hideRenameFileForm"><i class="fa fa-times"></i></RockButton>
+                                    </div>
                                 </RockForm>
                             </td>
                             <td data-priority="3">
@@ -117,7 +111,6 @@
                                 {{ file.formattedFileSize }}
                             </td>
                             <td>
-                                <!-- TODO -->
                                 <DropDownMenu :items="getFileDropDownMenuItems(file)" align="right" class="d-flex">
                                     <template #anchor="anchorAttrs">
                                         <RockButton type="button" btnType="link" class="text-body" v-bind="anchorAttrs"><i class="fa fa-ellipsis-v"></i></RockButton>
@@ -281,6 +274,15 @@
         enableZipUpload: {
             type: Boolean,
             default: false
+        },
+
+        /**
+         * The root-relative URL of the page where the file editor will be opened. Falsey values will prevent the edit
+         * button from showing.
+         */
+        editFilePage: {
+            type: String,
+            default: "",
         }
     });
 
@@ -755,6 +757,7 @@
 
     const shownFileRenameForm = ref<string | null>(null);
     const renameFileName = ref("");
+    const renameFileExtension = ref("");
 
     const isUploadRestricted = ref(false);
     const isUploadingFile = ref(false);
@@ -769,9 +772,22 @@
     const fileListErrorMessage = ref("");
     const fileListErrorAction = ref("");
 
+    const restrictedFileExtensions = [
+        ".bin",
+        ".png",
+        ".jpg",
+        ".ico",
+        ".jpeg",
+        ".config",
+        ".eot",
+        ".woff",
+        ".woff2"
+    ];
+
     async function showRenameFileForm(file: FileAsset): Promise<void> {
         shownFileRenameForm.value = file.key;
-        renameFileName.value = file.name;
+        renameFileName.value = Path.getFileNameWithoutExtension(file.name);
+        renameFileExtension.value = Path.getExtension(file.name);
 
         await nextTick();
 
@@ -796,7 +812,7 @@
             const options: AssetManagerRenameFileOptionsBag = {
                 file: file.key,
                 assetStorageProviderId: Number(providerId),
-                newFileName: renameFileName.value
+                newFileName: renameFileName.value + Path.getExtension(file.name),
             };
 
             const response = await post<boolean>(url, undefined, options);
@@ -975,34 +991,37 @@
     }
 
     function getFileDropDownMenuItems(file: FileAsset): MenuAction[] {
-        // TODO: Detect file type and return appropriate menu items
-        // editUrl = editFilePage + "?RelativeFilePath=" + UrlEncode( file.key );
+        const actions: MenuAction[] = [];
+        if (isFolderLocal.value && !!props.editFilePage && !restrictedFileExtensions.includes(Path.getExtension(file.key))) {
+            actions.push({
+                title: "Edit",
+                type: "default",
+                handler: () => {
+                    window.location.href = props.editFilePage + "?RelativeFilePath=" + encodeURIComponent(file.key);
+                }
+            });
+        }
 
-        return [{
-            //     title: "Edit",
-            //     type: "default",
-            //     handler: () => console.log("Edit"), // TODO
-            //     disabled: false // TODO
-            // }, {
+        actions.push({
             title: "Download",
             type: "default",
             handler: () => {
                 // Since this returns a download stream, we never actually navigate away from the page
                 window.location.href = `/api/v2/Controls/AssetManagerDownloadFile?file=${encodeURI(file.key)}&assetStorageProviderId=${parseFolderName(selectedFolder.value ?? "").providerId}`;
-            },
-            disabled: false
+            }
         }, {
             title: "Rename",
             type: "default",
-            handler: () => showRenameFileForm(file),
-            disabled: false
+            handler: () => showRenameFileForm(file)
         }, {
             title: "Delete",
             type: "danger",
             handler: () => {
                 deleteFiles([file.key]); /* Explicitly don't return promise so dropdown will hide immediately */
             }
-        }];
+        });
+
+        return actions;
     }
 
     watch(selectedFileKeys, () => {
