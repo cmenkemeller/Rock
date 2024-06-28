@@ -27,5 +27,10 @@ namespace Rock.ViewModels.Rest.Controls
         /// The file manager's root folder, encrypted
         /// </summary>
         public string EncryptedRoot { get; set; }
+
+        /// <summary>
+        /// The folder that we want to move. Don't show this folder or its children in the list.
+        /// </summary>
+        public string SelectedFolder { get; set; }
     }
 }

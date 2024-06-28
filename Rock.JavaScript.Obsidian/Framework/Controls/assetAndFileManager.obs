@@ -492,9 +492,12 @@
         isMoveFolderModalLoading.value = true;
         moveFolderModalError.value = "";
 
+        parseFolderName;
+
         try {
             const options: AssetManagerGetListOfAllFoldersOptionsBag = {
-                encryptedRoot: props.encryptedRootFolder
+                encryptedRoot: props.encryptedRootFolder,
+                selectedFolder: parseFolderName(selectedFolder.value!).folderPath
             };
             const url = "/api/v2/Controls/AssetManagerGetListOfAllFolders";
             const response = await post<ListItemBag[]>(url, undefined, options);
@@ -529,34 +532,54 @@
                 throw new Error(response.errorMessage ?? "An unknown error occurred while moving the folder.");
             }
 
-
             /*
             1. If the folder is in the open folders, update it to the new key
             2. If any children are in the open folders, update them to the new keys
-            3. Refresh folder list
+            3. Change selected folder to the new folder key
+            4. Refresh folder list
             */
+            // If the folder is in the open folders, update the list with the new key
+            const newKey = response.data;
+            if (itemProvider.value.openFolders.has(selectedFolder.value ?? "")) {
+                itemProvider.value.openFolders.delete(selectedFolder.value!);
+                itemProvider.value.openFolders.add(newKey);
+
+                // If any children are in the open folders list, update them to the new keys
+                let openChildFolders = openFolders.value.filter(f => f.startsWith(selectedFolder.value!));
+                if (openChildFolders.length > 0) {
+                    openChildFolders.forEach(f => {
+                        itemProvider.value.openFolders.delete(f);
+                        itemProvider.value.openFolders.add(f.replace(selectedFolder.value!, newKey));
+                    });
+                }
+            }
+
+            // Change the selected folder to the new folder key
+            selectedFolderArray.value = [newKey];
+            // Refresh folder list
+            onRefreshFolders();
 
 
             // RENAME FOLDER STUFF... ONLY FOR REFERENCE...
 
             // If this folder has been expanded, make sure the list of open folders is updated with the new value
-            if (itemProvider.value.openFolders.has(selectedFolder.value ?? "")) {
-                itemProvider.value.openFolders.delete(selectedFolder.value!);
-                itemProvider.value.openFolders.add(response.data);
-            }
+            // if (itemProvider.value.openFolders.has(selectedFolder.value ?? "")) {
+            //     itemProvider.value.openFolders.delete(selectedFolder.value!);
+            //     itemProvider.value.openFolders.add(response.data);
+            // }
 
-            // Update the selected folder with the new data from the server
-            if (selectedFolderBag.value) {
-                selectedFolderBag.value.value = response.data;
+            // // Update the selected folder with the new data from the server
+            // if (selectedFolderBag.value) {
+            //     selectedFolderBag.value.value = response.data;
 
-                // Since the bag is updated with a new key, we need to update the selected folder array to reflect the new key
-                selectedFolderArray.value = [response.data];
+            //     // Since the bag is updated with a new key, we need to update the selected folder array to reflect the new key
+            //     selectedFolderArray.value = [response.data];
 
-                if (selectedFolderBag.value.children && selectedFolderBag.value.children.length > 0) {
-                    // If has children already loaded, we need to update the children array because their key is based off the old name
-                    getChildFolders(selectedFolderBag);
-                }
-            }
+            //     if (selectedFolderBag.value.children && selectedFolderBag.value.children.length > 0) {
+            //         // If has children already loaded, we need to update the children array because their key is based off the old name
+            //         getChildFolders(selectedFolderBag);
+            //     }
+            // }
 
             // DELETE TO HERE WHEN READY
 

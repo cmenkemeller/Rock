@@ -1178,7 +1178,7 @@ namespace Rock.Rest.v2
         [Rock.SystemGuid.RestActionGuid( "1008C9C5-E33E-43F6-BB02-D1BDF2CCE205" )]
         public IHttpActionResult AssetManagerGetListOfAllFolders( [FromBody] AssetManagerGetListOfAllFoldersOptionsBag options )
         {
-            if ( options == null || options.EncryptedRoot.IsNullOrWhiteSpace() )
+            if ( options == null || options.EncryptedRoot.IsNullOrWhiteSpace() || options.SelectedFolder.IsNullOrWhiteSpace() )
             {
                 return BadRequest();
             }
@@ -1187,7 +1187,8 @@ namespace Rock.Rest.v2
             {
                 var root = Rock.Security.Encryption.DecryptString( options.EncryptedRoot );
                 var physicalRootFolder = System.Web.HttpContext.Current.Server.MapPath( root );
-                var folders = GetRecursiveFolders( physicalRootFolder, physicalRootFolder );
+                var physicalSelectedFolder = System.Web.HttpContext.Current.Server.MapPath( options.SelectedFolder ).TrimEnd( '/', '\\' );
+                var folders = GetRecursiveFolders( physicalRootFolder, physicalRootFolder, physicalSelectedFolder );
 
                 if ( folders != null )
                 {
@@ -1637,10 +1638,10 @@ namespace Rock.Rest.v2
         /// <param name="directoryPath"></param>
         /// <param name="physicalRootFolder"></param>
         /// <returns></returns>
-        private List<string> GetRecursiveFolders( string directoryPath, string physicalRootFolder )
+        private List<string> GetRecursiveFolders( string directoryPath, string physicalRootFolder, string excludedFolder )
         {
             // If this is a hidden folder, don't show it.
-            if ( IsHiddenFolder( directoryPath ) )
+            if ( IsHiddenFolder( directoryPath ) || directoryPath == excludedFolder )
             {
                 return new List<string>();
             }
@@ -1654,7 +1655,7 @@ namespace Rock.Rest.v2
 
             foreach ( var subDirectoryPath in subDirectoryList )
             {
-                folders.AddRange( GetRecursiveFolders( subDirectoryPath, physicalRootFolder ) );
+                folders.AddRange( GetRecursiveFolders( subDirectoryPath, physicalRootFolder, excludedFolder ) );
             }
 
             return folders;

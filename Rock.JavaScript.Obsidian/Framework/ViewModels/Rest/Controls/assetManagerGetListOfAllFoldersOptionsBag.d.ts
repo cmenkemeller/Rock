@@ -28,4 +28,7 @@
 export type AssetManagerGetListOfAllFoldersOptionsBag = {
     /** The file manager's root folder, encrypted */
     encryptedRoot?: string | null;
+
+    /** The folder that we want to move. Don't show this folder or its children in the list. */
+    selectedFolder?: string | null;
 };
