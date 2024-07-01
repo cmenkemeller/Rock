@@ -1,0 +1,69 @@
+<!-- Copyright by the Spark Development Network; Licensed under the Rock Community License -->
+<template>
+    <NotificationBox v-if="blockError" alertType="warning">{{ blockError }}</NotificationBox>
+
+    <NotificationBox v-if="errorMessage" alertType="danger">{{ errorMessage }}</NotificationBox>
+
+    <Block v-if="!blockError"
+           v-model:mode="panelMode"
+           :name="panelName"
+           :labels="blockLabels"
+           :entityKey="entityKey"
+           :isAuditHidden="false"
+           :isBadgesVisible="true"
+           :isDeleteVisible="isEditable"
+           :isEditVisible="isEditable"
+           :isFollowVisible="true"
+           :isSecurityHidden="false"
+           @cancelEdit="onCancelEdit"
+           @delete="onDelete"
+           @edit="onEdit"
+           @save="onSave">
+        BLOCK
+    </Block>
+</template>
+
+<script setup lang="ts">
+    import { computed, ref } from "vue";
+    import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+    import Block from "@Obsidian/Templates/block";
+    import { useConfigurationValues, usePersonPreferences, useInvokeBlockAction } from "@Obsidian/Utility/block";
+    import { NavigationUrlKey } from "./AssetManager/types.partial";
+    import { DetailBlockBox } from "@Obsidian/ViewModels/Blocks/detailBlockBox";
+    // import { AssetManager } from "@Obsidian/ViewModels/Blocks/Cms/AssetManager/assetManager";
+    import { AssetManagerBag } from "@Obsidian/ViewModels/Blocks/Cms/AssetManager/assetManagerBag";
+    import { ValidPropertiesBox } from "@Obsidian/ViewModels/Utility/validPropertiesBox";
+
+    const config = useConfigurationValues<AssetManagerBag>();
+    const invokeBlockAction = useInvokeBlockAction();
+
+    // #region Values
+
+    const blockError = ref("");
+    const errorMessage = ref("");
+
+    const preferences = usePersonPreferences().blockPreferences;
+
+    // #endregion
+
+    // #region Computed Values
+
+    const options = computed((): AssetManagerBag => {
+        return config.options ?? {};
+    });
+
+    // #endregion
+
+    // #region Functions
+
+    // #endregion
+
+    // #region Event Handlers
+
+    // #endregion
+
+    // Handle any initial error conditions or the need to go into edit mode.
+    if (config.errorMessage) {
+        blockError.value = config.errorMessage;
+    }
+</script>
