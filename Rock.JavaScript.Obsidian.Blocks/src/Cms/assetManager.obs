@@ -4,37 +4,27 @@
 
     <NotificationBox v-if="errorMessage" alertType="danger">{{ errorMessage }}</NotificationBox>
 
-    <Block v-if="!blockError"
-           v-model:mode="panelMode"
-           :name="panelName"
-           :labels="blockLabels"
-           :entityKey="entityKey"
-           :isAuditHidden="false"
-           :isBadgesVisible="true"
-           :isDeleteVisible="isEditable"
-           :isEditVisible="isEditable"
-           :isFollowVisible="true"
-           :isSecurityHidden="false"
-           @cancelEdit="onCancelEdit"
-           @delete="onDelete"
-           @edit="onEdit"
-           @save="onSave">
-        BLOCK
+    <Block v-if="!blockError" title="Asset Manager [TODO]" hasFullscreen>
+        <AssetAndFileManager v-model:openFolders="openFolders"
+                             :height="height"
+                             :enableAssetManager="config?.enableAssetProviders ?? true"
+                             :enableFileManager="config?.enableFileManager ?? false"
+                             :enableZipUpload="config?.enableZipUploader ?? false"
+                             :encryptedRootFolder="config?.rootFolder ?? undefined"
+                             :editFilePage="config?.fileEditorPage ?? undefined" />
     </Block>
 </template>
 
 <script setup lang="ts">
-    import { computed, ref } from "vue";
+    import { computed, ref, watch } from "vue";
     import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+    import AssetAndFileManager from "@Obsidian/Controls/assetAndFileManager.obs";
     import Block from "@Obsidian/Templates/block";
-    import { useConfigurationValues, usePersonPreferences, useInvokeBlockAction } from "@Obsidian/Utility/block";
-    import { NavigationUrlKey } from "./AssetManager/types.partial";
-    import { DetailBlockBox } from "@Obsidian/ViewModels/Blocks/detailBlockBox";
-    // import { AssetManager } from "@Obsidian/ViewModels/Blocks/Cms/AssetManager/assetManager";
-    import { AssetManagerBag } from "@Obsidian/ViewModels/Blocks/Cms/AssetManager/assetManagerBag";
-    import { ValidPropertiesBox } from "@Obsidian/ViewModels/Utility/validPropertiesBox";
+    import { useConfigurationValues, usePersonPreferences, useInvokeBlockAction, onConfigurationValuesChanged, useReloadBlock } from "@Obsidian/Utility/block";
+    import { PreferenceKey } from "./AssetManager/types.partial";
+    import { AssetManagerOptionsBag } from "@Obsidian/ViewModels/Blocks/Cms/AssetManager/assetManagerOptionsBag";
 
-    const config = useConfigurationValues<AssetManagerBag>();
+    const config = useConfigurationValues<AssetManagerOptionsBag>();
     const invokeBlockAction = useInvokeBlockAction();
 
     // #region Values
@@ -43,13 +33,28 @@
     const errorMessage = ref("");
 
     const preferences = usePersonPreferences().blockPreferences;
+    let openFolderPreference: string[];
+
+    try {
+        openFolderPreference = JSON.parse(preferences.getValue(PreferenceKey.OpenFolders));
+    }
+    catch (e) {
+        openFolderPreference = [];
+    }
+
+    const openFolders = ref<string[]>(openFolderPreference ?? []);
 
     // #endregion
 
     // #region Computed Values
 
-    const options = computed((): AssetManagerBag => {
-        return config.options ?? {};
+    const height = computed(() => {
+        if (config.isStaticHeight && config.height) {
+            return config.height;
+        }
+        else {
+            return "flexible";
+        }
     });
 
     // #endregion
@@ -62,8 +67,14 @@
 
     // #endregion
 
-    // Handle any initial error conditions or the need to go into edit mode.
-    if (config.errorMessage) {
-        blockError.value = config.errorMessage;
-    }
+    // #region Watchers
+
+    watch(openFolders, () => {
+        preferences.setValue(PreferenceKey.OpenFolders, JSON.stringify(openFolders.value));
+        preferences.save();
+    });
+
+    // #endregion
+
+    onConfigurationValuesChanged(useReloadBlock());
 </script>

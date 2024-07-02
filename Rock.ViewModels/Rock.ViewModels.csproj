@@ -73,6 +73,7 @@
     <Compile Include="Blocks\Cms\AdaptiveMessageDetail\AdaptiveMessageBag.cs" />
     <Compile Include="Blocks\Cms\AdaptiveMessageDetail\AdaptiveMessageDetailOptionsBag.cs" />
     <Compile Include="Blocks\Cms\AdaptiveMessageList\AdaptiveMessageListOptionsBag.cs" />
+    <Compile Include="Blocks\Cms\AssetManager\AssetManagerOptionsBag.cs" />
     <Compile Include="Blocks\Cms\BlockTypeList\BlockTypeListBag.cs" />
     <Compile Include="Blocks\Cms\BlockTypeList\BlockTypeListOptionsBag.cs" />
     <Compile Include="Blocks\Cms\ContentChannelDetail\ContentChannelBag.cs" />

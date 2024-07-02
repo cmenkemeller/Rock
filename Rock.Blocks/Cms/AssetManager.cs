@@ -19,6 +19,7 @@ using System.ComponentModel;
 
 using Rock.Attribute;
 using Rock.Model;
+using Rock.ViewModels.Blocks;
 using Rock.ViewModels.Blocks.Cms.AssetManager;
 
 namespace Rock.Blocks.Cms
@@ -35,6 +36,78 @@ namespace Rock.Blocks.Cms
 
     #region Block Attributes
 
+    [BooleanField(
+        "Enable Asset Storage Providers",
+        Key = AttributeKey.EnableAssetProviders,
+        Description = "Set this to true to enable showing folders and files from your configured asset storage providers.",
+        DefaultBooleanValue = false,
+        Order = 0
+    )]
+
+    [BooleanField(
+        "Enable File Manager",
+        Key = AttributeKey.EnableFileManager,
+        Description = "Set this to true to enable showing folders and files your server's local file system.",
+        DefaultBooleanValue = true,
+        Order = 1
+    )]
+
+    [BooleanField(
+        "Use Static Height",
+        Key = AttributeKey.IsStaticHeight,
+        Description = "Set this to true to be able to set a CSS height value dictating how tall the block will be. Otherwise, it will grow with the content.",
+        DefaultBooleanValue = true,
+        Order = 2
+    )]
+
+    [TextField(
+        "Height",
+        Key = AttributeKey.Height,
+        Description = "If you've checked \"Use Static Height\", this will be the CSS length value that dictates how tall the block will be.",
+        IsRequired = false,
+        DefaultValue = "400px",
+        Order = 3
+    )]
+
+    #region File Manager Options
+
+    [TextField(
+        "Root Folder",
+        Key = AttributeKey.RootFolder,
+        Description = "The root file manager folder to browse",
+        IsRequired = true,
+        DefaultValue = "~/Content",
+        Order = 4
+    )]
+
+    [CustomDropdownListField(
+        "Browse Mode",
+        Key = AttributeKey.BrowseMode,
+        Description = "Select 'image' to show only image files. Select 'doc' to show all files.",
+        ListSource = "doc,image",
+        IsRequired = true,
+        DefaultValue = "doc",
+        Order = 5
+    )]
+
+    [LinkedPage(
+        "File Editor Page",
+        Key = AttributeKey.FileEditorPage,
+        Description = "Page used to edit the contents of a file.",
+        IsRequired = false,
+        Order = 6
+    )]
+
+    [BooleanField(
+        "Enable Zip Upload",
+        Key = AttributeKey.EnableZipUploader,
+        Description = "Set this to true to enable the Zip File uploader.",
+        DefaultBooleanValue = false,
+        Order = 7
+    )]
+
+    #endregion
+
     #endregion
 
     [Rock.SystemGuid.EntityTypeGuid( "e357ad54-1725-48b8-997c-23c2587800fb" )]
@@ -43,14 +116,21 @@ namespace Rock.Blocks.Cms
     {
         #region Keys
 
-        private static class PageParameterKey
+        private static class PreferenceKey
         {
-            public const string AssetStorageProviderId = "AssetStorageProviderId";
+            public const string OpenFolders = "open-folders";
         }
 
-        private static class NavigationUrlKey
+        private static class AttributeKey
         {
-            public const string ParentPage = "ParentPage";
+            public const string EnableAssetProviders = "EnableAssetProviders";
+            public const string EnableFileManager = "EnableFileManager";
+            public const string IsStaticHeight = "IsStaticHeight";
+            public const string Height = "Height";
+            public const string RootFolder = "RootFolder";
+            public const string BrowseMode = "BrowseMode";
+            public const string FileEditorPage = "FileEditorPage";
+            public const string EnableZipUploader = "EnableZipUploader";
         }
 
         #endregion Keys
@@ -60,10 +140,18 @@ namespace Rock.Blocks.Cms
         /// <inheritdoc/>
         public override object GetObsidianBlockInitialization()
         {
-            var box = new AssetManagerBag();
-
-            //box.NavigationUrls = GetBoxNavigationUrls();
-            //box.Options = GetBoxOptions( box.IsEditable );
+            var b = new BlockBox();
+            var box = new AssetManagerOptionsBag
+            {
+                EnableAssetProviders = GetAttributeValue( AttributeKey.EnableAssetProviders ).AsBoolean(),
+                EnableFileManager = GetAttributeValue( AttributeKey.EnableFileManager ).AsBoolean(),
+                IsStaticHeight = GetAttributeValue( AttributeKey.IsStaticHeight ).AsBoolean(),
+                Height = GetAttributeValue( AttributeKey.Height ),
+                RootFolder = Rock.Security.Encryption.EncryptString( GetAttributeValue( AttributeKey.RootFolder ) ),
+                BrowseMode = GetAttributeValue( AttributeKey.BrowseMode ),
+                FileEditorPage = GetAttributeValue( AttributeKey.FileEditorPage ),
+                EnableZipUploader = GetAttributeValue( AttributeKey.EnableZipUploader ).AsBoolean(),
+            };
 
             return box;
         }
@@ -73,7 +161,7 @@ namespace Rock.Blocks.Cms
         #region Block Actions
 
         /// <summary>
-        /// Deletes the specified entity.
+        /// TODO
         /// </summary>
         /// <param name="key">The identifier of the entity to be deleted.</param>
         /// <returns>A string that contains the URL to be redirected to on success.</returns>
