@@ -4,7 +4,7 @@
 
     <NotificationBox v-if="errorMessage" alertType="danger">{{ errorMessage }}</NotificationBox>
 
-    <Block v-if="!blockError" title="Asset Manager [TODO]" hasFullscreen>
+    <Block v-if="!blockError" :title="config?.title ?? 'Asset Manager'" hasFullscreen>
         <AssetAndFileManager v-model:openFolders="openFolders"
                              :height="height"
                              :enableAssetManager="config?.enableAssetProviders ?? true"

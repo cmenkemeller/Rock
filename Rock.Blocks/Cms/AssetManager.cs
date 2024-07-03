@@ -19,8 +19,8 @@ using System.ComponentModel;
 
 using Rock.Attribute;
 using Rock.Model;
-using Rock.ViewModels.Blocks;
 using Rock.ViewModels.Blocks.Cms.AssetManager;
+using Rock.Web;
 
 namespace Rock.Blocks.Cms
 {
@@ -40,7 +40,7 @@ namespace Rock.Blocks.Cms
         "Enable Asset Storage Providers",
         Key = AttributeKey.EnableAssetProviders,
         Description = "Set this to true to enable showing folders and files from your configured asset storage providers.",
-        DefaultBooleanValue = false,
+        DefaultBooleanValue = true,
         Order = 0
     )]
 
@@ -48,7 +48,7 @@ namespace Rock.Blocks.Cms
         "Enable File Manager",
         Key = AttributeKey.EnableFileManager,
         Description = "Set this to true to enable showing folders and files your server's local file system.",
-        DefaultBooleanValue = true,
+        DefaultBooleanValue = false,
         Order = 1
     )]
 
@@ -56,14 +56,14 @@ namespace Rock.Blocks.Cms
         "Use Static Height",
         Key = AttributeKey.IsStaticHeight,
         Description = "Set this to true to be able to set a CSS height value dictating how tall the block will be. Otherwise, it will grow with the content.",
-        DefaultBooleanValue = true,
+        DefaultBooleanValue = false,
         Order = 2
     )]
 
     [TextField(
         "Height",
         Key = AttributeKey.Height,
-        Description = "If you've checked \"Use Static Height\", this will be the CSS length value that dictates how tall the block will be.",
+        Description = "If you've selected Yes for \"Use Static Height\", this will be the CSS length value that dictates how tall the block will be.",
         IsRequired = false,
         DefaultValue = "400px",
         Order = 3
@@ -77,6 +77,7 @@ namespace Rock.Blocks.Cms
         Description = "The root file manager folder to browse",
         IsRequired = true,
         DefaultValue = "~/Content",
+        Category = "File Manager Options",
         Order = 4
     )]
 
@@ -87,6 +88,7 @@ namespace Rock.Blocks.Cms
         ListSource = "doc,image",
         IsRequired = true,
         DefaultValue = "doc",
+        Category = "File Manager Options",
         Order = 5
     )]
 
@@ -95,6 +97,7 @@ namespace Rock.Blocks.Cms
         Key = AttributeKey.FileEditorPage,
         Description = "Page used to edit the contents of a file.",
         IsRequired = false,
+        Category = "File Manager Options",
         Order = 6
     )]
 
@@ -103,6 +106,7 @@ namespace Rock.Blocks.Cms
         Key = AttributeKey.EnableZipUploader,
         Description = "Set this to true to enable the Zip File uploader.",
         DefaultBooleanValue = false,
+        Category = "File Manager Options",
         Order = 7
     )]
 
@@ -140,50 +144,38 @@ namespace Rock.Blocks.Cms
         /// <inheritdoc/>
         public override object GetObsidianBlockInitialization()
         {
-            var b = new BlockBox();
             var box = new AssetManagerOptionsBag
             {
+                Title = BlockCache.Name,
                 EnableAssetProviders = GetAttributeValue( AttributeKey.EnableAssetProviders ).AsBoolean(),
                 EnableFileManager = GetAttributeValue( AttributeKey.EnableFileManager ).AsBoolean(),
                 IsStaticHeight = GetAttributeValue( AttributeKey.IsStaticHeight ).AsBoolean(),
                 Height = GetAttributeValue( AttributeKey.Height ),
                 RootFolder = Rock.Security.Encryption.EncryptString( GetAttributeValue( AttributeKey.RootFolder ) ),
                 BrowseMode = GetAttributeValue( AttributeKey.BrowseMode ),
-                FileEditorPage = GetAttributeValue( AttributeKey.FileEditorPage ),
+                FileEditorPage = GetUrlFromLinkedPage( GetAttributeValue( AttributeKey.FileEditorPage ) ),
                 EnableZipUploader = GetAttributeValue( AttributeKey.EnableZipUploader ).AsBoolean(),
             };
 
             return box;
         }
 
-        #endregion
-
-        #region Block Actions
-
         /// <summary>
-        /// TODO
+        /// Builds and returns the URL for a linked <see cref="Rock.Model.Page"/> from a "linked page attribute".
         /// </summary>
-        /// <param name="key">The identifier of the entity to be deleted.</param>
-        /// <returns>A string that contains the URL to be redirected to on success.</returns>
-        [BlockAction]
-        public BlockActionResult DoSomething( string key )
+        /// <param name="pageLink">The linked <see cref="Rock.Model.Page"/> in the format "Page.Guid,PageRoute.Guid" or "Page.Guid" if no route.</param>
+        /// <returns>A <see cref="System.String"/> representing the URL to the linked <see cref="Rock.Model.Page"/>.</returns>
+        private string GetUrlFromLinkedPage( string pageLink )
         {
-            //var entityService = new AssetStorageProviderService( RockContext );
-
-            //if ( !TryGetEntityForEditAction( key, out var entity, out var actionError ) )
-            //{
-            //    return actionError;
-            //}
-
-            //if ( !entityService.CanDelete( entity, out var errorMessage ) )
-            //{
-            //    return ActionBadRequest( errorMessage );
-            //}
-
-            //entityService.Delete( entity );
-            //RockContext.SaveChanges();
-
-            return ActionOk( "ok" );
+            var pageReference = new PageReference( pageLink, null );
+            if ( pageReference.PageId > 0 )
+            {
+                return pageReference.BuildUrl();
+            }
+            else
+            {
+                return string.Empty;
+            }
         }
 
         #endregion

@@ -20,6 +20,11 @@ namespace Rock.ViewModels.Blocks.Cms.AssetManager
     public class AssetManagerOptionsBag
     {
         /// <summary>
+        /// Title shown at the top of the block
+        /// </summary>
+        public string Title { get; set; }
+
+        /// <summary>
         /// Set this to true to enable showing folders and files from your configured asset storage providers.
         /// </summary>
         public bool EnableAssetProviders { get; set; }

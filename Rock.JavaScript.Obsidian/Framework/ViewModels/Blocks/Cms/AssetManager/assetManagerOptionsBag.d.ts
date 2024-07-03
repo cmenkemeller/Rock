@@ -45,4 +45,7 @@ export type AssetManagerOptionsBag = {
 
     /** The root file manager folder to browse; encrypted */
     rootFolder?: string | null;
+
+    /** Title shown at the top of the block */
+    title?: string | null;
 };
