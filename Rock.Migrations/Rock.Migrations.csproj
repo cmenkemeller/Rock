@@ -84,6 +84,10 @@
     <Compile Include="Migrations\202404251817274_CodeGenerated_20240425.Designer.cs">
       <DependentUpon>202404251817274_CodeGenerated_20240425.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202405302213035_MobileStyleGuide1.cs" />
+    <Compile Include="Migrations\202405302213035_MobileStyleGuide1.Designer.cs">
+      <DependentUpon>202405302213035_MobileStyleGuide1.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\202405091644314_Rollup_20240509.cs" />
     <Compile Include="Migrations\202405091644314_Rollup_20240509.Designer.cs">
       <DependentUpon>202405091644314_Rollup_20240509.cs</DependentUpon>
@@ -199,6 +203,10 @@
     <Compile Include="Migrations\Version 16.0\Version 1.16.5\202404171636153_AddOrUpdateResultPageLocationAndAddOrUpdateVolGenPersistedDataset.cs" />
     <Compile Include="Migrations\Version 16.0\Version 1.16.5\202404171636153_AddOrUpdateResultPageLocationAndAddOrUpdateVolGenPersistedDataset.designer.cs">
       <DependentUpon>202404171636153_AddOrUpdateResultPageLocationAndAddOrUpdateVolGenPersistedDataset.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202404181459303_MobileStyleGuide.cs" />
+    <Compile Include="Migrations\202404181459303_MobileStyleGuide.Designer.cs">
+      <DependentUpon>202404181459303_MobileStyleGuide.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Version 16.0\Version 1.16.4\202403222154517_Rollup_20240322.cs" />
     <Compile Include="Migrations\Version 16.0\Version 1.16.4\202403222154517_Rollup_20240322.Designer.cs">
@@ -2149,6 +2157,9 @@
     <EmbeddedResource Include="Migrations\202404251817274_CodeGenerated_20240425.resx">
       <DependentUpon>202404251817274_CodeGenerated_20240425.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202405302213035_MobileStyleGuide1.resx">
+      <DependentUpon>202405302213035_MobileStyleGuide1.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202405091644314_Rollup_20240509.resx">
       <DependentUpon>202405091644314_Rollup_20240509.cs</DependentUpon>
     </EmbeddedResource>
@@ -2235,6 +2246,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 16.0\Version 1.16.5\202404171636153_AddOrUpdateResultPageLocationAndAddOrUpdateVolGenPersistedDataset.resx">
       <DependentUpon>202404171636153_AddOrUpdateResultPageLocationAndAddOrUpdateVolGenPersistedDataset.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202404181459303_MobileStyleGuide.resx">
+      <DependentUpon>202404181459303_MobileStyleGuide.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 16.0\Version 1.16.4\202403222154517_Rollup_20240322.resx">
       <DependentUpon>202403222154517_Rollup_20240322.cs</DependentUpon>
