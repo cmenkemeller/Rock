@@ -1,10 +1,6 @@
 <!-- Copyright by the Spark Development Network; Licensed under the Rock Community License -->
 <template>
-    <NotificationBox v-if="blockError" alertType="warning">{{ blockError }}</NotificationBox>
-
-    <NotificationBox v-if="errorMessage" alertType="danger">{{ errorMessage }}</NotificationBox>
-
-    <Block v-if="!blockError" :title="config?.title ?? 'Asset Manager'" hasFullscreen>
+    <Block :title="config?.title ?? 'Asset Manager'" hasFullscreen>
         <AssetAndFileManager v-model:openFolders="openFolders"
                              :height="height"
                              :enableAssetManager="config?.enableAssetProviders ?? true"
@@ -25,12 +21,8 @@
     import { AssetManagerOptionsBag } from "@Obsidian/ViewModels/Blocks/Cms/AssetManager/assetManagerOptionsBag";
 
     const config = useConfigurationValues<AssetManagerOptionsBag>();
-    const invokeBlockAction = useInvokeBlockAction();
 
     // #region Values
-
-    const blockError = ref("");
-    const errorMessage = ref("");
 
     const preferences = usePersonPreferences().blockPreferences;
     let openFolderPreference: string[];
@@ -56,14 +48,6 @@
             return "flexible";
         }
     });
-
-    // #endregion
-
-    // #region Functions
-
-    // #endregion
-
-    // #region Event Handlers
 
     // #endregion
 
