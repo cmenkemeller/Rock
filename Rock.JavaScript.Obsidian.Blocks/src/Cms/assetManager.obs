@@ -2,6 +2,7 @@
 <template>
     <Block :title="config?.title ?? 'Asset Manager'" hasFullscreen>
         <AssetAndFileManager v-model:openFolders="openFolders"
+                             v-model:selectedFolder="selectedFolder"
                              :height="height"
                              :enableAssetManager="config?.enableAssetProviders ?? true"
                              :enableFileManager="config?.enableFileManager ?? false"
@@ -35,6 +36,7 @@
     }
 
     const openFolders = ref<string[]>(openFolderPreference ?? []);
+    const selectedFolder = ref<string>(preferences.getValue(PreferenceKey.SelectedFolder));
 
     // #endregion
 
@@ -55,6 +57,11 @@
 
     watch(openFolders, () => {
         preferences.setValue(PreferenceKey.OpenFolders, JSON.stringify(openFolders.value));
+        preferences.save();
+    });
+
+    watch(selectedFolder, () => {
+        preferences.setValue(PreferenceKey.SelectedFolder, selectedFolder.value ?? "");
         preferences.save();
     });
 

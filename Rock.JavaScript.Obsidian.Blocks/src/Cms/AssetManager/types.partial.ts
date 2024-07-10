@@ -20,5 +20,6 @@ export const enum NavigationUrlKey {
 }
 
 export const enum PreferenceKey {
-    OpenFolders = "open-folders"
+    OpenFolders = "open-folders",
+    SelectedFolder = "selected-folder"
 }

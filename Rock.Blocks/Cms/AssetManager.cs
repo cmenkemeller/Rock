@@ -123,6 +123,7 @@ namespace Rock.Blocks.Cms
         private static class PreferenceKey
         {
             public const string OpenFolders = "open-folders";
+            public const string SelectedFolder = "selected-folder";
         }
 
         private static class AttributeKey

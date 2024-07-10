@@ -248,6 +248,11 @@
             default: () => [],
         },
 
+        selectedFolder: {
+            type: String as PropType<string | null>,
+            default: null
+        },
+
         /**
          * "flexible" will make the height grow as the number of files/folder show grows.
          * Otherwise pass in a CSS height value.
@@ -289,6 +294,7 @@
     const emit = defineEmits<{
         (e: "update:modelValue", value: ListItemBag): void
         (e: "update:openFolders", value: string[]): void
+        (e: "update:selectedFolder", value: string | null): void
     }>();
 
     const internalValue = useVModelPassthrough(props, "modelValue", emit);
@@ -312,7 +318,7 @@
     // #region Folder List
 
     const itemProvider = ref(initializeTreeProvider());
-    const openFolders = computed(() => Array.from(itemProvider.value.openFolders));
+    const openFolders = computed(() => Array.from(itemProvider.value?.openFolders ?? []));
     const folders = ref<AssetManagerTreeItemBag[]>([]);
 
     const selectedFolderArray = ref<string[]>([]);
@@ -534,12 +540,6 @@
                 throw new Error(response.errorMessage ?? "An unknown error occurred while moving the folder.");
             }
 
-            /*
-            1. If the folder is in the open folders, update it to the new key
-            2. If any children are in the open folders, update them to the new keys
-            3. Change selected folder to the new folder key
-            4. Refresh folder list
-            */
             // If the folder is in the open folders, update the list with the new key
             const newKey = response.data;
             if (itemProvider.value.openFolders.has(selectedFolder.value ?? "")) {
@@ -560,33 +560,6 @@
             selectedFolderArray.value = [newKey];
             // Refresh folder list
             onRefreshFolders();
-
-
-            // RENAME FOLDER STUFF... ONLY FOR REFERENCE...
-
-            // If this folder has been expanded, make sure the list of open folders is updated with the new value
-            // if (itemProvider.value.openFolders.has(selectedFolder.value ?? "")) {
-            //     itemProvider.value.openFolders.delete(selectedFolder.value!);
-            //     itemProvider.value.openFolders.add(response.data);
-            // }
-
-            // // Update the selected folder with the new data from the server
-            // if (selectedFolderBag.value) {
-            //     selectedFolderBag.value.value = response.data;
-
-            //     // Since the bag is updated with a new key, we need to update the selected folder array to reflect the new key
-            //     selectedFolderArray.value = [response.data];
-
-            //     if (selectedFolderBag.value.children && selectedFolderBag.value.children.length > 0) {
-            //         // If has children already loaded, we need to update the children array because their key is based off the old name
-            //         getChildFolders(selectedFolderBag);
-            //     }
-            // }
-
-            // DELETE TO HERE WHEN READY
-
-
-
 
             isMoveFolderModalVisible.value = false;
         }
@@ -688,7 +661,8 @@
 
     function initializeTreeProvider(): AssetManagerTreeItemProvider {
         const provider = new AssetManagerTreeItemProvider();
-        provider.openFolders = new Set(props.openFolders);
+        provider.openFolders = itemProvider?.value?.openFolders ?? new Set(props.openFolders);
+        provider.selectedFolder = selectedFolder?.value ?? props.selectedFolder;
         provider.enableAssetManager = props.enableAssetManager;
         provider.enableFileManager = props.enableFileManager;
         provider.encryptedRootFolder = props.encryptedRootFolder || "";
@@ -742,6 +716,35 @@
 
     watch(() => [props.enableAssetManager, props.enableFileManager, props.encryptedRootFolder], () => {
         itemProvider.value = initializeTreeProvider();
+    });
+
+    // Sync v-model: selectedFolder
+    watch(() => props.selectedFolder, () => {
+        selectedFolderArray.value = props.selectedFolder ? [props.selectedFolder] : [];
+    });
+    watch(selectedFolder, () => {
+        emit("update:selectedFolder", selectedFolder.value);
+    });
+
+    // Initialize selected folder when folders are loaded
+    watch(folders, (currentFolders, oldFolders) => {
+        console.log("FOLDERS CHANGED");
+        // If folders just got initialized
+        if (oldFolders.length === 0 && currentFolders.length > 0 && selectedFolder.value === null) {
+            console.log("FOLDERS INITIALIZED");
+            // If we have a specified selected folder and it exists in the list of folders, select it
+            if (props.selectedFolder) {
+                const isFolderLoaded = !!findFolder(currentFolders, props.selectedFolder);
+                if (isFolderLoaded) {
+                    selectedFolderArray.value = [props.selectedFolder];
+                }
+            }
+
+            // If we don't have a selected folder and there's only one root folder, select it
+            if (!selectedFolder.value && currentFolders.length === 1) {
+                selectedFolderArray.value = [currentFolders[0].value!];
+            }
+        }
     });
 
     // #endregion

@@ -1101,7 +1101,7 @@ export class AssetManagerTreeItemProvider implements ITreeItemProvider {
 
     /** List of folders that are currently expanded in the tree list. */
     public openFolders: Set<string> = new Set();
-
+    public selectedFolder: string | null = "";
     public enableAssetManager = false;
     public enableFileManager = false;
     public encryptedRootFolder = "";
@@ -1110,8 +1110,10 @@ export class AssetManagerTreeItemProvider implements ITreeItemProvider {
      * @inheritdoc
      */
     async getRootItems(): Promise<TreeItemBag[]> {
+        console.log("GET ROOT");
         const options: AssetManagerGetRootFoldersOptionsBag = {
             expandedFolders: this.openFolders.size > 0 ? Array.from(this.openFolders) : null,
+            selectedFolder: this.selectedFolder,
             enableAssetManager: this.enableAssetManager,
             enableFileManager: this.enableFileManager,
             rootFolder: this.encryptedRootFolder

@@ -1,11 +1,14 @@
 <template>
     <GalleryAndResult :importCode="importCode" :exampleCode="exampleCode">
 
-        <AssetAndFileManager :height="height" v-model="value" v-model:openFolders="openFolders" :enableAssetManager="enableAssetManager" :enableFileManager="enableFileManager" :enableZipUpload="enableZipUpload" :encryptedRootFolder="encryptedRootFolder" :editFilePage="editFilePage" />
+        <AssetAndFileManager :height="height" v-model="value" v-model:openFolders="openFolders" v-model:selectedFolder="selectedFolder" :enableAssetManager="enableAssetManager" :enableFileManager="enableFileManager" :enableZipUpload="enableZipUpload" :encryptedRootFolder="encryptedRootFolder" :editFilePage="editFilePage" />
 
         <div class="my-5">
             <label>Selected Files:</label> {{ value }}
+            <br>
             <label>Open Folders:</label> {{ openFolders }}
+            <br>
+            <label>Selected Folder:</label> {{ selectedFolder }}
         </div>
 
         <template #settings>
@@ -45,18 +48,19 @@
     import { FileAsset } from "@Obsidian/ViewModels/Controls/fileAsset";
 
     const value = ref<FileAsset[]>([]);
-    const openFolders = ref<string[]>(["0,EAAAABoMLQ7sxQnuAw5xJ6fMyNpOWavdmnjvI21yclYPMFnm,,True", "0,EAAAAE7cu51UBwj12ozhSL3ocnErk4IIkGrNdWKOW0qL/ReB,ExternalSite/"]);
+    const openFolders = ref<string[]>(["18,,,True", "0,EAAAABoMLQ7sxQnuAw5xJ6fMyNpOWavdmnjvI21yclYPMFnm,,True", "0,EAAAAE7cu51UBwj12ozhSL3ocnErk4IIkGrNdWKOW0qL/ReB,ExternalSite/"]);
+    const selectedFolder = ref<string>("18,,People/");
 
     const isStaticHeight = ref(true);
     const staticHeight = ref("400px");
     const height = computed(() => isStaticHeight.value ? staticHeight.value : "flexible");
-    const enableAssetManager = ref(false);
+    const enableAssetManager = ref(true);
     const enableFileManager = ref(true);
     const enableZipUpload = ref(false);
     // ~/
-    // const encryptedRootFolder = ref("EAAAAOkA/1SamAbdx1EJX3OXaY7FkiG6ha9rDeDXaRPjfGcr");
+    const encryptedRootFolder = ref("EAAAAOkA/1SamAbdx1EJX3OXaY7FkiG6ha9rDeDXaRPjfGcr");
     // ~/Content
-    const encryptedRootFolder = ref("EAAAADKu4UpeD3p9uFXZ5WLZMaToEPXLfHZ6a0U7LuvfyZUy");
+    // const encryptedRootFolder = ref("EAAAADKu4UpeD3p9uFXZ5WLZMaToEPXLfHZ6a0U7LuvfyZUy");
     const editFilePage = ref("/admin/cms/file-manager/edit");
 
     const importCode = getSfcControlImportPath("assetAndFileManager");

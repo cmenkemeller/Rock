@@ -25,7 +25,9 @@ namespace Rock.ViewModels.Rest.Controls
     /// </summary>
     public class AssetManagerGetRootFoldersOptionsBag
     {
-        public List<string> ExpandedFolders { get; set; } = null;
+        public List<string> ExpandedFolders { get; set; }
+
+        public string SelectedFolder { get; set; }
 
         public string RootFolder { get; set; } = "";
 

@@ -33,4 +33,6 @@ export type AssetManagerGetRootFoldersOptionsBag = {
     expandedFolders?: string[] | null;
 
     rootFolder?: string | null;
+
+    selectedFolder?: string | null;
 };
