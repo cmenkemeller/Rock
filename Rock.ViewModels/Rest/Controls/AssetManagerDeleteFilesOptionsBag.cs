@@ -25,8 +25,14 @@ namespace Rock.ViewModels.Rest.Controls
     /// </summary>
     public class AssetManagerDeleteFilesOptionsBag
     {
+        /// <summary>
+        /// The ID of the asset storage provider where the files to be deleted reside.
+        /// </summary>
         public int AssetStorageProviderId { get; set; }
 
+        /// <summary>
+        /// The list of IDs of files to be deleted
+        /// </summary>
         public List<string> Files { get; set; }
     }
 }

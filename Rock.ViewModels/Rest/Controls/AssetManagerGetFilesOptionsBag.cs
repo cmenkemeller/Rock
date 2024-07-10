@@ -24,7 +24,7 @@ namespace Rock.ViewModels.Rest.Controls
     public class AssetManagerGetFilesOptionsBag : AssetManagerBaseOptionsBag
     {
         /// <summary>
-        /// Either "image" or "doc"
+        /// Either "image" or "doc". If "image", only return image files, otherwise all files.
         /// </summary>
         public string BrowseMode { get; set; } = "doc";
     }

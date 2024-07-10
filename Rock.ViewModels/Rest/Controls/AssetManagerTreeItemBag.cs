@@ -20,12 +20,12 @@ using Rock.ViewModels.Utility;
 namespace Rock.ViewModels.Rest.Controls
 {
     /// <summary>
-    /// TODO
+    /// A TreeItemBag that is extended to give additional information for the AssetManager.
     /// </summary>
     public class AssetManagerTreeItemBag : TreeItemBag
     {
         /// <summary>
-        /// TODO
+        /// The unencrypted path to the root directory of the asset.
         /// </summary>
         public string UnencryptedRoot { get; set; }
     }

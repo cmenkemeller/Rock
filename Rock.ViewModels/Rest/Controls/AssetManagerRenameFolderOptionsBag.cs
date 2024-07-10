@@ -18,13 +18,19 @@
 namespace Rock.ViewModels.Rest.Controls
 {
     /// <summary>
-    /// The options that can be passed to the DeleteFiles API action of
+    /// The options that can be passed to the RenameFolder API action of
     /// the AssetManager control.
     /// </summary>
     public class AssetManagerRenameFolderOptionsBag
     {
+        /// <summary>
+        /// A key that contains all the information needed to get the folder being renamed
+        /// </summary>
         public string AssetFolderId { get; set; }
 
+        /// <summary>
+        /// New name for the folder
+        /// </summary>
         public string NewFolderName { get; set; }
     }
 }

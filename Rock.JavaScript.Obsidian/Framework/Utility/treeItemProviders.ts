@@ -1110,7 +1110,6 @@ export class AssetManagerTreeItemProvider implements ITreeItemProvider {
      * @inheritdoc
      */
     async getRootItems(): Promise<TreeItemBag[]> {
-        console.log("GET ROOT");
         const options: AssetManagerGetRootFoldersOptionsBag = {
             expandedFolders: this.openFolders.size > 0 ? Array.from(this.openFolders) : null,
             selectedFolder: this.selectedFolder,

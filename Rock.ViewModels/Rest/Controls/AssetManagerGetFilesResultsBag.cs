@@ -25,12 +25,18 @@ namespace Rock.ViewModels.Rest.Controls
     public class AssetManagerGetFilesResultsBag<T>
     {
         /// <summary>
-        /// TODO
+        /// List of files to display
         /// </summary>
         public List<T> Files { get; set; } = null;
 
+        /// <summary>
+        /// Whether or not this folder is restricted from having certain actions performed on it.
+        /// </summary>
         public bool IsFolderRestricted { get; set; } = false;
 
+        /// <summary>
+        /// Whetehr or not this folder is restricted from having certain types of files uploaded to it.
+        /// </summary>
         public bool IsFolderUploadRestricted { get; set; } = false;
     }
 }

@@ -629,10 +629,10 @@ namespace Rock.Rest.v2
         #region Asset Manager
 
         /// <summary>
-        /// Gets the root storage providers and/or the main File Browser folder.
+        /// Gets the root storage providers and/or the root File Browser folder.
         /// </summary>
         /// <param name="options">The options that describe which items to load.</param>
-        /// <returns>A List of <see cref="TreeItemBag"/> objects that represent the asset storage providers/folders.</returns>
+        /// <returns>A List of <see cref="AssetManagerTreeItemBag"/> objects that represent the asset storage providers/folders.</returns>
         [HttpPost]
         [System.Web.Http.Route( "AssetManagerGetRootFolders" )]
         [Authenticate]
@@ -699,10 +699,10 @@ namespace Rock.Rest.v2
         }
 
         /// <summary>
-        /// Gets the root storage providers, or a list of folders of a parent folder
+        /// Gets a list of folders of a given parent folder.
         /// </summary>
         /// <param name="options">The options that describe which items to load.</param>
-        /// <returns>A List of <see cref="TreeItemBag"/> objects that represent the asset storage providers/folders.</returns>
+        /// <returns>A List of <see cref="AssetManagerTreeItemBag"/> objects that represent the asset storage providers/folders.</returns>
         [HttpPost]
         [System.Web.Http.Route( "AssetManagerGetChildren" )]
         [Authenticate]
@@ -826,10 +826,10 @@ namespace Rock.Rest.v2
         }
 
         /// <summary>
-        /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
+        /// Creates a new folder in the specified location on the file system or asset provider.
         /// </summary>
-        /// <param name="options">The options that describe which items to load.</param>
-        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        /// <param name="options">The options that describe the name of the new folder and where it should be.</param>
+        /// <returns>An <see cref="AssetManagerTreeItemBag"/> object that represents the new folder.</returns>
         [HttpPost]
         [System.Web.Http.Route( "AssetManagerAddFolder" )]
         [Authenticate]
@@ -902,10 +902,10 @@ namespace Rock.Rest.v2
         }
 
         /// <summary>
-        /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
+        /// Rename a given folder to the specified name.
         /// </summary>
-        /// <param name="options">The options that describe which items to load.</param>
-        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        /// <param name="options">The options that describe which folder to rename and its new name.</param>
+        /// <returns>The new key string for the folder that was renamed.</returns>
         [HttpPost]
         [System.Web.Http.Route( "AssetManagerRenameFolder" )]
         [Authenticate]
@@ -930,10 +930,10 @@ namespace Rock.Rest.v2
         }
 
         /// <summary>
-        /// TODO
+        /// Move a folder to another location on the file system.
         /// </summary>
-        /// <param name="options">The options that describe which items to load.</param>
-        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        /// <param name="options">The options that describe which folder to move and where to move it to.</param>
+        /// <returns>The new key string for the folder that was moved.</returns>
         [HttpPost]
         [System.Web.Http.Route( "AssetManagerMoveFolder" )]
         [Authenticate]
@@ -968,10 +968,10 @@ namespace Rock.Rest.v2
         }
 
         /// <summary>
-        /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
+        /// Deletes the specified file(s) from the server/asset provider
         /// </summary>
-        /// <param name="options">The options that describe which items to load.</param>
-        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        /// <param name="options">The options that describe which file(s) to delete.</param>
+        /// <returns>True if every file was deleted successfully.</returns>
         [HttpPost]
         [System.Web.Http.Route( "AssetManagerDeleteFiles" )]
         [Authenticate]
@@ -1012,10 +1012,10 @@ namespace Rock.Rest.v2
         }
 
         /// <summary>
-        /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
+        /// Downloads the specified file via a stream.
         /// </summary>
-        /// <param name="options">The options that describe which items to load.</param>
-        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        /// <param name="options">The options that describe which file to download.</param>
+        /// <returns>A stream for the download of the specified file.</returns>
         [HttpGet]
         [System.Web.Http.Route( "AssetManagerDownloadFile" )]
         [Authenticate]
@@ -1065,10 +1065,10 @@ namespace Rock.Rest.v2
         }
 
         /// <summary>
-        /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
+        /// Rename a file.
         /// </summary>
-        /// <param name="options">The options that describe which items to load.</param>
-        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        /// <param name="options">The options that describe which file to rename and what to rename it.</param>
+        /// <returns>True if successful, false otherwise.</returns>
         [HttpPost]
         [System.Web.Http.Route( "AssetManagerRenameFile" )]
         [Authenticate]
@@ -1104,10 +1104,10 @@ namespace Rock.Rest.v2
         }
 
         /// <summary>
-        /// Gets the asset storage providers that can be displayed in the asset storage provider picker.
+        /// Extract a given zip archive into its folder.
         /// </summary>
-        /// <param name="options">The options that describe which items to load.</param>
-        /// <returns>A List of <see cref="ListItemBag"/> objects that represent the asset storage providers.</returns>
+        /// <param name="options">The options that describe which file to extract.</param>
+        /// <returns>True if the operation worked.</returns>
         [HttpPost]
         [System.Web.Http.Route( "AssetManagerExtractFile" )]
         [Authenticate]
@@ -1169,10 +1169,10 @@ namespace Rock.Rest.v2
         }
 
         /// <summary>
-        /// TODO
+        /// Get a flat list of all the folders and subfolders in a given root folder, excluding a given folder and its children.
         /// </summary>
-        /// <param name="options"></param>
-        /// <returns></returns>
+        /// <param name="options">The options that describe which folders to load and not load.</param>
+        /// <returns>A List of <see cref="ListItemBag"/> objects that represent all the folders.</returns>
         [HttpPost]
         [System.Web.Http.Route( "AssetManagerGetListOfAllFolders" )]
         [Authenticate]
@@ -1224,10 +1224,10 @@ namespace Rock.Rest.v2
         }
 
         /// <summary>
-        /// Parse a string ID in the form of "${assetStorageProviderID},${path}" and pull out its individual parts.
+        /// Parse a string ID in the form of "${assetStorageProviderID},${encryptedRootPath},${subPath}" and pull out its individual parts.
         /// </summary>
-        /// <param name="assetItemKey"></param>
-        /// <returns>The asset storage provider ID and the asset's path</returns>
+        /// <param name="assetItemKey">A key string that identifies an asset in the form of "${assetStorageProviderID},${encryptedRootPath},${subPath}".</param>
+        /// <returns>An <see cref="AssetManagerAsset"/> object that represents all the data of an asset.</returns>
         private AssetManagerAsset ParseAssetKey( string assetItemKey )
         {
             try
@@ -1278,9 +1278,9 @@ namespace Rock.Rest.v2
         }
 
         /// <summary>
-        /// Get a tree of all the folders in the given root of the local file system
+        /// Get a (tree) list of all the folders in the given root folder of the local file system, along with their children if they are in the given list of expanded folders.
         /// </summary>
-        /// <returns>A tree of all the folder</returns>
+        /// <returns>A (tree) list of all the child folders and an updated version of the given expanded folders list.</returns>
         private (AssetManagerTreeItemBag, List<string> updatedExpandedFolders) GetRootFolder( string encryptedRootFolder, List<string> expandedFolders, AssetManagerAsset selectedFolder )
         {
 
@@ -1368,9 +1368,9 @@ namespace Rock.Rest.v2
         }
 
         /// <summary>
-        /// Get a tree of all the folders in the given root of the local file system
+        /// Get a list of all the folders in the given folder of the local file system, along with their children if they are in the given list of expanded folders.
         /// </summary>
-        /// <returns>A tree of all the folder</returns>
+        /// <returns>A list of all the child folders and an updated version of the given expanded folders list.</returns>
         private (List<TreeItemBag>, List<string> updatedExpandedFolders) GetChildFolders( AssetManagerAsset asset, List<string> expandedFolders )
         {
             var tree = new List<TreeItemBag>();
@@ -1443,10 +1443,11 @@ namespace Rock.Rest.v2
         }
 
         /// <summary>
-        /// 
+        /// Get a list of all files in the given folder. If browseMode is "image", only return the images. Also return any restrictions for the folder.
         /// </summary>
-        /// <param name="asset"></param>
-        /// <returns></returns>
+        /// <param name="asset">An asset model representing the folder that the files are in.</param>
+        /// <param name="browseMode">"image" or "doc", which determines whether to filter for only images or get all files.</param>
+        /// <returns>An object containing the list of files as well as flags for restrictions on the folder.</returns>
         private AssetManagerGetFilesResultsBag<Asset> GetFilesInFolder( AssetManagerAsset asset, string browseMode /* image or doc */ )
         {
             var physicalRootFolder = System.Web.HttpContext.Current.Server.MapPath( asset.Root );
@@ -1489,12 +1490,6 @@ namespace Rock.Rest.v2
                 string rootRelativePath = asset.Root.TrimEnd( '/', '\\' ) + "/" + relativeFilePath.TrimStart( '/', '\\' ).Replace( "\\", "/" );
                 string thumbUrl = RockApp.Current.ResolveRockUrl( "~/api/FileBrowser/GetFileThumbnail?relativeFilePath=" + HttpUtility.UrlEncode( rootRelativePath ) );
                 string downloadUrl = RockApp.Current.ResolveRockUrl( rootRelativePath );
-                //string editUrl = string.Empty;
-
-                //if ( IsEditableFileType( fileInfo.Extension ) && !string.IsNullOrWhiteSpace( editFilePage ) )
-                //{
-                //    editUrl = editFilePage + "?RelativeFilePath=" + HttpUtility.UrlEncode( rootRelativePath );
-                //}
 
                 file = new Asset
                 {

@@ -23,6 +23,9 @@ namespace Rock.ViewModels.Rest.Controls
     /// </summary>
     public class AssetManagerAddFolderOptionsBag : AssetManagerBaseOptionsBag
     {
+        /// <summary>
+        /// Name of the folder to be added.
+        /// </summary>
         public string NewFolderName { get; set; }
     }
 }

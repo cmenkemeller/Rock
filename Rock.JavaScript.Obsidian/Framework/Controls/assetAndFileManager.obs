@@ -288,6 +288,14 @@
         editFilePage: {
             type: String,
             default: "",
+        },
+
+        /**
+         * Select 'image' to show only image files. Select 'doc' to show all files.
+         */
+        browseMode: {
+            type: String as PropType<"doc" | "image">,
+            default: "doc",
         }
     });
 
@@ -728,10 +736,8 @@
 
     // Initialize selected folder when folders are loaded
     watch(folders, (currentFolders, oldFolders) => {
-        console.log("FOLDERS CHANGED");
         // If folders just got initialized
         if (oldFolders.length === 0 && currentFolders.length > 0 && selectedFolder.value === null) {
-            console.log("FOLDERS INITIALIZED");
             // If we have a specified selected folder and it exists in the list of folders, select it
             if (props.selectedFolder) {
                 const isFolderLoaded = !!findFolder(currentFolders, props.selectedFolder);
@@ -978,7 +984,7 @@
 
         const options: AssetManagerGetFilesOptionsBag = {
             assetFolderId: selectedFolder.value,
-            browseMode: "doc" // TODO: add prop and pass in. Make prop reactive to refetch files
+            browseMode: props.browseMode
         };
         const url = "/api/v2/Controls/AssetManagerGetFiles";
         const response = await post<AssetManagerGetFilesResultsBag<FileAsset>>(url, undefined, options);

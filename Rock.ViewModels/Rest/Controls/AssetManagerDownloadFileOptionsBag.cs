@@ -18,13 +18,19 @@
 namespace Rock.ViewModels.Rest.Controls
 {
     /// <summary>
-    /// The options that can be passed to the DeleteFiles API action of
+    /// The options that can be passed to the DownloadFile API action of
     /// the AssetManager control.
     /// </summary>
     public class AssetManagerDownloadFileOptionsBag
     {
+        /// <summary>
+        /// The ID of the asset storage provider where the file to be downloaded resides.
+        /// </summary>
         public int AssetStorageProviderId { get; set; }
 
+        /// <summary>
+        /// The identifier for the file that is to be downloaded.
+        /// </summary>
         public string File { get; set; }
     }
 }

@@ -18,10 +18,13 @@
 namespace Rock.ViewModels.Rest.Controls
 {
     /// <summary>
-    /// The options that can be passed most actions of the AssetManager control.
+    /// The options that can be passed to many actions of the AssetManager control.
     /// </summary>
     public class AssetManagerBaseOptionsBag
     {
+        /// <summary>
+        /// A key that contains all the information needed to get the full asset that is being acted upon
+        /// </summary>
         public string AssetFolderId { get; set; }
     }
 }

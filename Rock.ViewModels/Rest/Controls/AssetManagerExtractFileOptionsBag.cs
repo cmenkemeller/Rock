@@ -18,13 +18,19 @@
 namespace Rock.ViewModels.Rest.Controls
 {
     /// <summary>
-    /// The options that can be passed to the DeleteFiles API action of
+    /// The options that can be passed to the ExtractFile API action of
     /// the AssetManager control.
     /// </summary>
     public class AssetManagerExtractFileOptionsBag
     {
+        /// <summary>
+        /// The path to the file that is to be extracted.
+        /// </summary>
         public string FileName { get; set; }
 
+        /// <summary>
+        /// Encrypted path to the root of where the file is located.
+        /// </summary>
         public string EncryptedRoot { get; set; }
     }
 }

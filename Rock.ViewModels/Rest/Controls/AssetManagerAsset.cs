@@ -25,14 +25,29 @@ namespace Rock.ViewModels.Rest.Controls
     /// </summary>
     public class AssetManagerAsset
     {
+        /// <summary>
+        /// ID for the asset storage provider this asset resides in (0 if on local file system)
+        /// </summary>
         public int? ProviderId { get; set; }
 
+        /// <summary>
+        /// Encrypted version of the root folder
+        /// </summary>
         public string EncryptedRoot { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Unencrypted version of the root folder
+        /// </summary>
         public string Root { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Portion of the path that comes after the root
+        /// </summary>
         public string SubPath { get; set; } = string.Empty;
 
+        /// <summary>
+        /// The combination of the root path and the sub path
+        /// </summary>
         public string FullPath
         {
             get
@@ -41,6 +56,9 @@ namespace Rock.ViewModels.Rest.Controls
             }
         }
 
+        /// <summary>
+        /// The combination of the root path and the sub path, excluding any file names
+        /// </summary>
         public string FullDirectoryPath
         {
             get
@@ -48,7 +66,9 @@ namespace Rock.ViewModels.Rest.Controls
                 return System.IO.Path.GetDirectoryName( FullPath ).Replace( '\\', '/' ) + "/";
             }
         }
-
+        /// <summary>
+        /// Name of the file, minus any path
+        /// </summary>
         public string FileName
         {
             get
@@ -58,6 +78,9 @@ namespace Rock.ViewModels.Rest.Controls
             }
         }
 
+        /// <summary>
+        /// Whether this asset represents the root folder of the file manager/asset provider
+        /// </summary>
         public bool IsRoot
         {
             get
@@ -66,6 +89,9 @@ namespace Rock.ViewModels.Rest.Controls
             }
         }
 
+        /// <summary>
+        /// Whether this represents an asset that resides in an asset storage provider.
+        /// </summary>
         public bool IsAssetProviderAsset
         {
             get
@@ -74,6 +100,9 @@ namespace Rock.ViewModels.Rest.Controls
             }
         }
 
+        /// <summary>
+        /// Whether this represents an asset that resides in the local file system.
+        /// </summary>
         public bool IsLocalAsset
         {
             get
