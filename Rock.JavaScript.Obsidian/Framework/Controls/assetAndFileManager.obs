@@ -274,7 +274,10 @@
         },
 
         /** The encrypted root folder used for the local file browser */
-        encryptedRootFolder: String,
+        encryptedRootFolder: {
+            type: String,
+            default: ""
+        },
 
         enableZipUpload: {
             type: Boolean,

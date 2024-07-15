@@ -1334,7 +1334,7 @@ namespace Rock.Rest.v2
                         .ToList();
                     hasChildren = subDirectoryList.Any();
                 }
-                catch ( Exception ex )
+                catch ( Exception )
                 {
                     // Empty. Just mark as having no children.
                 }
@@ -1407,7 +1407,7 @@ namespace Rock.Rest.v2
                             .ToList();
                         hasChildren = childDirectories.Any();
                     }
-                    catch ( Exception ex )
+                    catch ( Exception )
                     {
                         // Empty. Just mark as having no children.
                     }
@@ -1961,7 +1961,7 @@ namespace Rock.Rest.v2
         /// Get the rendered badge information for a specific entity.
         /// </summary>
         /// <param name="options">The options that describe which badges to render.</param>
-        /// <returns>A collection of <see cref="RenderedBadgeBag"/> objects.</returns>
+        /// <returns>A collection of <see cref="ViewModels.Crm.RenderedBadgeBag"/> objects.</returns>
         [HttpPost]
         [System.Web.Http.Route( "BadgeListGetBadges" )]
         [Rock.SystemGuid.RestActionGuid( "34387B98-BF7E-4000-A28A-24EA08605285" )]

@@ -4,7 +4,7 @@
         <AssetAndFileManager v-model:openFolders="openFolders"
                              v-model:selectedFolder="selectedFolder"
                              :height="height"
-                             :browseMode="config?.browseMode ?? 'doc'"
+                             :browseMode="config?.browseMode as 'image' | 'doc' | undefined ?? 'doc'"
                              :enableAssetManager="config?.enableAssetProviders ?? true"
                              :enableFileManager="config?.enableFileManager ?? false"
                              :enableZipUpload="config?.enableZipUploader ?? false"
