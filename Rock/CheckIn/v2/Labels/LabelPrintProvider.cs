@@ -77,8 +77,10 @@ namespace Rock.CheckIn.v2.Labels
         /// <returns>A list of error messages generated during printing.</returns>
         public virtual async Task<List<string>> PrintLabelsAsync( IEnumerable<RenderedLabel> labels, CancellationToken cancellationToken )
         {
-            var labelsByDevice = labels.GroupBy( l => l.PrintTo.Id ).ToList();
             var errors = new List<string>();
+            var labelsByDevice = labels.Where( l => l.PrintTo != null )
+                .GroupBy( l => l.PrintTo.Id )
+                .ToList();
 
             foreach ( var deviceLabels in labelsByDevice )
             {
@@ -168,7 +170,7 @@ namespace Rock.CheckIn.v2.Labels
             var index = Array.LastIndexOf( labelContent, ( byte ) '^' );
 
             // Ensure we have the expected last command.
-            if ( index == -1 || index >= labelContent.Length - 3 || labelContent[index + 1] != 'X' || labelContent[index + 2] != 'Z' )
+            if ( index == -1 || index > labelContent.Length - 3 || labelContent[index + 1] != 'X' || labelContent[index + 2] != 'Z' )
             {
                 return labelContent;
             }

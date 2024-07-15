@@ -947,7 +947,8 @@ export class CheckInSession {
             return [];
         }
 
-        return this.attendeeOpportunities.abilityLevels;
+        return this.attendeeOpportunities.abilityLevels
+            .filter(a => !a.isDisabled);
     }
 
     /**
@@ -997,12 +998,13 @@ export class CheckInSession {
             return [];
         }
 
+        const attendeeGroups = this.attendeeOpportunities.groups
+            .filter(g => !g.abilityLevelId || g.abilityLevelId === this.selectedAbilityLevel?.id);
+
         if (this.configuration.template?.kioskCheckInType === KioskCheckInMode.Individual) {
             // In individual mode we need to filter the groups by the selected
             // area.
-            return this.attendeeOpportunities
-                .groups
-                .filter(g => g.areaId === this.selectedArea?.id);
+            return attendeeGroups.filter(g => g.areaId === this.selectedArea?.id);
         }
 
         // In family mode we need to filter the areas by the selected schedule
@@ -1015,8 +1017,7 @@ export class CheckInSession {
             .map(l => l.id as string) ?? [];
 
         // Now find all groups for those locations and the selected area.
-        return this.attendeeOpportunities
-            .groups
+        return attendeeGroups
             .filter(g => isAnyIdInList(validLocationIds, g.locationIds))
             .filter(g => g.areaId === this.selectedArea?.id);
     }
@@ -1584,7 +1585,18 @@ export class CheckInSession {
             return this.withScreen(Screen.ScheduleSelect);
         }
 
-        return this.withNextScreenFromScheduleSelect();
+        if (!this.attendeeOpportunities?.schedules || this.attendeeOpportunities.schedules.length === 0) {
+            throw new InvalidCheckInStateError("No schedules available.");
+        }
+
+        if (!this.attendeeOpportunities.schedules[0].id) {
+            throw new InvalidCheckInStateError("Invalid schedule.");
+        }
+
+        const scheduleIds = [this.attendeeOpportunities.schedules[0].id];
+        const individualSession = await this.withSelectedSchedules(scheduleIds);
+
+        return await individualSession.withNextScreenFromScheduleSelect();
     }
 
     /**

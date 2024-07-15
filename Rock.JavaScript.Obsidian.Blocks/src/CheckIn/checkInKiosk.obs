@@ -91,17 +91,31 @@
                                        :configuration="configuration"
                                        :session="currentSession"
                                        @updateActions="onUpdateActions($event, Screen.CheckoutSuccess)" />
+
+                <template v-for="adminScreen in adminScreens">
+                    <component v-if="adminScreen.screen === currentScreen"
+                               :key="adminScreen.screen"
+                               :is="adminScreen.component"
+                               :configuration="configuration"
+                               :adminData="adminData"
+                               @updateActions="onUpdateActions($event, adminScreen.screen)"
+                               @adminScreen="onAdminScreen" />
+                </template>
             </ContentTransition>
         </section>
 
         <PageFooter :title="footerStatusText"
-                    :actions="currentScreenActions" />
+                    :actions="currentScreenActions"
+                    @configure="onConfigureClick" />
     </div>
 </template>
 
 <script setup lang="ts">
     import AbilityLevelSelectScreen from "./CheckInKiosk/abilityLevelSelectScreen.partial.obs";
     import ActionSelectScreen from "./CheckInKiosk/actionSelectScreen.partial.obs";
+    import AdminActionsScreen from "./CheckInKiosk/adminActionsScreen.partial.obs";
+    import AdminLoginScreen from "./CheckInKiosk/adminLoginScreen.partial.obs";
+    import AdminReprintScreen from "./CheckInKiosk/adminReprintScreen.partial.obs";
     import AreaSelectScreen from "./CheckInKiosk/areaSelectScreen.partial.obs";
     import CheckoutSelectScreen from "./CheckInKiosk/checkoutSelectScreen.partial.obs";
     import CheckoutSuccessScreen from "./CheckInKiosk/checkoutSuccessScreen.partial.obs";
@@ -117,10 +131,10 @@
     import SuccessScreen from "./CheckInKiosk/successScreen.partial.obs";
     import WelcomeScreen from "./CheckInKiosk/welcomeScreen.partial.obs";
     import ContentTransition from "./CheckInKiosk/contentTransition.partial.obs";
-    import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from "vue";
+    import { Component as VueComponent, computed, onBeforeUnmount, onMounted, ref, shallowRef } from "vue";
     import { useConfigurationValues, useInvokeBlockAction } from "@Obsidian/Utility/block";
     import { provideKioskState } from "./CheckInKiosk/utils.partial";
-    import { AdminScreen, KioskButton, Screen } from "./CheckInKiosk/types.partial";
+    import { AdminScreen, AdminScreenData, KioskButton, Screen } from "./CheckInKiosk/types.partial";
     import { KioskConfigurationBag } from "@Obsidian/ViewModels/Blocks/CheckIn/CheckInKiosk/kioskConfigurationBag";
     import { CheckInSession } from "./CheckInKiosk/checkInSession.partial";
     import { useHttp } from "@Obsidian/Utility/http";
@@ -139,16 +153,32 @@
     const currentScreenActions = ref<KioskButton[]>([]);
     const currentSession = shallowRef<CheckInSession>(new CheckInSession(configuration.value, http));
     const previousScreens = shallowRef<CheckInSession[]>([]);
+    let currentAttendeeId: string | undefined | null;
     let lastActivity: number = Date.now();
     let idleTimer: number | undefined;
     const activityEvents = ["mousemove", "mousedown", "touchmove", "touchstart", "keydown"];
+
+    const adminData = ref<AdminScreenData>({ pinCode: "" });
+    const adminScreens = ref<{ screen: AdminScreen, component: VueComponent }[]>([
+        {
+            screen: AdminScreen.Login,
+            component: AdminLoginScreen
+        },
+        {
+            screen: AdminScreen.Actions,
+            component: AdminActionsScreen
+        },
+        {
+            screen: AdminScreen.Reprint,
+            component: AdminReprintScreen
+        }
+    ]);
 
     const hasNavigation = computed((): boolean => {
         return currentScreen.value !== Screen.Welcome;
     });
 
     const hasBackButton = computed((): boolean => {
-
         return currentScreen.value !== Screen.Welcome
             && currentScreen.value !== Screen.Success
             && currentScreen.value !== Screen.CheckoutSuccess
@@ -204,16 +234,22 @@
         window.location.href = blockConfiguration.setupPageRoute as string;
     }
 
-    function navigateToScreen(screen: Screen, preserveSession: boolean = false): void {
+    function navigateToScreen(screen: Screen): void {
         currentScreenActions.value = [];
         currentScreen.value = screen;
 
-        if (!preserveSession && screen === Screen.Welcome) {
+        // Delete any pending attendance records created, this should be moved
+        // to the session object.
+        if (screen === Screen.Welcome) {
+            try {
+                http.doApiCall("DELETE", `/api/v2/checkin/pendingAttendance/${currentSession.value.sessionGuid}`);
+            }
+            catch {
+                // Intentionally ignoring errors.
+            }
+
             currentSession.value = new CheckInSession(configuration.value, http);
             previousScreens.value = [];
-        }
-        else if (screen === Screen.Success) {
-            // TODO: Do stuff here?
         }
     }
 
@@ -226,6 +262,13 @@
     function onNextScreen(session: CheckInSession): void {
         previousScreens.value = [...previousScreens.value, currentSession.value];
 
+        // Prevent moving back to a previous attendee if we have any attendance
+        // records created.
+        if (session.attendances.length > 0 && currentAttendeeId !== session.getCurrentAttendee()?.person?.id) {
+            previousScreens.value = [];
+        }
+
+        currentAttendeeId = session.getCurrentAttendee()?.person?.id;
         currentSession.value = session;
 
         navigateToScreen(session.currentScreen);
@@ -259,13 +302,26 @@
      * back to the welcome screen.
      */
     function onIdleTimerCheck(): void {
-        if (currentScreen.value === Screen.Welcome) {
+        if (currentScreen.value === Screen.Welcome || currentScreen.value >= AdminScreen.Login) {
             return;
         }
 
-        if (Date.now() - lastActivity > 10000) {
+        if (Date.now() - lastActivity > 20000) {
             navigateToScreen(Screen.Welcome);
         }
+    }
+
+    /**
+     * Called when the configure button is clicked. Show the admin login
+     * screen to allow to kiosk administration.
+     */
+    function onConfigureClick(): void {
+        previousScreens.value = [];
+        currentScreen.value = AdminScreen.Login;
+    }
+
+    function onAdminScreen(screen: AdminScreen): void {
+        currentScreen.value = screen;
     }
 
     // Read our check-in configuration and then start up.
