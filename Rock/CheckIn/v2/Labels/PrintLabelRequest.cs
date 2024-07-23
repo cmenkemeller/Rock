@@ -18,6 +18,7 @@
 using System.Collections.Generic;
 
 using Rock.Data;
+using Rock.Lava;
 using Rock.ViewModels.CheckIn.Labels;
 
 namespace Rock.CheckIn.v2.Labels
@@ -74,9 +75,14 @@ namespace Rock.CheckIn.v2.Labels
             {
                 var mergeFields = new Dictionary<string, object>();
 
-                foreach ( var prop in LabelData.GetType().GetProperties() )
+                if ( LabelData != null )
                 {
-                    mergeFields.Add( prop.Name, prop.GetValue( LabelData ) );
+                    foreach ( var prop in LabelData.GetType().GetProperties() )
+                    {
+                        var value = prop.GetValue( LabelData );
+
+                        mergeFields.Add( prop.Name, LavaDataWrapper.GetWrappedObject( value ) );
+                    }
                 }
 
                 _mergeFields = mergeFields;

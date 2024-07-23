@@ -18,20 +18,24 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Rock.Attribute;
+using Rock.CheckIn;
 using Rock.CheckIn.v2;
 using Rock.CheckIn.v2.Labels;
+using Rock.Data;
 using Rock.Model;
 using Rock.Security;
 using Rock.Utility;
 using Rock.Utility.ExtensionMethods;
 using Rock.ViewModels.Blocks.CheckIn.CheckInKiosk;
 using Rock.ViewModels.CheckIn;
+using Rock.ViewModels.CheckIn.Labels;
 using Rock.Web.Cache;
 
 namespace Rock.Blocks.CheckIn
@@ -66,6 +70,13 @@ namespace Rock.Blocks.CheckIn
         IsRequired = false,
         Order = 2 )]
 
+    [CustomDropdownListField( "REST Key",
+        Description = "If your kiosk pages are configured for anonymous access then you must create a REST key with access to the check-in API endpoints and select it here.",
+        Key = AttributeKey.RestKey,
+        ListSource = RestKeyAttributeQuery,
+        IsRequired = false,
+        Order = 3)]
+
     #endregion
 
     [Rock.SystemGuid.EntityTypeGuid( "b208cafe-2194-4308-aa52-a920c516805a" )]
@@ -79,6 +90,7 @@ namespace Rock.Blocks.CheckIn
             public const string SetupPage = "SetupPage";
             public const string ShowCountsByLocation = "ShowCountsByLocation";
             public const string PromotionsContentChannel = "PromotionsContentChannel";
+            public const string RestKey = "RestKey";
         }
 
         private static class PageParameterKey
@@ -87,15 +99,39 @@ namespace Rock.Blocks.CheckIn
 
         #endregion
 
+        #region Constants
+
+        private const string RestKeyAttributeQuery = @"SELECT [U].[Guid] AS [Value], [P].[LastName] AS [Text]
+FROM [UserLogin] AS [U]
+INNER JOIN [Person] AS [P] ON [P].[Id] = [U].[PersonId]
+INNER JOIN [DefinedValue] AS [RT] ON [RT].[Id] = [P].[RecordTypeValueId]
+WHERE [RT].[Guid] = '" + SystemGuid.DefinedValue.PERSON_RECORD_TYPE_RESTUSER + "'";
+
+        #endregion
+
         #region Methods
 
         /// <inheritdoc/>
         public override object GetObsidianBlockInitialization()
         {
+            var apiKey = string.Empty;
+
             RequestContext.Response.AddCssLink( RequestContext.ResolveRockUrl( "~/Styles/Blocks/Checkin/CheckInKiosk.css" ), true );
+
+            if ( RequestContext.CurrentPerson == null && GetAttributeValue( AttributeKey.RestKey ).IsNotNullOrWhiteSpace() )
+            {
+                var activeRecordStatusValueId = DefinedValueCache.Get( SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid(), RockContext ).Id;
+                var userGuid = GetAttributeValue( AttributeKey.RestKey ).AsGuid();
+
+                apiKey = new UserLoginService( RockContext ).Queryable()
+                    .Where( u => u.Guid == userGuid && u.Person.RecordStatusValueId == activeRecordStatusValueId )
+                    .Select( u => u.ApiKey )
+                    .FirstOrDefault() ?? string.Empty;
+            }
 
             return new
             {
+                ApiKey = apiKey,
                 CurrentTheme = PageCache.Layout?.Site?.Theme?.ToLower(),
                 SetupPageRoute = this.GetLinkedPageUrl( AttributeKey.SetupPage ),
                 ShowCountsByLocation = GetAttributeValue( AttributeKey.ShowCountsByLocation ).AsBoolean()
@@ -140,58 +176,6 @@ namespace Rock.Blocks.CheckIn
         }
 
         /// <summary>
-        /// Tries to authenticate the PIN code provided.
-        /// </summary>
-        /// <param name="pinCode">The PIN code to be authenticated.</param>
-        /// <param name="errorMessage">On return contains any error message that should be displayed.</param>
-        /// <returns><c>true</c> if the PIN code was valid and trusted; otherwise <c>false</c>.</returns>
-        private bool TryAuthenticatePin( string pinCode, out string errorMessage )
-        {
-            var pinAuth = AuthenticationContainer.GetComponent( typeof( Rock.Security.Authentication.PINAuthentication ).FullName );
-
-            // Make sure PIN authentication is enabled.
-            if ( pinAuth == null || !pinAuth.IsActive )
-            {
-                errorMessage = "Sorry, we couldn't find an account matching that PIN.";
-                return false;
-            }
-
-            var userLoginService = new UserLoginService( RockContext );
-            var userLogin = userLoginService.GetByUserName( pinCode );
-
-            // Make sure this is a PIN auth user login.
-            if ( userLogin == null || !userLogin.EntityTypeId.HasValue || userLogin.EntityTypeId.Value != pinAuth.TypeId )
-            {
-                errorMessage = "Sorry, we couldn't find an account matching that PIN.";
-                return false;
-            }
-
-            // This should always return true, but just in case something changes
-            // in the future.
-            if ( !pinAuth.Authenticate( userLogin, null ) )
-            {
-                errorMessage = "Sorry, we couldn't find an account matching that PIN.";
-                return false;
-            }
-
-            if ( !( userLogin.IsConfirmed ?? true ) )
-            {
-                errorMessage = "Sorry, account needs to be confirmed.";
-                return false;
-            }
-            else if ( userLogin.IsLockedOut ?? false )
-            {
-                errorMessage = "Sorry, account is locked-out.";
-                return false;
-            }
-            else
-            {
-                errorMessage = string.Empty;
-                return true;
-            }
-        }
-
-        /// <summary>
         /// Gets the printer device that the kiosk is configured to use.
         /// </summary>
         /// <param name="kioskId">The encrypted identifier of the kiosk.</param>
@@ -213,47 +197,21 @@ namespace Rock.Blocks.CheckIn
             return DeviceCache.Get( kiosk.PrinterDeviceId.Value, RockContext );
         }
 
-        #endregion
-
-        #region Block Actions
-
         /// <summary>
-        /// Gets the kiosk configuration to use given the saved configuration
-        /// options.
+        /// Gets the promotion items that should be displayed on kiosks at the
+        /// specified location.
         /// </summary>
-        /// <param name="savedConfiguration">The options the kiosk was configured with.</param>
-        /// <returns>The full configuration data for the kiosk.</returns>
-        [BlockAction]
-        public BlockActionResult GetKioskConfiguration( SavedKioskConfigurationBag savedConfiguration )
-        {
-            var director = new CheckInDirector( RockContext );
-            var configuration = GetKioskConfiguration( director, savedConfiguration );
-
-            if ( configuration == null )
-            {
-                return ActionBadRequest( "Configuration is not valid." );
-            }
-
-            return ActionOk( configuration );
-        }
-
-        /// <summary>
-        /// Gets the promotion list defined for the template and kiosk.
-        /// </summary>
-        /// <param name="templateId">The check-in template identifier.</param>
-        /// <param name="kioskId">The kiosk identifier.</param>
-        /// <returns>A list of <see cref="PromotionBag"/> objects.</returns>
-        [BlockAction]
-        public BlockActionResult GetPromotionList( string templateId, string kioskId )
+        /// <param name="campusId">The identifier of the <see cref="Campus"/> to filter items for.</param>
+        /// <returns>A collection of <see cref="PromotionBag"/> objects that represent the promotions to display.</returns>
+        private List<PromotionBag> GetPromotionItems( int? campusId )
         {
             var promotionContentChannelGuid = GetAttributeValue( AttributeKey.PromotionsContentChannel ).AsGuidOrNull();
 
             if ( !promotionContentChannelGuid.HasValue )
             {
-                return ActionOk( new List<PromotionBag>() );
+                return new List<PromotionBag>();
             }
 
-            var kiosk = DeviceCache.GetByIdKey( kioskId, RockContext );
             var contentChannel = new ContentChannelService( RockContext )
                 .Queryable()
                 .AsNoTracking()
@@ -261,18 +219,19 @@ namespace Rock.Blocks.CheckIn
                 .Where( cc => cc.Guid == promotionContentChannelGuid.Value )
                 .FirstOrDefault();
 
-            if ( kiosk == null || contentChannel == null )
+            if ( contentChannel == null )
             {
-                return ActionOk( new List<PromotionBag>() );
+                return new List<PromotionBag>();
             }
 
             contentChannel.Items.LoadAttributes( RockContext );
 
-            var now = RockDateTime.Now;
-            var campusId = kiosk.GetCampusId();
-            var campusGuid = campusId.HasValue
-                ? CampusCache.Get( campusId.Value )?.Guid ?? Guid.Empty
-                : Guid.Empty;
+            // Get the campus to filter for as well as the current date.
+            var campus = campusId.HasValue
+                ? CampusCache.Get( campusId.Value )
+                : null;
+            var campusGuid = campus?.Guid ?? Guid.Empty;
+            var now = campus?.CurrentDateTime ?? RockDateTime.Now;
 
             // Filter items by date.
             var promotionItems = contentChannel.Items
@@ -295,202 +254,23 @@ namespace Rock.Blocks.CheckIn
                 ? contentChannel.Items.OrderBy( item => item.Order )
                 : contentChannel.Items.OrderBy( item => item.StartDateTime );
 
-            var promotions = promotionItems
+            return promotionItems
                 .Select( item => new PromotionBag
                 {
-                    Url = $"/GetImage.ashx?guid={item.GetAttributeValue( "Image" )}",
+                    Url = $"{RequestContext.RootUrlPath}/GetImage.ashx?guid={item.GetAttributeValue( "Image" )}",
                     Duration = item.GetAttributeValue( "DisplayDuration" ).AsIntegerOrNull() ?? 15
                 } )
                 .ToList();
-
-            return ActionOk( promotions );
         }
 
         /// <summary>
-        /// Gets the current attendance counts for this kiosk. This will return
-        /// all attendance records that match the kiosk's configured locations
-        /// and the specified area list.
+        /// Gets the bags that represent the current attendance records that can
+        /// be reprinted.
         /// </summary>
-        /// <param name="kioskId">The encrypted kiosk identifier.</param>
-        /// <param name="areaIds">The list of encrypted area identifiers.</param>
-        /// <returns>An object that contains all the information to display the counts.</returns>
-        [BlockAction]
-        public BlockActionResult GetCurrentAttendance( string kioskId, List<string> areaIds )
+        /// <param name="campusId">The campus to limit the attendance records to and determine the current timestamp.</param>
+        /// <returns>A collection of <see cref="ReprintAttendanceBag"/> objects that represent the attendance records.</returns>
+        private List<ReprintAttendanceBag> GetCurrentAttendanceForReprint( int? campusId )
         {
-            var kiosk = DeviceCache.GetByIdKey( kioskId, RockContext );
-
-            if ( kiosk == null )
-            {
-                return ActionBadRequest( "Kiosk not found." );
-            }
-
-            var kioskLocations = kiosk.GetAllLocations().ToList();
-            var kioskLocationIds = kioskLocations.Select( l => l.Id ).ToList();
-
-            var attendance = CheckInDirector.GetCurrentAttendance( RockDateTime.Now, kioskLocationIds, RockContext )
-                .Select( a => new
-                {
-                    Id = a.AttendanceId,
-                    AreaId = a.GroupTypeId,
-                    GroupId = a.GroupId,
-                    LocationId = a.LocationId,
-                    Status = a.Status
-                } )
-                .ToList();
-
-            var areaIdNumbers = areaIds.Select( id => IdHasher.Instance.GetId( id ) ).Where( id => id.HasValue ).Select( id => id.Value ).ToList();
-            var groupLocationQry = new GroupLocationService( RockContext ).Queryable()
-                .Select( gl => new
-                {
-                    gl.LocationId,
-                    gl.GroupId
-                } );
-            var groups = new GroupService( RockContext )
-                .Queryable()
-                .Where( g => areaIdNumbers.Contains( g.GroupTypeId ) )
-                .GroupJoin( groupLocationQry, g => g.Id, gl => gl.GroupId, ( g, gl ) => new
-                {
-                    Group = g,
-                    GroupLocation = gl
-                } )
-                .SelectMany( a => a.GroupLocation.DefaultIfEmpty(), ( g, gl ) => new
-                {
-                    g.Group.Id,
-                    g.Group.Name,
-                    g.Group.GroupTypeId,
-                    gl.LocationId
-                } )
-                .ToList()
-                .GroupBy( a => new { a.Id, a.Name, a.GroupTypeId } )
-                .Select( g => new GroupOpportunityBag
-                {
-                    Id = IdHasher.Instance.GetHash( g.Key.Id ),
-                    Name = g.Key.Name,
-                    AreaId = IdHasher.Instance.GetHash( g.Key.GroupTypeId ),
-                    LocationIds = g.Select( l => IdHasher.Instance.GetHash( l.LocationId ) ).ToList()
-                } )
-                .ToList();
-
-            var locations = kioskLocations
-                .Select( l => new LocationStatusItemBag
-                {
-                    Id = l.IdKey,
-                    Name = l.Name,
-                    IsOpen = l.IsActive
-                } )
-                .ToList();
-
-            foreach ( var att in attendance )
-            {
-                //if ( groups.FirstOrDefault( a => a.Id == att.GroupId ) == null )
-                //{
-                //    var group = GroupCache.GetByIdKey( att.GroupId, RockContext );
-
-                //    if ( group != null )
-                //    {
-                //        groups.Add( new CheckInItemBag
-                //        {
-                //            Id = group.IdKey,
-                //            Name = group.Name
-                //        } );
-                //    }
-                //}
-
-                //if ( locations.FirstOrDefault( a => a.Id == att.LocationId ) == null )
-                //{
-                //    var location = NamedLocationCache.GetByIdKey( att.LocationId, RockContext );
-
-                //    if ( location != null )
-                //    {
-                //        locations.Add( new CheckInItemBag
-                //        {
-                //            Id = location.IdKey,
-                //            Name = location.Name
-                //        } );
-                //    }
-                //}
-            }
-
-            return ActionOk( new
-            {
-                Attendance = attendance,
-                Groups = groups,
-                Locations = locations
-            } );
-        }
-
-        /// <summary>
-        /// Verifies that the PIN code is valid and can be used. This is used
-        /// by the UI to perform the initial login step to the admins creen.
-        /// </summary>
-        /// <param name="pinCode">The PIN code to validate.</param>
-        /// <returns>A 200-OK status if the PIN code was valid.</returns>
-        [BlockAction]
-        public BlockActionResult ValidatePinCode( string pinCode )
-        {
-            if ( !TryAuthenticatePin( pinCode, out var errorMessage ) )
-            {
-                return ActionBadRequest( errorMessage );
-            }
-
-            return ActionOk();
-        }
-
-        /// <summary>
-        /// Sets the open/closed status of a location.
-        /// </summary>
-        /// <param name="pinCode">The PIN code to authenticate the person as.</param>
-        /// <param name="locationId">The encrypted identifier of the location.</param>
-        /// <param name="isOpen"><c>true</c> if the location should be opened; otherwise <c>false</c>.</param>
-        /// <returns>A 200-OK status if the location's status was updated.</returns>
-        [BlockAction]
-        public BlockActionResult SetLocationStatus( string pinCode, string locationId, bool isOpen )
-        {
-            if ( !TryAuthenticatePin( pinCode, out var errorMessage ) )
-            {
-                return ActionBadRequest( errorMessage );
-            }
-
-            var location = new LocationService( RockContext ).Get( locationId, false );
-
-            if ( location == null )
-            {
-                return ActionBadRequest( "Location not found." );
-            }
-
-            location.IsActive = isOpen;
-            RockContext.SaveChanges();
-
-            // Clear the old v1 cache to match functionality.
-            Rock.CheckIn.KioskDevice.Clear();
-
-            return ActionOk();
-        }
-
-        /// <summary>
-        /// Gets the attendance list for use when displaying the list of attendance
-        /// records that can be reprinted.
-        /// </summary>
-        /// <param name="pinCode">The PIN code to authorize the request.</param>
-        /// <param name="kioskId">The encrypted identifier of the kiosk.</param>
-        /// <param name="searchValue">An optional search value to limit the results.</param>
-        /// <returns>A list of attendance records.</returns>
-        [BlockAction]
-        public BlockActionResult GetReprintAttendanceList( string pinCode, string kioskId, string searchValue )
-        {
-            if ( !TryAuthenticatePin( pinCode, out var errorMessage ) )
-            {
-                return ActionBadRequest( errorMessage );
-            }
-
-            var kiosk = DeviceCache.GetByIdKey( kioskId, RockContext );
-
-            if ( kiosk == null )
-            {
-                return ActionBadRequest( "Kiosk was not found." );
-            }
-
-            var campusId = kiosk.GetCampusId();
             var now = RockDateTime.Now;
 
             if ( campusId.HasValue )
@@ -565,7 +345,7 @@ namespace Rock.Blocks.CheckIn
                 } )
                 .ToList();
 
-            var data = items
+            return items
                 .Select( a =>
                 {
                     var group = groups.FirstOrDefault( g => g.Id == a.GroupId );
@@ -591,8 +371,334 @@ namespace Rock.Blocks.CheckIn
                 } )
                 .Where( a => a != null )
                 .ToList();
+        }
 
-            return ActionOk( data );
+        /// <summary>
+        /// Gets the curent attendance to be used with calculation room counts.
+        /// </summary>
+        /// <param name="locationIds">The locations to query to get attendance.</param>
+        /// <param name="campusId">The campus to limit the attendance records to and determine the current timestamp.</param>
+        /// <returns>A set of objects that represent the attendance records that can be used to determine counts in various ways.</returns>
+        private List<ActiveAttendanceBag> GetCurrentAttendanceForLocations( List<int> locationIds, int? campusId )
+        {
+            var campus = campusId.HasValue ? CampusCache.Get( campusId.Value ) : null;
+            var now = campus?.CurrentDateTime ?? RockDateTime.Now;
+
+            // Load only the required properties for the current attendance.
+            return CheckInDirector.GetCurrentAttendance( now, locationIds, RockContext )
+                .Select( a => new ActiveAttendanceBag
+                {
+                    Id = a.AttendanceId,
+                    AreaId = a.GroupTypeId,
+                    GroupId = a.GroupId,
+                    LocationId = a.LocationId,
+                    Status = a.Status
+                } )
+                .ToList();
+        }
+
+        /// <summary>
+        /// Gets the groups and related location identifiers for the set of areas.
+        /// </summary>
+        /// <param name="areaIds">The area identifiers whose groups and locations are retrieved.</param>
+        /// <returns>A collection of <see cref="GroupOpportunityBag"/> objects that represent the groups and locations.</returns>
+        private List<GroupOpportunityBag> GetGroupsAndLocationsForAreas( List<int> areaIds )
+        {
+            var groupLocationQry = new GroupLocationService( RockContext ).Queryable()
+                .Select( gl => new
+                {
+                    gl.LocationId,
+                    gl.GroupId
+                } );
+
+            // Load all groups for these areas and the associated location identifiers.
+            var groupsAndLocations = new GroupService( RockContext )
+                .Queryable()
+                .Where( g => areaIds.Contains( g.GroupTypeId ) )
+                .GroupJoin( groupLocationQry, g => g.Id, gl => gl.GroupId, ( g, gl ) => new
+                {
+                    Group = g,
+                    GroupLocation = gl
+                } )
+                .SelectMany( a => a.GroupLocation.DefaultIfEmpty(), ( g, gl ) => new
+                {
+                    g.Group.Id,
+                    g.Group.Name,
+                    g.Group.GroupTypeId,
+                    LocationId = ( int? ) gl.LocationId
+                } )
+                .ToList();
+
+            // Now we have a list of multiple rows for groups. Aggregate that
+            // data into a single group object that contains all the location
+            // identifiers as a list of IdKey values.
+            return groupsAndLocations
+                .GroupBy( a => new { a.Id, a.Name, a.GroupTypeId } )
+                .Select( g => new GroupOpportunityBag
+                {
+                    Id = IdHasher.Instance.GetHash( g.Key.Id ),
+                    Name = g.Key.Name,
+                    AreaId = IdHasher.Instance.GetHash( g.Key.GroupTypeId ),
+                    LocationIds = g.Where( l => l.LocationId.HasValue )
+                        .Select( l => IdHasher.Instance.GetHash( l.LocationId.Value ) )
+                        .ToList()
+                } )
+                .ToList();
+        }
+
+        /// <summary>
+        /// Gets the path to the group, including the group itself. This is
+        /// represented as a string like <c>&quot;Grand Parent &gt; Parent &gt;
+        /// Child&quot;</c>.
+        /// </summary>
+        /// <param name="groupId">The group identifier whose path is to be returned.</param>
+        /// <returns>A string representing the group path.</returns>
+        private string GetGroupPath( int groupId )
+        {
+            var names = new List<string>();
+            var group = GroupCache.Get( groupId, RockContext );
+
+            while ( group != null && !group.IsArchived )
+            {
+                names.Add( group.Name );
+                group = group.ParentGroup;
+            }
+
+            names.Reverse();
+
+            return string.Join( " > ", names );
+        }
+
+        /// <summary>
+        /// Gets the path to the group, not including the location itself. This is
+        /// represented as a string like <c>&quot;Grand Parent &gt; Parent&quot;</c>.
+        /// </summary>
+        /// <param name="locationId">The location identifier whose path is to be returned.</param>
+        /// <returns>A string representing the group path.</returns>
+        private string GetLocationAncestorPath( int locationId )
+        {
+            var names = new List<string>();
+            var location = NamedLocationCache.Get( locationId, RockContext );
+
+            while ( location != null )
+            {
+                names.Add( location.Name );
+                location = location.ParentLocation;
+            }
+
+            names.Reverse();
+
+            return string.Join( " > ", names );
+        }
+
+        /// <summary>
+        /// Gets the schedule bags that are available for use when configuring
+        /// scheduling for the group locations.
+        /// </summary>
+        /// <returns>A collection of bags that represent the schedules.</returns>
+        private List<CheckInItemBag> GetScheduleBags()
+        {
+            int scheduleCategoryId = CategoryCache.Get( Rock.SystemGuid.Category.SCHEDULE_SERVICE_TIMES.AsGuid() ).Id;
+            var scheduleService = new ScheduleService( RockContext );
+
+            // Limit Schedules to ones that have a CheckInStartOffsetMinutes
+            // and are active and in the right category.
+            return scheduleService.Queryable()
+                .Where( a => a.CheckInStartOffsetMinutes != null
+                    && a.IsActive
+                    && a.CategoryId == scheduleCategoryId )
+                .OrderBy( s => s.Name )
+                .Select( s => new
+                {
+                    s.Id,
+                    s.Name
+                } )
+                .ToList()
+                .Select( s => new CheckInItemBag
+                {
+                    Id = IdHasher.Instance.GetHash( s.Id ),
+                    Name = s.Name
+                } )
+                .ToList();
+        }
+
+        #endregion
+
+        #region Block Actions
+
+        /// <summary>
+        /// Gets the kiosk configuration to use given the saved configuration
+        /// options.
+        /// </summary>
+        /// <param name="savedConfiguration">The options the kiosk was configured with.</param>
+        /// <returns>The full configuration data for the kiosk.</returns>
+        [BlockAction]
+        public BlockActionResult GetKioskConfiguration( SavedKioskConfigurationBag savedConfiguration )
+        {
+            var director = new CheckInDirector( RockContext );
+            var configuration = GetKioskConfiguration( director, savedConfiguration );
+
+            if ( configuration == null )
+            {
+                return ActionBadRequest( "Configuration is not valid." );
+            }
+
+            return ActionOk( configuration );
+        }
+
+        /// <summary>
+        /// Gets the promotion list defined for the template and kiosk.
+        /// </summary>
+        /// <param name="templateId">The check-in template identifier.</param>
+        /// <param name="kioskId">The kiosk identifier.</param>
+        /// <returns>A list of <see cref="PromotionBag"/> objects.</returns>
+        [BlockAction]
+        public BlockActionResult GetPromotionList( string templateId, string kioskId )
+        {
+            var promotionContentChannelGuid = GetAttributeValue( AttributeKey.PromotionsContentChannel ).AsGuidOrNull();
+
+            if ( !promotionContentChannelGuid.HasValue )
+            {
+                return ActionOk( new List<PromotionBag>() );
+            }
+
+            var kiosk = DeviceCache.GetByIdKey( kioskId, RockContext );
+
+            if ( kiosk == null )
+            {
+                return ActionBadRequest( "Invalid kiosk." );
+            }
+
+            return ActionOk( GetPromotionItems( kiosk.GetCampusId() ) );
+        }
+
+        /// <summary>
+        /// Gets the current attendance counts for this kiosk. This will return
+        /// all attendance records that match the kiosk's configured locations
+        /// and the specified area list.
+        /// </summary>
+        /// <param name="kioskId">The encrypted kiosk identifier.</param>
+        /// <param name="areaIds">The list of encrypted area identifiers.</param>
+        /// <returns>An object that contains all the information to display the counts.</returns>
+        [BlockAction]
+        public BlockActionResult GetCurrentAttendance( string kioskId, List<string> areaIds )
+        {
+            var kiosk = DeviceCache.GetByIdKey( kioskId, RockContext );
+
+            if ( kiosk == null )
+            {
+                return ActionBadRequest( "Kiosk not found." );
+            }
+
+            var kioskLocations = kiosk.GetAllLocations().ToList();
+            var kioskLocationIds = kioskLocations.Select( l => l.Id ).ToList();
+            var attendance = GetCurrentAttendanceForLocations( kioskLocationIds, kiosk.GetCampusId() );
+
+            // Translate all the area IdKey values to Id numbers.
+            var areaIdNumbers = areaIds.Select( id => IdHasher.Instance.GetId( id ) )
+                .Where( id => id.HasValue )
+                .Select( id => id.Value )
+                .ToList();
+
+            var groups = GetGroupsAndLocationsForAreas( areaIdNumbers );
+
+            // Translate all the locations into bags the client will be able
+            // to use.
+            var locations = kioskLocations
+                .Select( l => new LocationStatusItemBag
+                {
+                    Id = l.IdKey,
+                    Name = l.Name,
+                    IsOpen = l.IsActive
+                } )
+                .ToList();
+
+            return ActionOk( new GetCurrentAttendanceResponseBag
+            {
+                Attendance = attendance,
+                Groups = groups,
+                Locations = locations
+            } );
+        }
+
+        /// <summary>
+        /// Verifies that the PIN code is valid and can be used. This is used
+        /// by the UI to perform the initial login step to the admins creen.
+        /// </summary>
+        /// <param name="pinCode">The PIN code to validate.</param>
+        /// <returns>A 200-OK status if the PIN code was valid.</returns>
+        [BlockAction]
+        public BlockActionResult ValidatePinCode( string pinCode )
+        {
+            var director = new CheckInDirector( RockContext );
+
+            if ( !director.TryAuthenticatePin( pinCode, out var errorMessage ) )
+            {
+                return ActionBadRequest( errorMessage );
+            }
+
+            return ActionOk();
+        }
+
+        /// <summary>
+        /// Sets the open/closed status of a location.
+        /// </summary>
+        /// <param name="pinCode">The PIN code to authenticate the person as.</param>
+        /// <param name="locationId">The encrypted identifier of the location.</param>
+        /// <param name="isOpen"><c>true</c> if the location should be opened; otherwise <c>false</c>.</param>
+        /// <returns>A 200-OK status if the location's status was updated.</returns>
+        [BlockAction]
+        public BlockActionResult SetLocationStatus( string pinCode, string locationId, bool isOpen )
+        {
+            var director = new CheckInDirector( RockContext );
+
+            if ( !director.TryAuthenticatePin( pinCode, out var errorMessage ) )
+            {
+                return ActionBadRequest( errorMessage );
+            }
+
+            var location = new LocationService( RockContext ).Get( locationId, false );
+
+            if ( location == null )
+            {
+                return ActionBadRequest( "Location not found." );
+            }
+
+            location.IsActive = isOpen;
+            RockContext.SaveChanges();
+
+            // Clear the old v1 cache to match functionality.
+            Rock.CheckIn.KioskDevice.Clear();
+
+            return ActionOk();
+        }
+
+        /// <summary>
+        /// Gets the attendance list for use when displaying the list of attendance
+        /// records that can be reprinted.
+        /// </summary>
+        /// <param name="pinCode">The PIN code to authorize the request.</param>
+        /// <param name="kioskId">The encrypted identifier of the kiosk.</param>
+        /// <param name="searchValue">An optional search value to limit the results.</param>
+        /// <returns>A list of attendance records.</returns>
+        [BlockAction]
+        public BlockActionResult GetReprintAttendanceList( string pinCode, string kioskId, string searchValue )
+        {
+            var director = new CheckInDirector( RockContext );
+
+            if ( !director.TryAuthenticatePin( pinCode, out var errorMessage ) )
+            {
+                return ActionBadRequest( errorMessage );
+            }
+
+            var kiosk = DeviceCache.GetByIdKey( kioskId, RockContext );
+
+            if ( kiosk == null )
+            {
+                return ActionBadRequest( "Kiosk was not found." );
+            }
+
+            return ActionOk( GetCurrentAttendanceForReprint( kiosk.GetCampusId() ) );
         }
 
         /// <summary>
@@ -606,7 +712,9 @@ namespace Rock.Blocks.CheckIn
         [BlockAction]
         public async Task<BlockActionResult> PrintLabels( string pinCode, string kioskId, string attendanceId )
         {
-            if ( !TryAuthenticatePin( pinCode, out var errorMessage ) )
+            var director = new CheckInDirector( RockContext );
+
+            if ( !director.TryAuthenticatePin( pinCode, out var errorMessage ) )
             {
                 return ActionBadRequest( errorMessage );
             }
@@ -625,7 +733,35 @@ namespace Rock.Blocks.CheckIn
                 return ActionBadRequest( "Invalid attendance." );
             }
 
-            var director = new CheckInDirector( RockContext );
+            // If the attendance record has legacy labels then use those for
+            // re-printing instead of the new label format.
+            if ( RockContext.Set<AttendanceData>().Any( a => a.Id == attendanceIdNumber.Value ) )
+            {
+                var attendance = new AttendanceService( RockContext ).Get( attendanceIdNumber.Value );
+                var attendanceIds = new List<int> { attendance.Id };
+                var possibleLabels = ZebraPrint.GetLabelTypesForPerson( attendance.PersonAlias.PersonId, attendanceIds );
+                var fileGuids = possibleLabels.Select( pl => pl.FileGuid ).ToList();
+
+                var (legacyMessages, legacyClientLabels) = ZebraPrint.ReprintZebraLabels( fileGuids, attendance.PersonAlias.PersonId, attendanceIds, null );
+
+                var clientLabels = legacyClientLabels
+                    .Select( label => new LegacyClientLabelBag
+                    {
+                        LabelFile = RequestContext.RootUrlPath + label.LabelFile,
+                        LabelKey = label.LabelKey,
+                        MergeFields = label.MergeFields,
+                        PrinterAddress = label.PrinterAddress
+                    } )
+                    .ToList();
+
+                return ActionOk( new
+                {
+                    ErrorMessages = legacyMessages,
+                    LegacyLabels = clientLabels
+                } );
+            }
+
+            // Use the new label format for re-printing.
             var labels = director.LabelProvider.RenderLabels( new List<int> { attendanceIdNumber.Value }, null, false );
 
             var errorMessages = labels.Where( l => l.Error.IsNotNullOrWhiteSpace() )
@@ -663,6 +799,205 @@ namespace Rock.Blocks.CheckIn
             {
                 ErrorMessages = errorMessages
             } );
+        }
+
+        /// <summary>
+        /// Gets all the currently scheduled group locations. This is used by
+        /// the Schedule Locations screen to build the grid of locations and
+        /// schedules that are currently configured.
+        /// </summary>
+        /// <param name="pinCode">The PIN code to authorize the request.</param>
+        /// <param name="kioskId">The encrypted identifier of the kiosk.</param>
+        /// <param name="areaIds">The encrypted identifiers of the areas the kiosk is configured for.</param>
+        /// <returns>The list of schedules and locations that can be scheduled.</returns>
+        [BlockAction]
+        public BlockActionResult GetScheduledLocations( string pinCode, string kioskId, List<string> areaIds )
+        {
+            var director = new CheckInDirector( RockContext );
+
+            if ( !director.TryAuthenticatePin( pinCode, out var errorMessage ) )
+            {
+                return ActionBadRequest( errorMessage );
+            }
+
+            var kiosk = DeviceCache.GetByIdKey( kioskId, RockContext );
+
+            if ( kiosk == null )
+            {
+                return ActionBadRequest( "Invalid kiosk." );
+            }
+
+            // Translate all the IdKey values to Id numbers.
+            var areaIdNumbers = areaIds.Select( id => IdHasher.Instance.GetId( id ) )
+                .Where( id => id.HasValue )
+                .Select( id => id.Value )
+                .ToList();
+
+            var groupLocationService = new GroupLocationService( RockContext );
+            var groupTypeService = new GroupTypeService( RockContext );
+            var locationIds = kiosk.GetAllLocationIds().ToList();
+
+            var templateGroupPaths = new Dictionary<int, List<CheckinAreaPath>>();
+            var currentAndDescendantGroupTypeIds = new List<int>();
+            foreach ( var groupType in GroupTypeCache.GetMany( areaIdNumbers ) )
+            {
+                foreach ( var parentGroupType in groupType.ParentGroupTypes )
+                {
+                    if ( !templateGroupPaths.ContainsKey( parentGroupType.Id ) )
+                    {
+                        templateGroupPaths.Add( parentGroupType.Id, groupTypeService.GetCheckinAreaDescendantsPath( parentGroupType.Id ).ToList() );
+                    }
+                }
+
+                currentAndDescendantGroupTypeIds.Add( groupType.Id );
+                currentAndDescendantGroupTypeIds.AddRange( groupTypeService.GetCheckinAreaDescendants( groupType.Id ).Select( a => a.Id ).ToList() );
+            }
+
+            var areaPaths = new List<CheckinAreaPath>( templateGroupPaths.Values.SelectMany( v => v ) );
+
+            var groupLocations = groupLocationService.Queryable()
+                .Where( gl => currentAndDescendantGroupTypeIds.Contains( gl.Group.GroupTypeId ) )
+                .Where( gl => locationIds.Contains( gl.LocationId ) )
+                .OrderBy( gl => gl.Group.Name )
+                .ThenBy( gl => gl.Location.Name )
+                .Select( gl => new
+                {
+                    GroupLocationId = gl.Id,
+                    LocationId = gl.Location.Id,
+                    LocationName = gl.Location.Name,
+                    gl.Location.ParentLocationId,
+                    gl.GroupId,
+                    GroupName = gl.Group.Name,
+                    ScheduleIdList = gl.Schedules.Select( s => s.Id ),
+                    gl.Group.GroupTypeId
+                } )
+                .ToList();
+
+            var locationService = new LocationService( RockContext );
+            var locationPaths = new Dictionary<int, string>();
+
+            var scheduledLocations = groupLocations
+                .Select( groupLocation =>
+                {
+                    var scheduledLocation = new ScheduledLocationBag
+                    {
+                        GroupLocationId = IdHasher.Instance.GetHash( groupLocation.GroupLocationId ),
+                        GroupPath = GetGroupPath( groupLocation.GroupId ),
+                        AreaPath = areaPaths.Where( gt => gt.GroupTypeId == groupLocation.GroupTypeId )
+                            .Select( gt => gt.Path )
+                            .FirstOrDefault(),
+                        LocationName = groupLocation.LocationName,
+                        ScheduleIds = groupLocation.ScheduleIdList
+                            .Select( id => IdHasher.Instance.GetHash( id ) )
+                            .ToList()
+                    };
+
+                    if ( groupLocation.ParentLocationId.HasValue )
+                    {
+                        if ( !locationPaths.TryGetValue( groupLocation.ParentLocationId.Value, out var locationPath ) )
+                        {
+                            locationPath = GetLocationAncestorPath( groupLocation.ParentLocationId.Value );
+
+                            locationPaths.Add( groupLocation.ParentLocationId.Value, locationPath );
+                        }
+
+                        scheduledLocation.LocationPath = locationPath;
+                    }
+
+                    return scheduledLocation;
+                } )
+                .ToList();
+
+            return ActionOk( new GetScheduledLocationsResponseBag
+            {
+                Schedules = GetScheduleBags(),
+                ScheduledLocations = scheduledLocations
+            } );
+        }
+
+        /// <summary>
+        /// Saves all the scheduled locations to match the data provided. This
+        /// will add and remove any GroupLocationSchedule that are required to
+        /// match the provided values.
+        /// </summary>
+        /// <param name="pinCode">The PIN code to authorize the request.</param>
+        /// <param name="scheduledLocations">The group locations and selected schedules.</param>
+        /// <returns>A 200-OK response that indicates everything was saved correctly.</returns>
+        [BlockAction]
+        public BlockActionResult SaveScheduledLocations( string pinCode, List<ScheduledLocationBag> scheduledLocations )
+        {
+            var director = new CheckInDirector( RockContext );
+
+            if ( !director.TryAuthenticatePin( pinCode, out var errorMessage ) )
+            {
+                return ActionBadRequest( errorMessage );
+            }
+
+            // Normally we would want to validate all the data to be sure it
+            // only specified valid locations and groups. But in the case of
+            // this block we have decided that we are trusting the client by
+            // way of the pinCode.
+
+            // Load all the group locations in a single query, along with the
+            // schedule information.
+            var groupLocationIds = scheduledLocations
+                .Select( sl => IdHasher.Instance.GetId( sl.GroupLocationId ) )
+                .Where( id => id.HasValue )
+                .Select( id => id.Value )
+                .ToList();
+            var groupLocations = new GroupLocationService( RockContext )
+                .Queryable()
+                .Include( gl => gl.Schedules )
+                .Where( gl => groupLocationIds.Contains( gl.Id ) )
+                .ToList();
+
+            // Get the schedule IdKey values that are valid. This is used so we
+            // don't delete a schedule that wasn't available for selection.
+            var validScheduleIds = GetScheduleBags().Select( s => s.Id ).ToList();
+            var scheduleService = new ScheduleService( RockContext );
+
+            foreach ( var scheduledLocation in scheduledLocations )
+            {
+                var groupLocation = groupLocations.FirstOrDefault( gl => gl.IdKey == scheduledLocation.GroupLocationId );
+
+                if ( groupLocation == null )
+                {
+                    return ActionBadRequest( "Group or Location was not valid." );
+                }
+
+                // Add any schedules that are new.
+                foreach ( var scheduleIdKey in scheduledLocation.ScheduleIds )
+                {
+                    var scheduleId = IdHasher.Instance.GetId( scheduleIdKey );
+
+                    if ( !scheduleId.HasValue )
+                    {
+                        continue;
+                    }
+
+                    if ( !groupLocation.Schedules.Any( s => s.Id == scheduleId ) )
+                    {
+                        groupLocation.Schedules.Add( scheduleService.Get( scheduleId.Value ) );
+                    }
+                }
+
+                // Remove any schedules that are old.
+                foreach ( var schedule in groupLocation.Schedules.ToList() )
+                {
+                    if ( !scheduledLocation.ScheduleIds.Contains( schedule.IdKey ) && validScheduleIds.Contains( schedule.IdKey ) )
+                    {
+                        groupLocation.Schedules.Remove( schedule );
+                    }
+                }
+            }
+
+            if ( RockContext.SaveChanges() > 0 )
+            {
+                // Temporary until legacy check-in is removed.
+                KioskDevice.Clear();
+            }
+
+            return ActionOk();
         }
 
         #endregion

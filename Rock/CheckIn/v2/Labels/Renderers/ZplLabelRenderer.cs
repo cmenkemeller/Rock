@@ -199,6 +199,9 @@ namespace Rock.CheckIn.v2.Labels.Renderers
             if ( config.HorizontalAlignment == HorizontalTextAlignment.Center )
             {
                 alignment = "C";
+                // If the text does not end in a ZPL newline then the alignment
+                // doesn't work exactly as expected.
+                textValue += "\\&";
             }
             else if ( config.HorizontalAlignment == HorizontalTextAlignment.Right )
             {
@@ -484,10 +487,17 @@ namespace Rock.CheckIn.v2.Labels.Renderers
             var config = field.GetConfiguration<BarcodeFieldConfiguration>();
             string content = null;
 
-            if ( config.IsDynamic )
+            if ( config.IsDynamic && config.DynamicTextTemplate.IsNotNullOrWhiteSpace() )
             {
-                var mergeFields = PrintRequest.GetMergeFields();
-                content = config.DynamicTextTemplate.ResolveMergeFields( mergeFields );
+                if ( config.DynamicTextTemplate.IsLavaTemplate() )
+                {
+                    var mergeFields = PrintRequest.GetMergeFields();
+                    content = config.DynamicTextTemplate.ResolveMergeFields( mergeFields );
+                }
+                else
+                {
+                    content = config.DynamicTextTemplate;
+                }
             }
             else if ( PrintRequest.LabelData is ILabelDataHasPerson personData )
             {

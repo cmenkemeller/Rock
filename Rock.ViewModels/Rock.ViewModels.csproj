@@ -61,11 +61,13 @@
     <Compile Include="Blocks\BlockActionContextBag.cs" />
     <Compile Include="Blocks\CheckIn\CheckInKiosk\ActiveAttendanceBag.cs" />
     <Compile Include="Blocks\CheckIn\CheckInKiosk\GetCurrentAttendanceResponseBag.cs" />
+    <Compile Include="Blocks\CheckIn\CheckInKiosk\GetScheduledLocationsResponseBag.cs" />
     <Compile Include="Blocks\CheckIn\CheckInKiosk\KioskConfigurationBag.cs" />
     <Compile Include="Blocks\CheckIn\CheckInKiosk\LocationStatusItemBag.cs" />
     <Compile Include="Blocks\CheckIn\CheckInKiosk\PromotionBag.cs" />
     <Compile Include="Blocks\CheckIn\CheckInKiosk\ReprintAttendanceBag.cs" />
     <Compile Include="Blocks\CheckIn\CheckInKiosk\SavedKioskConfigurationBag.cs" />
+    <Compile Include="Blocks\CheckIn\CheckInKiosk\ScheduledLocationBag.cs" />
     <Compile Include="Blocks\CheckIn\CheckInKiosk\WebKioskBag.cs" />
     <Compile Include="Blocks\CheckIn\Configuration\CheckInSimulator\CheckInSimulatorOptionsBag.cs" />
     <Compile Include="Blocks\CheckIn\Configuration\LabelDesigner\DataSourceBag.cs" />
@@ -630,6 +632,7 @@
     <Compile Include="Blocks\WebFarm\WebFarmNodeDetail\WebFarmMetricBag.cs" />
     <Compile Include="Blocks\WebFarm\WebFarmNodeDetail\WebFarmNodeBag.cs" />
     <Compile Include="Blocks\WebFarm\WebFarmNodeDetail\WebFarmNodeDetailOptionsBag.cs" />
+    <Compile Include="Blocks\WebFarm\WebFarmNodeLogList\WebFarmNodeLogListOptionsBag.cs" />
     <Compile Include="Blocks\WebFarm\WebFarmSettings\WebFarmSettingsBag.cs" />
     <Compile Include="Blocks\WebFarm\WebFarmSettings\WebFarmSettingsDetailOptionsBag.cs" />
     <Compile Include="Blocks\Mobile\Communication\SmsConversationList\PhoneNumberBag.cs" />
@@ -665,6 +668,7 @@
     <Compile Include="CheckIn\Labels\IconFieldConfigurationBag.cs" />
     <Compile Include="CheckIn\Labels\ImageFieldConfigurationBag.cs" />
     <Compile Include="CheckIn\Labels\LabelFieldBag.cs" />
+    <Compile Include="CheckIn\Labels\LegacyClientLabelBag.cs" />
     <Compile Include="CheckIn\Labels\LineFieldConfigurationBag.cs" />
     <Compile Include="CheckIn\Labels\RectangleFieldConfigurationBag.cs" />
     <Compile Include="CheckIn\Labels\TextFieldConfigurationBag.cs" />
