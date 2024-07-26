@@ -89,7 +89,14 @@
                     <tbody>
                         <tr v-for="file in files" :key="file.key">
                             <td>
-                                <CheckBox label="" v-model="selectedFileKeys" :value="file.key" />
+                                <div class="control-wrapper">
+                                    <div class="checkbox">
+                                        <label class="rock-checkbox-icon">
+                                            <input type="checkbox" v-model="selectedFileKeys" :value="file.key" />
+                                            <span class="label-text"><span class="sr-only">Select file: {{ file.name }}</span></span>
+                                        </label>
+                                    </div>
+                                </div>
                             </td>
                             <td>
                                 <img :src="file.iconPath" style="object-fit: cover; height: 58px; width: 44px;">
@@ -230,13 +237,13 @@
     import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
     import { TreeItemBag } from "@Obsidian/ViewModels/Utility/treeItemBag";
     import { useHttp } from "@Obsidian/Utility/http";
-    import { findFolder, folderNameComparator, isValidFolderName } from "@Obsidian/Utility/assetProvider";
+    import { findFolder, folderNameComparator, isValidFolderName } from "@Obsidian/Core/Utilities/assetProvider";
     import { MenuAction } from "@Obsidian/Types/Controls/dropDownMenu";
     import { RockDateTime, DateTimeFormat } from "@Obsidian/Utility/rockDateTime";
     import { confirm } from "@Obsidian/Utility/dialogs";
     import { ValidationRule } from "@Obsidian/ValidationRules";
     import { uploadAssetProviderFile, uploadContentFile } from "@Obsidian/Utility/http";
-    import * as Path from "@Obsidian/Utility/path";
+    import * as Path from "@Obsidian/Core/Utilities/path";
 
     const props = defineProps({
         modelValue: {

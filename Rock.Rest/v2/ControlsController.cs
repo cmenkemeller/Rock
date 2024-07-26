@@ -47,6 +47,7 @@ using Rock.Media;
 using Rock.Model;
 using Rock.Rest.Filters;
 using Rock.Security;
+using Rock.Storage;
 using Rock.Storage.AssetStorage;
 using Rock.Utility;
 using Rock.Utility.CaptchaApi;

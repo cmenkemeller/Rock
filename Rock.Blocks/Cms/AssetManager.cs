@@ -154,7 +154,7 @@ namespace Rock.Blocks.Cms
                 Height = GetAttributeValue( AttributeKey.Height ),
                 RootFolder = Rock.Security.Encryption.EncryptString( GetAttributeValue( AttributeKey.RootFolder ) ),
                 BrowseMode = GetAttributeValue( AttributeKey.BrowseMode ),
-                FileEditorPage = GetUrlFromLinkedPage( GetAttributeValue( AttributeKey.FileEditorPage ) ),
+                FileEditorPage = this.GetLinkedPageUrl( GetAttributeValue( AttributeKey.FileEditorPage ) ),
                 EnableZipUploader = GetAttributeValue( AttributeKey.ZipUploaderEnabled ).AsBoolean(),
             };
 

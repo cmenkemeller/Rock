@@ -21,6 +21,7 @@
 // </copyright>
 //
 
+/** Contains extra configuration details for the Asset Manager block. */
 export type AssetManagerOptionsBag = {
     /** Select 'image' to show only image files. Select 'doc' to show all files. */
     browseMode?: string | null;

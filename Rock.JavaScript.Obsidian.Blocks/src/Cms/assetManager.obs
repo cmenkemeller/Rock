@@ -15,10 +15,9 @@
 
 <script setup lang="ts">
     import { computed, ref, watch } from "vue";
-    import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
     import AssetAndFileManager from "@Obsidian/Controls/assetAndFileManager.obs";
     import Block from "@Obsidian/Templates/block";
-    import { useConfigurationValues, usePersonPreferences, useInvokeBlockAction, onConfigurationValuesChanged, useReloadBlock } from "@Obsidian/Utility/block";
+    import { useConfigurationValues, usePersonPreferences, onConfigurationValuesChanged, useReloadBlock } from "@Obsidian/Utility/block";
     import { PreferenceKey } from "./AssetManager/types.partial";
     import { AssetManagerOptionsBag } from "@Obsidian/ViewModels/Blocks/Cms/AssetManager/assetManagerOptionsBag";
 
@@ -27,16 +26,7 @@
     // #region Values
 
     const preferences = usePersonPreferences().blockPreferences;
-    let openFolderPreference: string[];
-
-    try {
-        openFolderPreference = JSON.parse(preferences.getValue(PreferenceKey.OpenFolders));
-    }
-    catch (e) {
-        openFolderPreference = [];
-    }
-
-    const openFolders = ref<string[]>(openFolderPreference ?? []);
+    const openFolders = ref<string[]>(getOpenFoldersFromPreferences());
     const selectedFolder = ref<string>(preferences.getValue(PreferenceKey.SelectedFolder));
 
     // #endregion
@@ -67,6 +57,15 @@
     });
 
     // #endregion
+
+    function getOpenFoldersFromPreferences(): string[] {
+        try {
+            return JSON.parse(preferences.getValue(PreferenceKey.OpenFolders)) ?? [];
+        }
+        catch (e) {
+            return [];
+        }
+    }
 
     onConfigurationValuesChanged(useReloadBlock());
 </script>
