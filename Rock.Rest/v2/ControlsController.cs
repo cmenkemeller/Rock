@@ -126,7 +126,7 @@ namespace Rock.Rest.v2
                 .Select( a => new TreeItemBag
                 {
                     Value = a.Guid.ToString(),
-                    Text = HttpUtility.HtmlEncode( options.DisplayPublicName ? a.PublicName : a.Name ),
+                    Text = options.DisplayPublicName ? a.PublicName : a.Name,
                     IsActive = a.IsActive,
                     IconCssClass = "fa fa-file-o"
                 } ).ToList();
@@ -256,7 +256,7 @@ namespace Rock.Rest.v2
                     .Select( a => new ListItemBag
                     {
                         Value = a.Guid.ToString(),
-                        Text = HttpUtility.HtmlEncode( ( options.DisplayPublicName ? a.PublicName : a.Name ) + ( a.GlCode.IsNotNullOrWhiteSpace() ? $" ({a.GlCode})" : "" ) ),
+                        Text = ( options.DisplayPublicName ? a.PublicName : a.Name ) + ( a.GlCode.IsNotNullOrWhiteSpace() ? $" ({a.GlCode})" : "" ),
                         Category = financialAccountService.GetDelimitedAccountHierarchy( a, FinancialAccountService.AccountHierarchyDirection.CurrentAccountToParent )
                     } )
                     .ToList();
@@ -296,7 +296,7 @@ namespace Rock.Rest.v2
                     .Select( a => new ListItemBag
                     {
                         Value = a.Guid.ToString(),
-                        Text = HttpUtility.HtmlEncode( options.DisplayPublicName ? a.PublicName : a.Name ),
+                        Text = options.DisplayPublicName ? a.PublicName : a.Name,
                         Category = financialAccountService.GetDelimitedAccountHierarchy( a, FinancialAccountService.AccountHierarchyDirection.CurrentAccountToParent )
                     } )
                     .ToList();
@@ -6982,6 +6982,7 @@ namespace Rock.Rest.v2
             var countryCodeRules = new Dictionary<string, List<PhoneNumberCountryCodeRulesConfigurationBag>>();
             var definedType = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.COMMUNICATION_PHONE_COUNTRY_CODE.AsGuid() );
             string defaultCountryCode = null;
+            var countryCodes = new List<string>();
 
             if ( definedType != null )
             {
@@ -7007,6 +7008,7 @@ namespace Rock.Rest.v2
                     }
 
                     countryCodeRules.Add( countryCode, rules );
+                    countryCodes.Add( countryCode );
                 }
             }
 
@@ -7016,6 +7018,7 @@ namespace Rock.Rest.v2
                 {
                     Rules = countryCodeRules,
                     DefaultCountryCode = defaultCountryCode,
+                    CountryCodes = countryCodes,
                     SmsOptInText = Rock.Web.SystemSettings.GetValue( Rock.SystemKey.SystemSetting.SMS_OPT_IN_MESSAGE_LABEL )
                 } );
             }
@@ -7023,6 +7026,7 @@ namespace Rock.Rest.v2
             return Ok( new PhoneNumberBoxGetConfigurationResultsBag
             {
                 Rules = countryCodeRules,
+                CountryCodes = countryCodes,
                 DefaultCountryCode = defaultCountryCode
             } );
         }
