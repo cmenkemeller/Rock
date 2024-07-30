@@ -17,11 +17,12 @@
     import { computed, ref, watch } from "vue";
     import AssetAndFileManager from "@Obsidian/Controls/assetAndFileManager.obs";
     import Block from "@Obsidian/Templates/block";
-    import { useConfigurationValues, usePersonPreferences, onConfigurationValuesChanged, useReloadBlock } from "@Obsidian/Utility/block";
+    import { getSecurityGrant, provideSecurityGrant, useConfigurationValues, usePersonPreferences, onConfigurationValuesChanged, useReloadBlock } from "@Obsidian/Utility/block";
     import { PreferenceKey } from "./AssetManager/types.partial";
     import { AssetManagerOptionsBag } from "@Obsidian/ViewModels/Blocks/Cms/AssetManager/assetManagerOptionsBag";
 
     const config = useConfigurationValues<AssetManagerOptionsBag>();
+    const securityGrant = getSecurityGrant(config.securityGrantToken);
 
     // #region Values
 
@@ -68,4 +69,5 @@
     }
 
     onConfigurationValuesChanged(useReloadBlock());
+    provideSecurityGrant(securityGrant);
 </script>
