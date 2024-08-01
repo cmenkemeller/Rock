@@ -57,8 +57,6 @@ namespace Rock.Rest.v2.Controllers
         // Used for creating random strings
         private static Random random = new Random();
 
-        private readonly ILogger _logger = RockLogger.LoggerFactory.CreateLogger<TvController>();
-
         #region Constants
         private const int _codeReusePeriodInMinutes = 120;
         #endregion
@@ -79,7 +77,6 @@ namespace Rock.Rest.v2.Controllers
             // Get device data from the request header
             // Get device data
             var deviceData = JsonConvert.DeserializeObject<DeviceData>( this.Request.GetHeader( "X-Rock-DeviceData" ) );
-            _logger.LogDebug( $"Retrieving Apple TV site with header X-Rock-App-Id: {siteId}, and device data: {deviceData?.ToJson() ?? ""}." );
             if ( deviceData == null )
             {
                 StatusCode( HttpStatusCode.InternalServerError );
@@ -182,7 +179,6 @@ namespace Rock.Rest.v2.Controllers
 
                 launchPacket.RockVersion = VersionInfo.VersionInfo.GetRockProductVersionNumber();
 
-                _logger.LogDebug( $"Retrieved launch packet: {launchPacket?.ToJson() ?? ""}." );
                 return Ok( launchPacket );
             }
             catch ( Exception )
@@ -263,7 +259,6 @@ namespace Rock.Rest.v2.Controllers
 
             // Get requested cache control from client (client trumps server. We'll use this to set the reponse header to help inform any CDNs
             var cacheRequest = this.Request.GetHeader( "X-Rock-Tv-RequestedCacheControl" );
-            _logger.LogDebug( $"Getting TVML for page, with cache request settings: {cacheRequest}" );
             if ( cacheRequest.IsNotNullOrWhiteSpace() )
             {
                 var cacheParts = cacheRequest.Split( ':' );
@@ -352,7 +347,6 @@ namespace Rock.Rest.v2.Controllers
                 response.Content = new StringContent( pageResponse.ToJson(), System.Text.Encoding.UTF8, "application/json" );
                 response.StatusCode = HttpStatusCode.OK;
 
-                _logger.LogDebug( $"Successfully got TVML, Current Person Id = {currentPerson?.Id ?? 0}" );
                 return response;
             }
             catch
@@ -801,6 +795,7 @@ namespace Rock.Rest.v2.Controllers
             }
         }
 
+        /// <summary>
         /// Checks the authenication session.
         /// </summary>
         /// <param name="siteId">The site identifier.</param>
@@ -815,7 +810,6 @@ namespace Rock.Rest.v2.Controllers
             var authCheckResponse = new AuthCodeCheckResponse();
 
             var deviceData = JsonConvert.DeserializeObject<DeviceData>( this.Request.GetHeader( "X-Rock-DeviceData" ) );
-            _logger.LogDebug( $"[LOGIN: {code}] Checking authentication session with device data: {deviceData?.ToJson() ?? ""}." );
 
             var rockContext = new RockContext();
             var remoteAuthenticationSessionService = new RemoteAuthenticationSessionService( rockContext );
@@ -837,7 +831,6 @@ namespace Rock.Rest.v2.Controllers
                                     .OrderByDescending( s => s.SessionStartDateTime )
                                     .FirstOrDefault();
 
-            _logger.LogDebug( $"[LOGIN: {code}] Validated session: {validatedSession?.ToJson() ?? "None"}." );
             if ( validatedSession != null )
             {
                 // Mark the auth session as ended
@@ -845,7 +838,6 @@ namespace Rock.Rest.v2.Controllers
                 rockContext.SaveChanges();
 
                 authCheckResponse.CurrentPerson = TvHelper.GetTvPerson( validatedSession.AuthorizedPersonAlias.Person );
-                _logger.LogDebug( $"[LOGIN: {code}] Got CurrentPerson (id: {authCheckResponse?.CurrentPerson?.PersonId.ToStringSafe() ?? "Critical failure"})" );
 
                 // Obsolete property because of incorrect spelling.
 #pragma warning disable
@@ -882,7 +874,6 @@ namespace Rock.Rest.v2.Controllers
             response.Content = new StringContent( authCheckResponse.ToJson(), System.Text.Encoding.UTF8, "application/json" );
             response.StatusCode = HttpStatusCode.OK;
 
-            _logger.LogDebug( $"[LOGIN: {code}] Check completed, response: {authCheckResponse?.ToJson() ?? ""}" );
             return response;
         }
 
