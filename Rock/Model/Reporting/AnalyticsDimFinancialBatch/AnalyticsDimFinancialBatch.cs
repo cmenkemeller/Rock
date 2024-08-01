@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -19,6 +19,7 @@ using Rock.Utility;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
 
 namespace Rock.Model
@@ -30,7 +31,6 @@ namespace Rock.Model
     [Table( "AnalyticsDimFinancialBatch" )]
     [DataContract]
     [HideFromReporting]
-    [CodeGenExclude( CodeGenFeature.ViewModelFile )]
     [Rock.SystemGuid.EntityTypeGuid( "F970FF85-F3ED-41BD-90D9-5511BACED928")]
     public class AnalyticsDimFinancialBatch : Entity<AnalyticsDimFinancialBatch>
     {
@@ -134,4 +134,22 @@ namespace Rock.Model
 
         #endregion Entity Properties Specific to Analytics
     }
+
+    #region Entity Configuration
+
+    /// <summary>
+    /// AnalyticsDimFinancialBatch Configuration Class
+    /// </summary>
+    public partial class AnalyticsDimFinancialBatchConfiguration : EntityTypeConfiguration<AnalyticsDimFinancialBatch>
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AnalyticsDimFinancialBatchConfiguration"/> class.
+        /// </summary>
+        public AnalyticsDimFinancialBatchConfiguration()
+        {
+            // Empty constructor. This is required to tell EF that this model exists.
+        }
+    }
+
+    #endregion Entity Configuration
 }

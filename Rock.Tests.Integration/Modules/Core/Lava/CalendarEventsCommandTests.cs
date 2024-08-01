@@ -17,14 +17,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using Rock.Data;
 using Rock.Lava;
 using Rock.Model;
+using Rock.Tests.Integration.Events;
 using Rock.Tests.Shared;
-using Rock.Web.Cache;
+using Rock.Tests.Shared.Lava;
 
-namespace Rock.Tests.Integration.Core.Lava
+namespace Rock.Tests.Integration.Modules.Core.Lava
 {
     /// <summary>
     /// Tests for Lava Command "CalendarEvents".
@@ -55,7 +58,7 @@ namespace Rock.Tests.Integration.Core.Lava
         [ClassInitialize]
         public static void Initialize( TestContext context )
         {
-            TestDataHelper.Events.AddDataForRockSolidFinancesClass();
+            EventsDataManager.Instance.AddDataForRockSolidFinancesClass();
         }
 
         private string GetTestTemplate( string parameters )

@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -19,6 +19,7 @@ using Rock.Utility;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
 
 namespace Rock.Model
@@ -30,7 +31,6 @@ namespace Rock.Model
     [Table( "AnalyticsDimFinancialAccount" )]
     [DataContract]
     [HideFromReporting]
-    [CodeGenExclude( CodeGenFeature.ViewModelFile )]
     [Rock.SystemGuid.EntityTypeGuid( "893F38F8-FBF8-4157-B718-6009298ABC91")]
     public class AnalyticsDimFinancialAccount : Entity<AnalyticsDimFinancialAccount>
     {
@@ -223,4 +223,22 @@ namespace Rock.Model
 
         #endregion Entity Properties Specific to Analytics
     }
+
+    #region Entity Configuration
+
+    /// <summary>
+    /// AnalyticsDimFinancialAccount Configuration Class
+    /// </summary>
+    public partial class AnalyticsDimFinancialAccountConfiguration : EntityTypeConfiguration<AnalyticsDimFinancialAccount>
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AnalyticsDimFinancialAccountConfiguration"/> class.
+        /// </summary>
+        public AnalyticsDimFinancialAccountConfiguration()
+        {
+            // Empty constructor. This is required to tell EF that this model exists.
+        }
+    }
+
+    #endregion Entity Configuration
 }

@@ -5,7 +5,8 @@
             <div class="col-md-6">
                 <TextBox v-model="attributeName"
                          label="Name"
-                         rules="required" />
+                         rules="required"
+                         @blur="populateAttributeKey" />
             </div>
 
             <div class="col-md-6">
@@ -84,6 +85,11 @@
                               help="If selected, changes to the value of this attribute will be stored in attribute value history."
                               text="Yes" />
 
+                    <CheckBox label="Suppress History Logging"
+                              v-model="isSuppressHistoryLogging"
+                              help="If selected, changes to the attribute values will not be recorded into the generic History log table."
+                              text="Yes" />
+
                     <CheckBox v-if="isAllowSearchVisible"
                               label="Allow Search"
                               v-model="isAllowSearch"
@@ -137,6 +143,7 @@
     import StaticFormControl from "./staticFormControl.obs";
     import Panel from "./panel.obs";
     import { EntityType } from "@Obsidian/SystemGuids/entityType";
+    import { emptyGuid } from "@Obsidian/Utility/guid";
 
     const props = defineProps({
         modelValue: {
@@ -145,8 +152,7 @@
         },
 
         attributeEntityTypeGuid: {
-            type: String as PropType<Guid>,
-            default: ""
+            type: String as PropType<Guid | undefined>
         },
 
         isAnalyticsVisible: {
@@ -199,11 +205,12 @@
     const isIndexingEnabled = ref(props.modelValue?.isIndexEnabled ?? false);
     const isAnalyticsEnabled = ref(props.modelValue?.isAnalytic ?? false);
     const isAnalyticsHistoryEnabled = ref(props.modelValue?.isAnalyticHistory ?? false);
+    const isSuppressHistoryLogging = ref(props.modelValue?.isSuppressHistoryLogging ?? false);
     const preHtml = ref(props.modelValue?.preHtml ?? "");
     const postHtml = ref(props.modelValue?.postHtml ?? "");
     const categories = ref([...(props.modelValue?.categories ?? [])]);
     const fieldTypeValue = ref<FieldTypeEditorUpdateAttributeConfigurationOptionsBag>({
-        fieldTypeGuid: props.modelValue?.fieldTypeGuid ?? "",
+        fieldTypeGuid: props.modelValue?.realFieldTypeGuid || props.modelValue?.fieldTypeGuid || emptyGuid,
         configurationValues: { ...(props.modelValue?.configurationValues ?? {}) },
         defaultValue: props.modelValue?.defaultValue ?? ""
     });
@@ -220,6 +227,21 @@
     const isFieldTypeReadOnly = computed((): boolean => !!props.modelValue?.guid);
 
     const attributeGuid = computed((): Guid | undefined | null => props.modelValue?.guid);
+
+    function populateAttributeKey(): void {
+        // if the attribute key hasn't been filled in yet, populate it with the attribute name minus whitespace
+        if (attributeKey.value.trim() == "" && attributeName.value.trim() != "") {
+            let keyValue = attributeName.value.trim().replace(/[^a-zA-Z0-9_.-]/g, "");
+            let newKeyValue = keyValue;
+
+            let i = 1;
+            while (props.reservedKeyNames.includes(newKeyValue)) {
+                newKeyValue = keyValue + i++;
+            }
+
+            attributeKey.value = newKeyValue;
+        }
+    }
 
     watch([
         attributeName,
@@ -239,7 +261,8 @@
         preHtml,
         postHtml,
         categories,
-        fieldTypeValue],
+        fieldTypeValue,
+        isSuppressHistoryLogging],
         () => {
             const newModelValue: PublicEditableAttributeBag = {
                 ...(props.modelValue ?? { isSystem: false }),
@@ -262,7 +285,8 @@
                 categories: [...categories.value],
                 fieldTypeGuid: fieldTypeValue.value.fieldTypeGuid,
                 configurationValues: { ...fieldTypeValue.value.configurationValues },
-                defaultValue: fieldTypeValue.value.defaultValue
+                defaultValue: fieldTypeValue.value.defaultValue,
+                isSuppressHistoryLogging: isSuppressHistoryLogging.value
             };
 
             emit("update:modelValue", newModelValue);

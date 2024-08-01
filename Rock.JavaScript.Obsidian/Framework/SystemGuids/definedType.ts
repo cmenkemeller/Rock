@@ -118,6 +118,8 @@ export const DefinedType = {
     GrouptypePurpose: "B23F1E45-BC26-4E82-BEB3-9B191FE5CCC3",
     /** Guid for the types of interaction service. */
     InteractionChannelMedium: "9bf5777a-961f-49a8-a834-45e5c2077967",
+    /** Guid for the types of interaction intent. */
+    InteractionIntent: "F0E9555C-9464-41BD-BED7-96ADB0B79879",
     /** Guid for the JSON Web Token Configuration */
     JwtConfiguration: "7D848CE3-F039-4CE1-A59B-F0D923F0C1A7",
     /** Languages */
@@ -146,12 +148,16 @@ export const DefinedType = {
     MapStyles: "4EF89471-C049-49ED-AB50-677F689A4E4E",
     /** Guid for Content Channel Audience Type (formally called Marketing Campaign) */
     MarketingCampaignAudienceType: "799301A3-2026-4977-994E-45DC68502559",
+    /** Clarifies what the metrics are measuring, enabling the system to utilize these metrics for analytics. */
+    MeasurementClassification: "A9897479-110E-4E50-8F60-160CEFE4CF7B",
     /** Metric Source Type */
     MetricSourceType: "D6F323FF-6EF2-4DA7-A82C-61399AC1D798",
     /** Motivator Theme Type */
     MotivatorThemeType: "354715FA-564A-420A-8324-0411988AE7AB",
     /** Motivator Type */
     MotivatorType: "1DFF1804-0055-491E-9559-54EA3F8F89D1",
+    /** List of different types of relationships and individual could have in their Peer Network. */
+    PeerNetworkRelationshipType: "F2E8E639-F16D-489D-AAFB-BE0133531E41",
     /** Guid for the types of possible check-in system ability levels (such as Infant, Crawler, etc.) */
     PersonAbilityLevelType: "7BEEF4D4-0860-4913-9A3D-857634D1BF7C",
     /** Guid for the person's connection status (such as member, attendee, participant, etc.) */
@@ -190,6 +196,11 @@ export const DefinedType = {
     ProtectMyMinistryMvrJurisdictionCodes: "2F8821E8-05B9-4CD5-9FA4-303662AAC85D",
     /** The REST allowed domains */
     RestApiAllowedDomains: "DF7C8DF7-49F9-4858-9E5D-20842AF65AD8",
+    /**
+     * The "Saved Check-in Configurations" defined type that provides a list
+     * of saved configuration settings for quickly starting up kiosks.
+     */
+    SavedCheckinConfigurations: "F986008C-99BB-4C48-8A6E-38C8A121D75B",
     /** The schedule type */
     ScheduleType: "831648D4-2E2C-4940-8358-9B426AEDB460",
     /** The school grades defined type, which has values that determine which grade the person is based. The Value of the DefinedValue is the GradeOffset. */
@@ -210,8 +221,16 @@ export const DefinedType = {
     TemplateBlock: "0F8E2B71-985E-44C4-BF5A-2FB1AAF3E183",
     /** Used to manage the workflows that can be launched via a text message. */
     TextToWorkflow: "2CACB86F-D811-4483-98E1-272F1FF8FF5D",
+    /** Theme Purpose */
+    ThemePurpose: "99FF0317-9B21-4E56-9F83-EA89A3C8C789",
     /** Campus Topic Type */
     TopicType: "41141100-8fc6-44bb-aa36-9778eeda7f62",
+    /** List of different campaigns that may generate website traffic. */
+    UtmCampaign: "A2F452BB-39E8-40F8-9DAD-74DBD920FD2F",
+    /** List of different marketing or advertising mediums that may initiate website traffic. */
+    UtmMedium: "31693856-8553-4321-A302-B84CF1D22BAB",
+    /** List of different sources from which website traffic may originate. */
+    UtmSource: "3CFE43A9-5D0C-4BE4-B1EC-AFA06BBB7C32",
     /** Used to manage the lava code that can be launched via webhook. */
     WebhookToLava: "7BCF6434-8B15-49C3-8EF3-BAB9A63B545D",
     /** Used to manage the workflows that can be launched via webhook. */

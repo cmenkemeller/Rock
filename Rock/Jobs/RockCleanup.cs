@@ -27,14 +27,16 @@ using System.Text;
 
 using Humanizer;
 
+using Microsoft.Extensions.Logging;
+
 using Rock.Attribute;
 using Rock.Core;
 using Rock.Data;
 using Rock.Logging;
 using Rock.Model;
+using Rock.Net.Geolocation;
 using Rock.Observability;
 using Rock.Web.Cache;
-using WebGrease.Css.Extensions;
 
 namespace Rock.Jobs
 {
@@ -137,6 +139,7 @@ namespace Rock.Jobs
         Order = 9,
         Key = AttributeKey.StaleAnonymousVisitorRecordRetentionPeriodInDays )]
 
+    [RockLoggingCategory]
     public class RockCleanup : RockJob
     {
         /// <summary>
@@ -244,6 +247,10 @@ namespace Rock.Jobs
 
             RunCleanupTask( "family salutation", () => GroupSalutationCleanup() );
 
+            RunCleanupTask( "group archive or inactive date", () => GroupArchiveOrInactiveDateCleanup() );
+
+            RunCleanupTask( "group member archive or inactive date", () => GroupMemberArchiveOrInactiveDateCleanup() );
+
             RunCleanupTask( "anonymous giver login", () => RemoveAnonymousGiverUserLogins() );
 
             RunCleanupTask( "anonymous visitor login", () => RemoveAnonymousVisitorUserLogins() );
@@ -270,6 +277,8 @@ namespace Rock.Jobs
 
             // Search for and delete group memberships duplicates (same person, group, and role)
             RunCleanupTask( "group membership", () => GroupMembershipCleanup() );
+
+            RunCleanupTask( "primary family", () => UpdateMissingPrimaryFamily() );
 
             RunCleanupTask( "attendance label data", () => AttendanceDataCleanup() );
 
@@ -319,6 +328,10 @@ namespace Rock.Jobs
             RunCleanupTask( "data view persisted values", () => RemoveUnneededDataViewPersistedValues() );
 
             RunCleanupTask( "stale anonymous visitor", () => RemoveStaleAnonymousVisitorRecord() );
+
+            RunCleanupTask( "update campus tithe metric", () => UpdateCampusTitheMetric() );
+            
+            RunCleanupTask( "update geolocation database", () => UpdateGeolocationDatabase() );
 
             /*
              * 21-APR-2022 DMV
@@ -603,6 +616,110 @@ namespace Rock.Jobs
         }
 
         /// <summary>
+        /// Updates <see cref="Group.ArchivedDateTime" /> OR <see cref="Group.InactiveDateTime" />
+        /// </summary>
+        /// <returns></returns>
+        private int GroupArchiveOrInactiveDateCleanup()
+        {
+            int recordsUpdated = 0;
+            var rockContext = CreateRockContext();
+
+            // just in case when groups has missing InactiveDateTime
+            var inactiveGroups = new GroupService( rockContext )
+                .Queryable()
+                .Where( a => !a.IsActive && !a.InactiveDateTime.HasValue );
+
+            if ( inactiveGroups.Any() )
+            {
+                recordsUpdated += rockContext.BulkUpdate( inactiveGroups, g => new Group { InactiveDateTime = RockDateTime.Now } );
+            }
+
+            // just in case when groups has missing archive date time
+            var archivedGroups = new GroupService( rockContext )
+                .Queryable()
+                .Where( a => a.IsArchived && !a.ArchivedDateTime.HasValue );
+
+            if ( archivedGroups.Any() )
+            {
+                recordsUpdated += rockContext.BulkUpdate( archivedGroups, g => new Group { ArchivedDateTime = RockDateTime.Now } );
+            }
+
+            // Clear InactiveDateTime If the Group record is Not Inactive
+            var activeGroups = new GroupService( rockContext )
+                .Queryable()
+                .Where( a => a.IsActive && a.InactiveDateTime.HasValue );
+
+            if ( archivedGroups.Any() )
+            {
+                recordsUpdated += rockContext.BulkUpdate( activeGroups, g => new Group { InactiveDateTime = null } );
+            }
+
+            // Remove ArchiveDateTime if the Group record is not Archived
+            var inarchivedGroups = new GroupService( rockContext )
+                .Queryable()
+                .Where( a => !a.IsArchived && a.ArchivedDateTime.HasValue );
+
+            if ( archivedGroups.Any() )
+            {
+                recordsUpdated += rockContext.BulkUpdate( archivedGroups, g => new Group { ArchivedDateTime = null } );
+            }
+
+            return recordsUpdated;
+        }
+
+        /// <summary>
+        /// Updates <see cref="GroupMember.ArchivedDateTime" /> OR <see cref="GroupMember.InactiveDateTime" />
+        /// </summary>
+        /// <returns></returns>
+        private int GroupMemberArchiveOrInactiveDateCleanup()
+        {
+            int recordsUpdated = 0;
+            var rockContext = CreateRockContext();
+
+            // just in case when group members has missing InactiveDateTime
+            var inactiveGroupMembers = new GroupMemberService( rockContext )
+                .Queryable()
+                .Where( a => a.GroupMemberStatus == GroupMemberStatus.Inactive && !a.InactiveDateTime.HasValue );
+
+            if ( inactiveGroupMembers.Any() )
+            {
+                recordsUpdated += rockContext.BulkUpdate( inactiveGroupMembers, g => new GroupMember { InactiveDateTime = RockDateTime.Now } );
+            }
+
+            // just in case when group members has missing archive date time
+            var archivedGroupMembers = new GroupMemberService( rockContext )
+                .Queryable()
+                .Where( a => a.IsArchived && !a.ArchivedDateTime.HasValue );
+
+            if ( archivedGroupMembers.Any() )
+            {
+                recordsUpdated += rockContext.BulkUpdate( archivedGroupMembers, g => new GroupMember { ArchivedDateTime = RockDateTime.Now } );
+            }
+
+            // Clear InactiveDateTime If the Group members record is Not Inactive
+            var activeGroupMembers = new GroupMemberService( rockContext )
+                .Queryable()
+                .Where( a => a.GroupMemberStatus != GroupMemberStatus.Inactive && a.InactiveDateTime.HasValue );
+
+            if ( activeGroupMembers.Any() )
+            {
+                recordsUpdated += rockContext.BulkUpdate( activeGroupMembers, g => new GroupMember { InactiveDateTime = null } );
+            }
+
+            // Remove ArchiveDateTime if the Group members record is not Archived
+            var inarchivedGroupMembers = new GroupMemberService( rockContext )
+                .Queryable()
+                .Where( a => !a.IsArchived && a.ArchivedDateTime.HasValue );
+
+            if ( inarchivedGroupMembers.Any() )
+            {
+                recordsUpdated += rockContext.BulkUpdate( inarchivedGroupMembers, g => new GroupMember { ArchivedDateTime = null } );
+            }
+
+            return recordsUpdated;
+        }
+
+        /// <summary>
         /// Does cleanup of Person Aliases and Metaphones
         /// </summary>
         internal int PersonCleanup()
@@ -651,7 +768,7 @@ namespace Rock.Jobs
                     var lastNameQry = personService.Queryable().Select( p => p.LastName ).Where( p => p != null );
                     var nameQry = firstNameQry.Union( nickNameQry.Union( lastNameQry ) );
 
-                    var metaphones = personRockContext.Metaphones;
+                    var metaphones = personRockContext.Set<Metaphone>();
                     var existingNames = metaphones.Select( m => m.Name ).Distinct();
 
                     // Get the names that have not yet been processed
@@ -1148,7 +1265,7 @@ namespace Rock.Jobs
 
             var workflowService = new WorkflowService( workflowContext );
 
-            var workflowLogs = workflowContext.WorkflowLogs;
+            var workflowLogs = workflowContext.Set<WorkflowLog>();
 
             // Get the list of workflows that haven't been modified since X days
             // and have at least one workflow log (narrowing it down to ones with Logs improves performance of this cleanup)
@@ -1768,6 +1885,12 @@ namespace Rock.Jobs
                 if ( resultCount >= fileLimitCount )
                 {
                     return resultCount;
+                }
+
+                // Skip .gitignore files
+                if ( Path.GetFileName( filePath ).Equals( ".gitignore", StringComparison.OrdinalIgnoreCase ) )
+                {
+                    continue;
                 }
 
                 DateTime fileActivityDate;
@@ -2604,7 +2727,7 @@ SELECT @@ROWCOUNT
                                     innerEx = innerEx.InnerException;
                                 }
 
-                                Log( RockLogLevel.Warning, $"Error occurred deleting stale anonymous visitor record ID {personAliasId}: {innerEx.Message}" );
+                                Logger.LogWarning( $"Error occurred deleting stale anonymous visitor record ID {personAliasId}: {innerEx.Message}" );
 
                                 // The context we used to attempt the deletion is no
                                 // good to use now since it is in a bad state. Create
@@ -2887,7 +3010,7 @@ WHERE [ModifiedByPersonAliasId] IS NOT NULL
         /// </summary>
         private int CalculateAgeAndAgeBracketOnAnalyticsSourceDate()
         {
-            const string UpdateAgeAndAgeBracketSql = @"
+            var UpdateAgeAndAgeBracketSql = $@"
 DECLARE @Today DATE = GETDATE()
 BEGIN 
 	UPDATE A
@@ -2897,43 +3020,64 @@ BEGIN
 		ELSE 0
 	END,
 	[AgeBracket] = CASE
-		WHEN DATEDIFF(YEAR, A.[Date], @Today) - 
+        -- When the age is between 0 and 5 then use the ZeroToFive value.
+		WHEN (DATEDIFF(YEAR, A.[Date], @Today) - 
 			CASE 
 				WHEN DATEADD(YY, DATEDIFF(yy, A.[Date], @Today), A.[Date]) > @Today THEN 1
-			ELSE 0
-		END
-		BETWEEN 0 AND 12 THEN 1
-		WHEN DATEDIFF(YEAR, A.[Date], @Today) - 
+			    ELSE 0
+		    END)
+		BETWEEN 0 AND 5 THEN {Rock.Enums.Crm.AgeBracket.ZeroToFive.ConvertToInt()}
+        -- When the age is between 6 and 12 then use the SixToTwelve value.
+		WHEN (DATEDIFF(YEAR, A.[Date], @Today) - 
 			CASE 
 				WHEN DATEADD(YY, DATEDIFF(yy, A.[Date], @Today), A.[Date]) > @Today THEN 1
-			ELSE 0
-		END BETWEEN 13 AND 17 THEN 2
-		WHEN DATEDIFF(YEAR, A.[Date], @Today) - 
+			    ELSE 0
+		    END)
+        BETWEEN 6 AND 12 THEN {Rock.Enums.Crm.AgeBracket.SixToTwelve.ConvertToInt()}
+        -- When the age is between 13 and 17 then use the ThirteenToSeventeen value.
+		WHEN (DATEDIFF(YEAR, A.[Date], @Today) - 
 			CASE 
 				WHEN DATEADD(YY, DATEDIFF(yy, A.[Date], @Today), A.[Date]) > @Today THEN 1
-			ELSE 0
-		END BETWEEN 18 AND 24 THEN 3
-		WHEN DATEDIFF(YEAR, A.[Date], @Today) - 
+			    ELSE 0
+		    END)
+        BETWEEN 13 AND 17 THEN {Rock.Enums.Crm.AgeBracket.ThirteenToSeventeen.ConvertToInt()}
+        -- When the age is between 18 and 24 then use the EighteenToTwentyFour value.
+		WHEN (DATEDIFF(YEAR, A.[Date], @Today) - 
 			CASE 
 				WHEN DATEADD(YY, DATEDIFF(yy, A.[Date], @Today), A.[Date]) > @Today THEN 1
-			ELSE 0
-		END BETWEEN 25 AND 34 THEN 4
-		WHEN DATEDIFF(YEAR, A.[Date], @Today) - 
+			    ELSE 0
+		    END)
+        BETWEEN 18 AND 24 THEN {Rock.Enums.Crm.AgeBracket.EighteenToTwentyFour.ConvertToInt()}
+        -- When the age is between 25 and 34 then use the TwentyFiveToThirtyFour value.
+		WHEN (DATEDIFF(YEAR, A.[Date], @Today) - 
 			CASE 
 				WHEN DATEADD(YY, DATEDIFF(yy, A.[Date], @Today), A.[Date]) > @Today THEN 1
-			ELSE 0
-		END BETWEEN 35 AND 44 THEN 5
-		WHEN DATEDIFF(YEAR, A.[Date], @Today) - 
+			    ELSE 0
+		    END)
+        BETWEEN 25 AND 34 THEN {Rock.Enums.Crm.AgeBracket.TwentyFiveToThirtyFour.ConvertToInt()}
+        -- When the age is between 35 and 44 then use the ThirtyFiveToFortyFour value.
+		WHEN (DATEDIFF(YEAR, A.[Date], @Today) - 
 			CASE 
 				WHEN DATEADD(YY, DATEDIFF(yy, A.[Date], @Today), A.[Date]) > @Today THEN 1
-			ELSE 0
-		END BETWEEN 45 AND 54 THEN 6
-		WHEN DATEDIFF(YEAR, A.[Date], @Today) - 
+			    ELSE 0
+		    END)
+        BETWEEN 35 AND 44 THEN {Rock.Enums.Crm.AgeBracket.ThirtyFiveToFortyFour.ConvertToInt()}
+        -- When the age is between 45 and 54 then use the FortyFiveToFiftyFour value.
+		WHEN (DATEDIFF(YEAR, A.[Date], @Today) - 
 			CASE 
 				WHEN DATEADD(YY, DATEDIFF(yy, A.[Date], @Today), A.[Date]) > @Today THEN 1
-			ELSE 0
-		END BETWEEN 55 AND 64 THEN 7
-		ELSE 8
+			    ELSE 0
+		    END)
+        BETWEEN 45 AND 54 THEN {Rock.Enums.Crm.AgeBracket.FortyFiveToFiftyFour.ConvertToInt()}
+        -- When the age is between 55 and 64 then use the FiftyFiveToSixtyFour value.
+		WHEN (DATEDIFF(YEAR, A.[Date], @Today) - 
+			CASE 
+				WHEN DATEADD(YY, DATEDIFF(yy, A.[Date], @Today), A.[Date]) > @Today THEN 1
+			    ELSE 0
+		    END)
+        BETWEEN 55 AND 64 THEN {Rock.Enums.Crm.AgeBracket.FiftyFiveToSixtyFour.ConvertToInt()}
+        -- When the age is greater than 65 then use the SixtyFiveOrOlder value.
+		ELSE {Rock.Enums.Crm.AgeBracket.SixtyFiveOrOlder.ConvertToInt()}
 	END
 	FROM AnalyticsSourceDate A
 	INNER JOIN AnalyticsSourceDate B
@@ -3126,12 +3270,134 @@ END
         DELETE TOP (1500) FROM DataViewPersistedValue WHERE DataViewId IN (SELECT id from @dataViewIds)
     END
 ";
-            using ( var rockContext = new RockContext() )
+            using ( var rockContext = CreateRockContext() )
             {
                 rockContext.Database.CommandTimeout = commandTimeout;
                 int result = rockContext.Database.ExecuteSqlCommand( removePersistedDataViewValueSql );
                 return result;
             }
+        }
+
+        /// <summary>
+        /// Updates the PrimaryFamily for persons without a PrimaryFamily.
+        /// </summary>
+        /// <returns></returns>
+        private int UpdateMissingPrimaryFamily()
+        {
+            using ( var rockContext = CreateRockContext() )
+            {
+                var personService = new PersonService( rockContext );
+                var groupMemberService = new GroupMemberService( rockContext );
+                var groupService = new GroupService( rockContext );
+                var persons = personService.Queryable( new Rock.Model.PersonService.PersonQueryOptions()
+                {
+                    IncludeRestUsers = false
+                } )
+                    .Where( p => !p.PrimaryFamilyId.HasValue )
+                    .Select( p => new { p.Id, p.LastName, p.RecordTypeValueId } )
+                    .ToList();
+
+                var familyGroupType = GroupTypeCache.GetFamilyGroupType();
+                var businessRecord = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_BUSINESS );
+
+                foreach ( var person in persons )
+                {
+                    var groupMember = groupMemberService.Queryable().FirstOrDefault( gm => gm.PersonId == person.Id && gm.GroupTypeId == familyGroupType.Id );
+
+                    if ( groupMember == null )
+                    {
+                        var groupName = person.RecordTypeValueId == businessRecord.Id ? $"{person.LastName} Business" : $"{person.LastName} Family";
+                        var group = new Group
+                        {
+                            Name = groupName.Trim(),
+                            GroupTypeId = familyGroupType.Id
+                        };
+                        groupService.Add( group );
+
+                        groupMember = new GroupMember
+                        {
+                            PersonId = person.Id,
+                            GroupRoleId = familyGroupType.DefaultGroupRoleId.Value
+                        };
+                        group.Members.Add( groupMember );
+
+                        rockContext.SaveChanges();
+                    }
+
+                    PersonService.UpdatePrimaryFamily( person.Id, rockContext );
+                }
+
+                return persons.Count;
+            }
+        }
+
+        /// <summary>
+        /// Sets each campus's tithe metric by by dividing the cumulative value if each campus's
+        /// FamiliesMedianIncome, based on their postal code by the number of individuals who have
+        /// given multiplied by 10%.
+        /// </summary>
+        /// <returns></returns>
+        private int UpdateCampusTitheMetric()
+        {
+            using ( var rockContext = CreateRockContext() )
+            {
+                var endDate = RockDateTime.Now.Date.AddDays( 1 );
+                var startDate = RockDateTime.Now.AddMonths( -12 ).Date;
+
+                var groupLocationsQuery = new GroupLocationService( rockContext )
+                    .Queryable()
+                    .Where( gl => gl.GroupLocationTypeValue.Guid.ToString() == SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME && gl.IsMappedLocation );
+
+                // Get families who have given within the last year and their postal codes.
+                var givingFamilies = new FinancialTransactionDetailService( rockContext )
+                    .Queryable()
+                    .Where( ftd => ftd.Account.IsTaxDeductible
+                        && ftd.Transaction.TransactionDateTime >= startDate
+                        && ftd.Transaction.TransactionDateTime <= endDate )
+                    .GroupBy( ftd => ftd.Transaction.AuthorizedPersonAlias.Person.PrimaryFamilyId )
+                    .Select( ftd => new
+                    {
+                        FamilyId = ftd.Key,
+                        CampusId = ftd.FirstOrDefault().Transaction.AuthorizedPersonAlias.Person.PrimaryCampusId,
+                        PostalCode = groupLocationsQuery.Where( gl => gl.GroupId == ftd.FirstOrDefault().Transaction.AuthorizedPersonAlias.Person.PrimaryFamilyId )
+                            .Select( gl => gl.Location.PostalCode ).ToList()
+                    } )
+                    .ToList();
+
+                var postalCodesQuery = rockContext.Set<AnalyticsSourcePostalCode>().AsQueryable();
+                var campusService = new CampusService( rockContext );
+
+                // Get the campuses they belong to so we update their tithe metrics.
+                var campusIds = givingFamilies.Where( gf => gf.CampusId.HasValue )
+                    .Select( gf => gf.CampusId )
+                    .Distinct();
+
+                foreach ( var campusId in campusIds )
+                {
+                    var campus = campusService.Get( campusId.Value );
+
+                    var givingFamiliesForCampus = givingFamilies.Where( gf => gf.CampusId == campusId );
+                    var postalCodes = givingFamiliesForCampus.SelectMany( gf =>
+                        gf.PostalCode.Select( p => p.Split( '-' )[0] ) ).Distinct();
+                    var hasGivenCount = givingFamiliesForCampus.Count( gf => gf.PostalCode.Any() );
+
+                    campus.TitheMetric = ( postalCodesQuery.Where( p => postalCodes.Contains( p.PostalCode ) )
+                        .Sum( p => p.FamiliesMedianIncome ) / hasGivenCount ) * 0.1M;
+                }
+
+                return rockContext.SaveChanges();
+            }
+        }
+
+        /// <summary>
+        /// Updates Rock's geolocation database.
+        /// </summary>
+        /// <returns>1 if the database was updated successfully.</returns>
+        private int UpdateGeolocationDatabase()
+        {
+            IpGeoLookup.Instance.UpdateDatabase();
+
+            return 1;
         }
 
         /// <summary>

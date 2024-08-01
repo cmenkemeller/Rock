@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -17,6 +17,7 @@
 using Rock.Data;
 using Rock.Utility;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
 
 namespace Rock.Model
@@ -28,10 +29,27 @@ namespace Rock.Model
     [RockDomain( "Reporting" )]
     [Table( "AnalyticsDimFamilyHistorical" )]
     [DataContract]
-    [CodeGenExclude( CodeGenFeature.ViewModelFile )]
     [Rock.SystemGuid.EntityTypeGuid( "D906B981-9603-4B5F-9009-31F6EDDE9DC3")]
     public class AnalyticsDimFamilyHistorical : AnalyticsDimFamilyBase<AnalyticsDimFamilyHistorical>
     {
         // intentionally blank. See AnalyticsDimFamilyBase, etc for the fields
     }
+
+    #region Entity Configuration
+
+    /// <summary>
+    /// AnalyticsDimFamilyHistorical Configuration Class
+    /// </summary>
+    public partial class AnalyticsDimFamilyHistoricalConfiguration : EntityTypeConfiguration<AnalyticsDimFamilyHistorical>
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AnalyticsDimFamilyHistoricalConfiguration"/> class.
+        /// </summary>
+        public AnalyticsDimFamilyHistoricalConfiguration()
+        {
+            // Empty constructor. This is required to tell EF that this model exists.
+        }
+    }
+
+    #endregion Entity Configuration
 }

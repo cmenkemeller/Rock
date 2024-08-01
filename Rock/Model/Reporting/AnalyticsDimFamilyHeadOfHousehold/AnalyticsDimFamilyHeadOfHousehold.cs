@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -17,6 +17,7 @@
 using Rock.Data;
 using Rock.Utility;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
 
 namespace Rock.Model
@@ -28,10 +29,27 @@ namespace Rock.Model
     [Table( "AnalyticsDimFamilyHeadOfHousehold" )]
     [DataContract]
     [HideFromReporting]
-    [CodeGenExclude( CodeGenFeature.ViewModelFile )]
     [Rock.SystemGuid.EntityTypeGuid( "89730008-FD3F-49BE-9084-6CC5EA4DC4B3")]
     public class AnalyticsDimFamilyHeadOfHousehold : AnalyticsDimPersonBase<AnalyticsDimFamilyHeadOfHousehold>
     {
         // intentionally blank. See AnalyticsDimPersonBase, etc for the fields
     }
+
+    #region Entity Configuration
+
+    /// <summary>
+    /// AnalyticsDimFamilyHeadOfHousehold Configuration Class
+    /// </summary>
+    public partial class AnalyticsDimFamilyHeadOfHouseholdConfiguration : EntityTypeConfiguration<AnalyticsDimFamilyHeadOfHousehold>
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AnalyticsDimFamilyHeadOfHouseholdConfiguration"/> class.
+        /// </summary>
+        public AnalyticsDimFamilyHeadOfHouseholdConfiguration()
+        {
+            // Empty constructor. This is required to tell EF that this model exists.
+        }
+    }
+
+    #endregion Entity Configuration
 }

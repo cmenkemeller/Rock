@@ -19,6 +19,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 using Rock.Field;
 using Rock.ViewModels.Utility;
@@ -78,7 +79,9 @@ namespace Rock.Attribute
                 IsSystem = attribute.IsSystem,
                 IsShowInGrid = attribute.IsGridColumn,
                 IsShowOnBulk = attribute.ShowOnBulk,
-                FieldTypeGuid = fieldTypeCache.Guid,
+                IsSuppressHistoryLogging = attribute.IsSuppressHistoryLogging,
+                FieldTypeGuid = fieldTypeCache.ControlFieldTypeGuid,
+                RealFieldTypeGuid = fieldTypeCache.Guid,
                 Categories = attribute.Categories
                     .Select( c => new ListItemBag
                     {
@@ -117,7 +120,7 @@ namespace Rock.Attribute
 
             return new PublicAttributeBag
             {
-                FieldTypeGuid = attribute.FieldType.Guid,
+                FieldTypeGuid = attribute.FieldType.ControlFieldTypeGuid,
                 AttributeGuid = attribute.Guid,
                 Name = attribute.Name,
                 Categories = attribute.Categories.OrderBy( c => c.Order ).Select( c => new PublicAttributeCategoryBag
@@ -159,7 +162,7 @@ namespace Rock.Attribute
 
             return new PublicAttributeBag
             {
-                FieldTypeGuid = attribute.FieldType.Guid,
+                FieldTypeGuid = attribute.FieldType.ControlFieldTypeGuid,
                 AttributeGuid = attribute.Guid,
                 Name = attribute.Name,
                 Categories = attribute.Categories.OrderBy( c => c.Order ).Select( c => new PublicAttributeCategoryBag

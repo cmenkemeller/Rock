@@ -39,7 +39,7 @@ namespace Rock.Blocks.Engagement
     [Category( "Engagement" )]
     [Description( "Displays the details of a particular achievement attempt." )]
     [IconCssClass( "fa fa-question" )]
-    [SupportedSiteTypes( Model.SiteType.Web )]
+    // [SupportedSiteTypes( Model.SiteType.Web )]
 
     #region Block Attributes
     [LinkedPage(
@@ -83,8 +83,6 @@ namespace Rock.Blocks.Engagement
         private AchievementAttempt _attempt = null;
         private RockContext _rockContext = null;
         private AchievementTypeCache _achievementTypeCache = null;
-
-        public override string ObsidianFileUrl => $"{base.ObsidianFileUrl}";
 
         #region Methods
 

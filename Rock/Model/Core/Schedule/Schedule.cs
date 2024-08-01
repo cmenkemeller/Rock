@@ -116,7 +116,6 @@ namespace Rock.Model
         /// The weekly time of day.
         /// </value>
         [DataMember]
-        [CodeGenExclude( CodeGenFeature.ViewModelFile )]
         public TimeSpan? WeeklyTimeOfDay { get; set; }
 
         /// <summary>
@@ -152,7 +151,7 @@ namespace Rock.Model
 
         /// <summary>
         /// Gets or sets the order.
-        /// Use <see cref="ExtensionMethods.OrderByOrderAndNextScheduledDateTime" >List&lt;Schedule&gt;().OrderByOrderAndNextScheduledDateTime</see>
+        /// Use <see cref="ExtensionMethods.OrderByOrderAndNextScheduledDateTime(List{Schedule})"/>
         /// to get the schedules in the desired order.
         /// </summary>
         /// <value>

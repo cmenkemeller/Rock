@@ -25,6 +25,7 @@ using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 
 using Rock;
+using Rock.Configuration;
 using Rock.Data;
 using Rock.Model;
 using Rock.Update;
@@ -154,18 +155,9 @@ namespace RockWeb.Blocks.Core
                     nbSqlServerVersionIssue.Visible = true;
                 }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-                var lavaSupportLevel = GlobalAttributesCache.Get().LavaSupportLevel;
-                var isConfiguredForLegacyLava = lavaSupportLevel != Rock.Lava.LavaSupportLevel.NoLegacy;
-#pragma warning restore CS0618 // Type or member is obsolete
-                if ( isConfiguredForLegacyLava )
-                {
-                    nbLegacyLavaIssue.Visible = true;
-                }
-
                 _releases = GetOrderedReleaseList( rockUpdateService, _installedVersion );
 
-                if ( _releases.Exists( r => new Version( r.SemanticVersion ) >= new Version( "1.17.0" ) ) && RockInstanceConfig.LavaEngineName != "Fluid" )
+                if ( _releases.Exists( r => new Version( r.SemanticVersion ) >= new Version( "1.17.0" ) ) && RockApp.Current.GetCurrentLavaEngineName() != "Fluid" )
                 {
                     nbLavaEngineIssue.Visible = true;
                 }
@@ -184,12 +176,6 @@ namespace RockWeb.Blocks.Core
                         if ( !hasMinimumCompatibilityLevelOrHigher )
                         {
                             nbSqlServerVersionIssue.NotificationBoxType = Rock.Web.UI.Controls.NotificationBoxType.Danger;
-                        }
-
-                        // if LegacyLavaIssue is visible, and they are updating to v16 or later, show the version Warning as an Danger instead.
-                        if ( isConfiguredForLegacyLava )
-                        {
-                            nbLegacyLavaIssue.NotificationBoxType = Rock.Web.UI.Controls.NotificationBoxType.Danger;
                         }
                     }
 
@@ -496,7 +482,7 @@ namespace RockWeb.Blocks.Core
             try
             {
                 var ipAddress = Request.ServerVariables["LOCAL_ADDR"];
-                var environmentData = RockUpdateHelper.GetEnvDataAsJson( Request, ResolveRockUrl( "~/" ) );
+                var environmentData = Rock.Web.Utilities.RockUpdateHelper.GetEnvDataAsJson( Request, ResolveRockUrl( "~/" ) );
                 using ( var rockContext = new RockContext() )
                 {
                     var instanceStatistics = new RockInstanceImpactStatistics( new RockImpactService(), rockContext );

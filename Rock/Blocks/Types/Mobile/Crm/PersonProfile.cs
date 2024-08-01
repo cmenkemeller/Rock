@@ -91,6 +91,15 @@ namespace Rock.Blocks.Types.Mobile.Crm
         Order = 5
         )]
 
+
+    [LinkedPage(
+        "Reminder Page",
+        Description = "Page to link to when the reminder button is tapped.",
+        IsRequired = false,
+        Key = AttributeKey.ReminderPage,
+        Order = 6 )]
+
+
     #endregion
 
     [ContextAware( typeof( Person ) )]
@@ -116,6 +125,8 @@ namespace Rock.Blocks.Types.Mobile.Crm
                 MaritalStatusValues = GetMaritalStatusValues(),
                 ShowDemographicsPanel = GetAttributeValue( AttributeKey.ShowDemographicsPanel ).AsBoolean(),
                 ShowContactInformationPanel = GetAttributeValue( AttributeKey.ShowContactInformationPanel ).AsBoolean(),
+                ReminderPageGuid = GetAttributeValue( AttributeKey.ReminderPage ).AsGuidOrNull(),
+                AreRemindersConfigured = CheckReminderConfiguration()
             };
         }
 
@@ -157,6 +168,11 @@ namespace Rock.Blocks.Types.Mobile.Crm
             /// The show contact information panel attribute key.
             /// </summary>
             public const string ShowContactInformationPanel = "ShowContactInformationPanel";
+
+            /// <summary>
+            /// The reminder page attribute key.
+            /// </summary>
+            public const string ReminderPage = "ReminderPage";
         }
 
         #endregion
@@ -236,6 +252,24 @@ namespace Rock.Blocks.Types.Mobile.Crm
         #endregion
 
         #region Methods
+
+        /// <summary>
+        /// Checks if there's any reminder with the PersonAlias entity type.
+        /// </summary>
+        private static bool CheckReminderConfiguration()
+        {
+            using ( var rockContext = new RockContext() )
+            {
+                var personAliasEntityTypeId = EntityTypeCache.Get( typeof( PersonAlias ) ).Id;
+
+                var reminderTypesExist = new ReminderTypeService( rockContext )
+                    .Queryable()
+                    .Where( rt => rt.EntityTypeId == personAliasEntityTypeId )
+                    .Any();
+
+                return reminderTypesExist;
+            }
+        }
 
         /// <summary>
         /// Gets the connection status defined values.
@@ -594,6 +628,7 @@ namespace Rock.Blocks.Types.Mobile.Crm
             return new PersonBag
             {
                 Guid = person.Guid,
+                PrimaryAliasGuid = person.PrimaryAlias.Guid,
                 CanEdit = IsAuthorizedToEditPerson(),
                 IsFollowed = IsPersonFollowed( rockContext, person ),
                 FirstName = person.FirstName,
@@ -629,49 +664,34 @@ namespace Rock.Blocks.Types.Mobile.Crm
             person.Gender = personBag.Gender.ToNative();
             person.InactiveReasonNote = personBag.InactiveNote;
 
-            if ( personBag.Suffix.HasValue )
-            {
-                person.SuffixValueId = DefinedValueCache.GetId( personBag.Suffix.Value );
-            }
+            person.SuffixValueId = personBag.Suffix.HasValue ? DefinedValueCache.GetId( personBag.Suffix.Value ) : null;
+            person.ConnectionStatusValueId = personBag.ConnectionStatus.HasValue ? DefinedValueCache.GetId( personBag.ConnectionStatus.Value ) : null;
+            person.RecordStatusValueId = personBag.RecordStatus.HasValue ? DefinedValueCache.GetId( personBag.RecordStatus.Value ) : null;
+            person.RecordStatusReasonValueId = personBag.InactiveReason.HasValue ? DefinedValueCache.GetId( personBag.InactiveReason.Value ) : null;
+            person.DeceasedDate = personBag.DeceasedDate.HasValue ? personBag.DeceasedDate.Value.DateTime : ( DateTime? ) null;
+            person.MaritalStatusValueId = personBag.MaritalStatus.HasValue ? DefinedValueCache.GetId( personBag.MaritalStatus.Value ) : null;
+            person.AnniversaryDate = personBag.AnniversaryDate.HasValue ? personBag.AnniversaryDate.Value.DateTime : ( DateTime? ) null;
 
-            if ( personBag.ConnectionStatus.HasValue )
-            {
-                person.ConnectionStatusValueId = DefinedValueCache.GetId( personBag.ConnectionStatus.Value );
-            }
+            var birthday = personBag.BirthDate;
 
-            if ( personBag.RecordStatus.HasValue )
+            if ( birthday.HasValue )
             {
-                person.RecordStatusValueId = DefinedValueCache.GetId( personBag.RecordStatus.Value );
-            }
+                person.BirthMonth = birthday.Value.Month;
+                person.BirthDay = birthday.Value.Day;
+                if ( birthday.Value.Year != DateTime.MinValue.Year )
+                {
+                    person.BirthYear = birthday.Value.Year;
+                }
+                else
+                {
+                    person.BirthYear = null;
+                }
 
-            if ( personBag.InactiveReason.HasValue )
-            {
-                person.RecordStatusReasonValueId = DefinedValueCache.GetId( personBag.InactiveReason.Value );
-            }
-
-            if ( personBag.DeceasedDate.HasValue )
-            {
-                person.DeceasedDate = personBag.DeceasedDate.Value.DateTime;
-            }
-
-            if ( personBag.InactiveNote.IsNotNullOrWhiteSpace() )
-            {
-                person.InactiveReasonNote = personBag.InactiveNote;
-            }
-
-            if ( personBag.BirthDate.HasValue )
-            {
                 person.SetBirthDate( personBag.BirthDate.Value.DateTime );
             }
-
-            if ( personBag.MaritalStatus.HasValue )
+            else
             {
-                person.MaritalStatusValueId = DefinedValueCache.GetId( personBag.MaritalStatus.Value );
-            }
-
-            if ( personBag.AnniversaryDate.HasValue )
-            {
-                person.AnniversaryDate = personBag.AnniversaryDate.Value.DateTime;
+                person.SetBirthDate( null );
             }
         }
 

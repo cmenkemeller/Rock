@@ -72,7 +72,7 @@ namespace Rock.Web.UI.Controls
             get
             {
                 var selectableValues = ViewState["SelectableValues"] as string;
-                return selectableValues.IsNullOrWhiteSpace() ? selectableValues.SplitDelimitedValues().AsIntegerList().ToArray() : new int[0];
+                return selectableValues.IsNullOrWhiteSpace() ? new int[0] : selectableValues.SplitDelimitedValues().AsIntegerList().ToArray();
             }
 
             set
@@ -163,19 +163,6 @@ namespace Rock.Web.UI.Controls
                 ViewState["IncludeInactive"] = value;
                 DefinedValuePicker.LoadDropDownItems( this, false );
             }
-        }
-
-        /// <summary>
-        /// Called by the ASP.NET page framework to notify server controls that use composition-based implementation to create any child controls they contain in preparation for posting back or rendering.
-        /// Overriding this to remove the required field validator that the parent class RockListBox does by default. RFV can only validate controls with user input and not the composite control.
-        /// RFV gets created on the list box.
-        /// </summary>
-        protected override void CreateChildControls()
-        {
-            base.CreateChildControls();
-            string idOfControlToRemove = this.ID + "_rfv";
-            var control = Controls.Cast<System.Web.UI.Control>().Where( c => c.ID == idOfControlToRemove ).FirstOrDefault();
-            Controls.Remove( control );
         }
     }
 }

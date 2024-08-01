@@ -18,15 +18,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Rock.Bus.Queue;
+
 using Rock.Data;
 using Rock.Lava;
 using Rock.Lava.Fluid;
 using Rock.Lava.RockLiquid;
 using Rock.Model;
+using Rock.Tests.Shared.Lava;
 
-namespace Rock.Tests.Integration.Core.Lava
+namespace Rock.Tests.Integration.Modules.Core.Lava.Commands
 {
     /// <summary>
     /// Tests for Lava-specific commands implemented as Liquid custom blocks and tags.
@@ -51,7 +53,7 @@ namespace Rock.Tests.Integration.Core.Lava
             var expectedOutput = @"
 <script>
     (function(){
-        alert('Message 1');    
+        alert('Message 1');
     })();
 </script>
 <script>
@@ -395,7 +397,7 @@ findme-interactiontest3
             var expectedOutput = @"
 <script>
     (function(){
-        alert('Hello world!');    
+        alert('Hello world!');
     })();
 </script>
 ";
@@ -674,65 +676,6 @@ Brian;Daniel;Nancy;William;
         }
 
         #endregion
-
-        #region WorkflowActivate
-
-        [TestMethod]
-        public void WorkflowActivateBlock_CommandNotEnabled_ReturnsConfigurationErrorMessage()
-        {
-            var input = @"
-{% workflowactivate workflowtype:'8fedc6ee-8630-41ed-9fc5-c7157fd1eaa4' %}
-  Activated new workflow with the id of #{{ Workflow.Id }}.
-{% endworkflowactivate %}
-";
-
-            // TODO: If the security check fails, the content of the block is still returned with the error message.
-            // Is this correct behavior, or should the content of the block be hidden?
-            var expectedOutput = "The Lava command 'workflowactivate' is not configured for this template.";
-
-            TestHelper.AssertTemplateOutput( expectedOutput, input );
-        }
-
-        [TestMethod]
-        public void WorkflowActivateBlock_ActivateSupportWorkflow_CreatesNewWorkflow()
-        {
-            // Activate Workflow: IT Support
-            var input = @"
-{% workflowactivate workflowtype:'51FE9641-FB8F-41BF-B09E-235900C3E53E' %}
-  Activated new workflow with the name '{{ Workflow.Name }}'.
-{% endworkflowactivate %}
-";
-
-            var expectedOutput = @"Activated new workflow with the name 'IT Support'.";
-
-            var options = new LavaTestRenderOptions() { EnabledCommands = "WorkflowActivate" };
-
-            TestHelper.AssertTemplateOutput( expectedOutput, input, options );
-        }
-
-        [TestMethod]
-        public void WorkflowActivateBlock_WithDelimiterInWorkflowName_EvaluatesWorkflowNameCorrectly()
-        {
-            var mergeFields = new LavaDataDictionary
-            {
-                { "WorkflowName", "Ted's Workflow" }
-            };
-
-            // Activate Workflow: IT Support
-            var input = @"
-{% workflowactivate workflowtype:'51FE9641-FB8F-41BF-B09E-235900C3E53E' workflowname:'{{WorkflowName}}' %}
-  Activated new workflow with the name '{{ Workflow.Name }}'.
-{% endworkflowactivate %}
-";
-
-            var expectedOutput = @"Activated new workflow with the name 'Ted's Workflow'.";
-
-            var options = new LavaTestRenderOptions() { EnabledCommands = "WorkflowActivate", MergeFields = mergeFields };
-
-            TestHelper.AssertTemplateOutput( expectedOutput, input, options );
-        }
-        #endregion
-
 
         /// <summary>
         /// The "return" tag can be used at the root level of a document.

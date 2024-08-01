@@ -76,6 +76,18 @@ namespace RockWeb.Blocks.Crm.PersonDetail
 
         #endregion Attribute Keys
 
+        #region Security Actions
+
+        /// <summary>
+        /// Keys to use for Block Attributes
+        /// </summary>
+        private static class SecurityActionKey
+        {
+            public const string ViewProtectionProfile = "ViewProtectionProfile";
+        }
+
+        #endregion
+
         #region Base Control Methods
 
         /// <summary>
@@ -173,7 +185,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
 
         private void ShowProtectionLevel()
         {
-            if ( Person.AccountProtectionProfile > Rock.Utility.Enums.AccountProtectionProfile.Low )
+            if ( Person.AccountProtectionProfile > Rock.Utility.Enums.AccountProtectionProfile.Low && IsUserAuthorized( SecurityActionKey.ViewProtectionProfile ) )
             {
                 string acctProtectionLevel = $@"
                     <div class=""protection-profile"">
@@ -187,7 +199,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
 
         private void ShowPersonImage()
         {
-            lImage.Text = $@"<img src=""{Person.GetPersonPhotoUrl( Person, 400 )}&Style=icon"" alt class=""img-profile"">";
+            lImage.Text = $@"<img src=""{Person.GetPersonPhotoUrl( Person, 400 )}&Style=icon&BackgroundColor=E4E4E7&ForegroundColor=A1A1AA"" alt class=""img-profile"">";
         }
 
         private string GetPersonName()
@@ -282,7 +294,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
             var groupMemberListItem = $@"
                 <li>
                     <a href=""{personLink}"">
-                        <img src=""{Person.GetPersonPhotoUrl( groupMember.Person.Initials, groupMember.Person.PhotoId, groupMember.Person.Age, groupMember.Person.Gender, groupMember.Person.RecordTypeValueId, groupMember.Person.AgeClassification )}&Style=icon"" alt="""" class=""avatar"">
+                        <img src=""{Person.GetPersonPhotoUrl( groupMember.Person.Initials, groupMember.Person.PhotoId, groupMember.Person.Age, groupMember.Person.Gender, groupMember.Person.RecordTypeValueId, groupMember.Person.AgeClassification, 400 )}&Style=icon&BackgroundColor=E4E4E7&ForegroundColor=A1A1AA"" alt="""" class=""avatar"">
                         <span class=""name"">
                             {groupMember.Person.FullName}
                         </span>

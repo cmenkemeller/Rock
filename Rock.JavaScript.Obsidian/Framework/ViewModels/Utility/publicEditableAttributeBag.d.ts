@@ -103,6 +103,9 @@ export type PublicEditableAttributeBag = {
      */
     isShowOnBulk: boolean;
 
+    /** Gets or sets a flag indicating if changes to the attribute values should be recorded into the generic History log table. */
+    isSuppressHistoryLogging: boolean;
+
     /**
      * Gets or sets a value indicating whether this attribute is a system
      * attribute, which implies limited editing ability.
@@ -120,4 +123,13 @@ export type PublicEditableAttributeBag = {
 
     /** Gets or sets any HTML to be rendered before the attribute's edit control. */
     preHtml?: string | null;
+
+    /**
+     * Gets or sets the field type unique identifier as it is known by the
+     * server. If this value is null then the value from the
+     * FieldTypeGuid property should be used instead. This is only used
+     * by special field types that use a shared client control but have
+     * distinct server features.
+     */
+    realFieldTypeGuid?: Guid | null;
 };

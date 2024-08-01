@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -18,6 +18,7 @@ using Rock.Data;
 using Rock.Utility;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity.ModelConfiguration;
 using System.Data.Entity.Spatial;
 using System.Runtime.Serialization;
 
@@ -29,7 +30,6 @@ namespace Rock.Model
     [RockDomain( "Reporting" )]
     [Table( "AnalyticsDimCampus" )]
     [DataContract]
-    [CodeGenExclude( CodeGenFeature.ViewModelFile )]
     [Rock.SystemGuid.EntityTypeGuid( "DCEB0575-1351-4CFF-BA4F-410BA2D638CB")]
     public class AnalyticsDimCampus : AnalyticsSourceCampusBase<AnalyticsDimCampus>
     {
@@ -189,4 +189,22 @@ namespace Rock.Model
 
         #endregion Entity Properties
     }
+
+    #region Entity Configuration
+
+    /// <summary>
+    /// AnalyticsDimCampus Configuration Class
+    /// </summary>
+    public partial class AnalyticsDimCampusConfiguration : EntityTypeConfiguration<AnalyticsDimCampus>
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AnalyticsDimCampusConfiguration"/> class.
+        /// </summary>
+        public AnalyticsDimCampusConfiguration()
+        {
+            // Empty constructor. This is required to tell EF that this model exists.
+        }
+    }
+
+    #endregion Entity Configuration
 }

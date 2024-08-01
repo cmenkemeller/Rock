@@ -337,7 +337,9 @@ This {{ Workflow.WorkflowType.WorkTerm }} does not currently require your attent
                 var newWorkflowType = workflowType.CloneWithoutIdentity();
                 newWorkflowType.IsSystem = false;
                 newWorkflowType.Name = workflowType.Name + " - Copy";
-                newWorkflowType.WorkflowIdPrefix = workflowType.WorkflowIdPrefix + " - Copy";
+
+                // Generate a unique workflow id prefix
+                newWorkflowType.WorkflowIdPrefix = GenerateUniqueWorkflowPrefix( rockContext, workflowType.WorkflowIdPrefix );
 
                 // Create temporary state objects for the new workflow type
                 var newAttributesState = new List<Attribute>();
@@ -456,6 +458,25 @@ This {{ Workflow.WorkflowType.WorkTerm }} does not currently require your attent
                             {
                                 newWorkflowForm.ActionAttributeGuid = guidXref[actionType.WorkflowForm.ActionAttributeGuid.Value];
                             }
+
+                            if ( actionType.WorkflowForm.PersonEntryFamilyAttributeGuid.HasValue &&
+                                guidXref.ContainsKey( actionType.WorkflowForm.PersonEntryFamilyAttributeGuid.Value ) )
+                            {
+                                newWorkflowForm.PersonEntryFamilyAttributeGuid = guidXref[actionType.WorkflowForm.PersonEntryFamilyAttributeGuid.Value];
+                            }
+
+                            if ( actionType.WorkflowForm.PersonEntryPersonAttributeGuid.HasValue &&
+                                guidXref.ContainsKey( actionType.WorkflowForm.PersonEntryPersonAttributeGuid.Value ) )
+                            {
+                                newWorkflowForm.PersonEntryPersonAttributeGuid = guidXref[actionType.WorkflowForm.PersonEntryPersonAttributeGuid.Value];
+                            }
+
+                            if ( actionType.WorkflowForm.PersonEntrySpouseAttributeGuid.HasValue &&
+                                guidXref.ContainsKey( actionType.WorkflowForm.PersonEntrySpouseAttributeGuid.Value ) )
+                            {
+                                newWorkflowForm.PersonEntrySpouseAttributeGuid = guidXref[actionType.WorkflowForm.PersonEntrySpouseAttributeGuid.Value];
+                            }
+
                             newActionType.WorkflowForm = newWorkflowForm;
 
                             foreach ( var formAttribute in actionType.WorkflowForm.FormAttributes )
@@ -793,6 +814,7 @@ This {{ Workflow.WorkflowType.WorkTerm }} does not currently require your attent
                     workflowActionType.CriteriaAttributeGuid = editorWorkflowActionType.CriteriaAttributeGuid;
                     workflowActionType.CriteriaComparisonType = editorWorkflowActionType.CriteriaComparisonType;
                     workflowActionType.CriteriaValue = editorWorkflowActionType.CriteriaValue;
+                    workflowActionType.IsActionCompletedIfCriteriaUnmet = editorWorkflowActionType.IsActionCompletedIfCriteriaUnmet;
                     workflowActionType.Name = editorWorkflowActionType.Name;
                     workflowActionType.EntityTypeId = editorWorkflowActionType.EntityTypeId;
                     workflowActionType.IsActionCompletedOnSuccess = editorWorkflowActionType.IsActionCompletedOnSuccess;
@@ -1247,6 +1269,25 @@ This {{ Workflow.WorkflowType.WorkTerm }} does not currently require your attent
         #endregion
 
         #region Methods
+
+        #region Helper
+
+        private string GenerateUniqueWorkflowPrefix( RockContext rockContext, string basePrefix )
+        {
+            var workflowTypeService = new WorkflowTypeService( new RockContext() );
+            string newPrefix = basePrefix;
+            int suffix = 1;
+
+            while ( workflowTypeService.Queryable().Any( w => w.WorkflowIdPrefix == newPrefix ) )
+            {
+                newPrefix = $"{basePrefix} - {suffix}";
+                suffix++;
+            }
+
+            return newPrefix;
+        }
+
+        #endregion
 
         #region Show Details
 
