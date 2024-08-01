@@ -103,12 +103,10 @@ namespace RockWeb.Blocks.Tv
         {
             var breadCrumbs = new List<BreadCrumb>();
 
-            int? applicationId = PageParameter( pageReference, PageParameterKey.SiteId ).AsIntegerOrNull();
+            var site = GetSite();
 
-            if ( applicationId != null )
+            if ( site != null )
             {
-                var site = SiteCache.Get( applicationId.Value );
-
                 var detailBreadCrumb = pageReference.BreadCrumbs.FirstOrDefault( x => x.Name == "Application Detail" );
                 if ( detailBreadCrumb != null )
                 {
@@ -213,8 +211,6 @@ namespace RockWeb.Blocks.Tv
             interactionChannelForSite.RetentionDuration = nbPageViewRetentionPeriodDays.Text.AsIntegerOrNull();
             interactionChannelForSite.ComponentEntityTypeId = EntityTypeCache.Get<Rock.Model.Page>().Id;
 
-            site.EnablePageViewGeoTracking = cbEnablePageViewGeoTracking.Checked;
-
             rockContext.SaveChanges();
 
             // If this is a new site then we also need to add a layout record and a 'default page'
@@ -254,7 +250,7 @@ namespace RockWeb.Blocks.Tv
 
             // If the save was successful, reload the page using the new record Id.
             var qryParams = new Dictionary<string, string>();
-            qryParams[PageParameterKey.SiteId] = site.Id.ToString();
+            qryParams[PageParameterKey.SiteId] = site.IdKey;
 
             NavigateToPage( RockPage.Guid, qryParams );
         }
@@ -269,7 +265,7 @@ namespace RockWeb.Blocks.Tv
             var siteId = PageParameter( PageParameterKey.SiteId );
 
             // If we are in the process of creating a new site, navigate back to the site list page.
-            if ( siteId == null || siteId.AsInteger() == 0 )
+            if ( siteId.IsNullOrWhiteSpace() )
             {
                 NavigateToParentPage();
             }
@@ -306,6 +302,22 @@ namespace RockWeb.Blocks.Tv
 
         #region Methods
 
+        /// <summary>
+        /// Gets the site from the page parameter.
+        /// </summary>
+        /// <returns></returns>
+        private SiteCache GetSite()
+        {
+            var applicationId = PageParameter( PageParameterKey.SiteId );
+            if ( applicationId.IsNullOrWhiteSpace() )
+            {
+                return null;
+            }
+
+            var site = SiteCache.GetByIdKey( applicationId );
+            return site;
+        }
+
         private void ShowView()
         {
             pnlEdit.Visible = false;
@@ -314,10 +326,10 @@ namespace RockWeb.Blocks.Tv
             // Show the page list block
             this.HideSecondaryBlocks( false );
 
-            var applicationId = PageParameter( PageParameterKey.SiteId ).AsInteger();
+            var applicationId = PageParameter( PageParameterKey.SiteId );
 
             // We're being instructed to build a new site.
-            if ( applicationId == 0 )
+            if ( applicationId.IsNullOrWhiteSpace() )
             {
                 ShowEdit();
                 return;
@@ -380,7 +392,7 @@ namespace RockWeb.Blocks.Tv
             // Hide the page list block.
             this.HideSecondaryBlocks( true );
 
-            var applicationId = PageParameter( PageParameterKey.SiteId ).AsInteger();
+            var applicationId = PageParameter( PageParameterKey.SiteId );
 
             var rockContext = new RockContext();
             var site = new SiteService( rockContext ).Get( applicationId );
@@ -394,7 +406,6 @@ namespace RockWeb.Blocks.Tv
                 tbDescription.Text = site.Description;
 
                 cbIsActive.Checked = site.IsActive;
-                cbEnablePageViewGeoTracking.Checked = site.EnablePageViewGeoTracking;
 
                 var additionalSettings = JsonConvert.DeserializeObject<RokuTvApplicationSettings>( site.AdditionalSettings );
 
@@ -503,6 +514,7 @@ namespace RockWeb.Blocks.Tv
 
             return userLogin.Id;
         }
+
         #endregion
 
     }
