@@ -464,18 +464,26 @@ namespace Rock.Web.UI.Controls
             _tbFirstName.Placeholder = "First Name";
             _tbFirstName.Required = true;
             _tbFirstName.RequiredErrorMessage = "First Name is required for all group members";
+            _tbFirstName.NoSpecialCharacters = true;
+            _tbFirstName.NoSpecialCharactersErrorMessage = "First Name cannot contain special characters such as quotes, parentheses, etc.";
 
             _tbNickName.CssClass = "form-control";
             _tbNickName.Placeholder = "Nick Name";
+            _tbNickName.NoSpecialCharacters = true;
+            _tbNickName.NoSpecialCharactersErrorMessage = "Nick Name cannot contain special characters such as quotes, parentheses, etc.";
 
             _tbMiddleName.CssClass = "form-control";
             _tbMiddleName.Placeholder = "Middle Name";
             _tbMiddleName.Required = false;
+            _tbMiddleName.NoSpecialCharacters = true;
+            _tbMiddleName.NoSpecialCharactersErrorMessage = "Middle Name cannot contain special characters such as quotes, parentheses, etc.";
 
             _tbLastName.CssClass = "form-control";
             _tbLastName.Placeholder = "Last Name";
             _tbLastName.Required = true;
             _tbLastName.RequiredErrorMessage = "Last Name is required for all group members";
+            _tbLastName.NoSpecialCharacters = true;
+            _tbLastName.NoSpecialCharactersErrorMessage = "Last Name cannot contain special characters such as quotes, parentheses, etc.";
 
             _dvpSuffix.CssClass = "form-control";
             _dvpSuffix.DefinedTypeId = DefinedTypeCache.Get( new Guid( Rock.SystemGuid.DefinedType.PERSON_SUFFIX ) ).Id;

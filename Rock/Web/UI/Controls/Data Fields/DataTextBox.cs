@@ -74,6 +74,24 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="DataTextBox" /> will allow special characters.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if special characters allowed; otherwise, <c>false</c>.
+        /// </value>
+        public override bool NoSpecialCharacters
+        {
+            get
+            {
+                return base.NoSpecialCharacters;
+            }
+            set
+            {
+                base.NoSpecialCharacters = value;
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the name of the entity property.
         /// </summary>
         /// <value>

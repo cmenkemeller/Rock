@@ -16,8 +16,8 @@
             </div>
 
             <div v-else>
-                <FirstNameTextBox label="First Name" v-model="firstName" />
-                <TextBox label="Last Name" v-model="lastName" />
+                <FirstNameTextBox label="First Name" v-model="firstName" rules="nospecialcharacters" />
+                <TextBox label="Last Name" v-model="lastName" rules="nospecialcharacters" />
                 <EmailBox label="Email" v-model="email" />
             </div>
 

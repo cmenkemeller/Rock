@@ -94,6 +94,10 @@ namespace RockWeb.Blocks.Groups
             {
                 ShowError( "Missing Information", "Please enter a value for First Name, Last Name, and Email" );
             }
+            else if ( System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, @"[\(\{\[\)\}\]""]" ) || System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, @"[\(\{\[\)\}\]""]" ) )
+            {
+                ShowError( "First and Last Name", "cannot contain special characters such as quotes, parentheses, etc." );
+            }
             else
             {
                 if ( Page.IsValid )

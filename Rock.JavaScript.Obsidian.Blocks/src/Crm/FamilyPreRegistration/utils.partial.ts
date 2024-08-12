@@ -553,6 +553,19 @@ export function required(value: unknown, params?: unknown[]): ValidationResult {
     return true;
 }
 
+export function noSpecialCharacters (value: unknown): ValidationResult {
+    const pattern: RegExp = /[({[\]})"]/;
+
+    if (typeof value === "string") {
+        // Checks if a string contains special characters
+        if (pattern.test(value)) {
+            return "cannot contain special characters such as quotes, parentheses, etc.";
+        }
+    }
+
+    return true;
+}
+
 /**
  * Validates whether a birthday with an optional year is valid.
  */

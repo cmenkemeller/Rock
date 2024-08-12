@@ -3065,6 +3065,13 @@ mission. We are so grateful for your commitment.</p>
                     errorMessages.Add( "Make sure to enter both a first and last name" );
                 }
 
+                string specialCharPattern = @"[\(\{\[\)\}\]""]";
+
+                if ( System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, specialCharPattern ) || System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, specialCharPattern ) )
+                {
+                    errorMessages.Add( "Make sure to enter a first and last name that does not contain special characters such as quotes, parentheses, etc." );
+                }
+
                 if ( !txtFirstName.IsValid )
                 {
                     errorMessages.Add( txtFirstName.CustomValidator.ErrorMessage );
