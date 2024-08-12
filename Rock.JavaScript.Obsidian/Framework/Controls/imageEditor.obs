@@ -372,14 +372,10 @@
 
             // Register the drop event so we can begin the upload for the
             // file that was dropped on us.
-            dropZoneElement.value.addEventListener("drop", async event => {
+            dropZoneElement.value.addEventListener("drop", event => {
                 if (!isUploading.value && event.dataTransfer && event.dataTransfer.files.length > 0) {
                     event.stopPropagation();
                     event.preventDefault();
-
-                    if (!await isImage(event.dataTransfer.files[0].name)) {
-                        return;
-                    }
 
                     showCropperForSelectedFile(event.dataTransfer.files[0]);
                 }
