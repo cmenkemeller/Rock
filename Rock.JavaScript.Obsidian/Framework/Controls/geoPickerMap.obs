@@ -181,7 +181,8 @@
             fullscreenControl: false,
             mapTypeControlOptions: {
                 mapTypeIds: [google.maps.MapTypeId.ROADMAP, "map_style"],
-            }
+            },
+            mapId: "geo_picker_map"
         };
 
         map = new google.maps.Map(mapContainer.value as HTMLElement, mapOptions);
@@ -226,12 +227,25 @@
                 });
             }
             else {
-                shape = new google.maps.Marker({
-                    position: new google.maps.LatLng(...internalValue.value[0]),
+                const position = new google.maps.LatLng(...internalValue.value[0]);
+                shape = {
+                    position: position,
                     map: map,
-                    clickable: true,
-                    icon: marker
-                });
+                    marker_element: new google.maps.marker.AdvancedMarkerElement({
+                        position: new google.maps.LatLng(...internalValue.value[0]),
+                        map: map
+                    }),
+                    getPosition: function() {
+                        return this.position;
+                    },
+                    getPath: function() {
+                        return this.position.toUrlValue();
+                    },
+                    setPosition: function(position) {
+                        this.position = position;
+                        this.marker_element.position = position;
+                    }
+                };
             }
 
             setCurrentShape(shape);
