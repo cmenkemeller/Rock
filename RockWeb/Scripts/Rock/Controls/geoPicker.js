@@ -332,12 +332,35 @@
                         }
                         else if (obj.drawingMode == "Point") {
 
-                            var point = new google.maps.Marker({
+                            var pin = new google.maps.marker.PinElement({
+                                background: '#FE7569',
+                                borderColor: '#000',
+                                scale: 1,
+                                glyph: ''
+                            });
+
+                            var point = {
                                 position: pathArray[0],
                                 map: map,
                                 clickable: true,
-                                icon: obj.getMarkerImage()
-                            });
+                                icon: obj.getMarkerImage(),
+                                marker_element: new google.maps.marker.AdvancedMarkerElement({
+                                    position: pathArray[0],
+                                    map: map,
+                                    content: pin.element
+                                }),
+                                setMap: function () {
+                                    this.map = map;
+                                    this.marker_element.map = map;
+                                },
+                                getPosition: function () {
+                                    return this.position;
+                                },
+                                setPosition: function () {
+                                    this.position = position;
+                                    this.marker_element.position = position;
+                                }
+                            };
 
                             // Select the point
                             obj.setSelection(point, google.maps.drawing.OverlayType.MARKER);
@@ -633,7 +656,8 @@
                 streetViewControl: false,
                 mapTypeControlOptions: {
                     mapTypeIds: [google.maps.MapTypeId.ROADMAP, 'map_style']
-                }
+                },
+                mapId: 'group_finder_map'
             };
             // center the map on the configured address
             self.centerMapOnAddress();
