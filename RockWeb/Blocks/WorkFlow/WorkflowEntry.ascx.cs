@@ -305,8 +305,6 @@ namespace RockWeb.Blocks.WorkFlow
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
-            base.OnLoad( e );
-
             // If PostBack is triggered by captcha leave message notification as is.
             if ( this.Page.Request.Params["__EVENTARGUMENT"] != "TokenReceived" )
             {
@@ -323,6 +321,8 @@ namespace RockWeb.Blocks.WorkFlow
                     ProcessActionRequest();
                 }
             }
+
+            base.OnLoad( e );
         }
 
         /// <summary>
@@ -412,15 +412,15 @@ namespace RockWeb.Blocks.WorkFlow
         }
 
         /// <summary>
-        /// Event raised after the Captcha control receives a token for a solved Captcha.
+        /// Handles the TokenReceived event of the CpCaptcha control.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="Captcha.TokenReceivedEventArgs"/> instance containing the event data.</param>
         protected void cpCaptcha_TokenReceived( object sender, Captcha.TokenReceivedEventArgs e )
         {
             if ( e.IsValid )
             {
-                cpCaptcha.Visible = false;
+                pnlCaptcha.Visible = false;
                 AddSubmitButtons( _actionType?.WorkflowForm );
             }
 
@@ -451,7 +451,7 @@ namespace RockWeb.Blocks.WorkFlow
             bool allowPassingWorkflowTypeId = !this.GetAttributeValue( AttributeKey.DisablePassingWorkflowTypeId ).AsBoolean();
 
             var disableCaptchaSupport = GetAttributeValue( AttributeKey.DisableCaptchaSupport ).AsBoolean() || !cpCaptcha.IsAvailable;
-            cpCaptcha.Visible = !disableCaptchaSupport;
+            pnlCaptcha.Visible = !disableCaptchaSupport;
 
             if ( workflowType == null )
             {

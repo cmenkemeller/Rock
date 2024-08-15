@@ -4,6 +4,13 @@
                    :formGroupClasses="`html-editor ${formGroupClasses}`"
                    name="html-editor">
         <template #default="{ uniqueId, field }">
+            <NotificationBox v-if="isCodeEditorWarningShown && !isCodeEditorWarningDismissed"
+                             alertType="warning"
+                             :dismissible="true"
+                             @dismiss="isCodeEditorWarningDismissed = true">
+                The markup contains content that may not be compatible with the visual editor.
+            </NotificationBox>
+
             <div class="control-wrapper">
                 <div class="note-editor-container">
                     <div class="note-editor note-frame panel panel-default">
@@ -17,7 +24,8 @@
                                                   :editorHeight="editorHeight + yOffset"
                                                   :mergeFields="mergeFields"
                                                   ref="editSourceCodePlugin"
-                                                  :startInCodeEditorMode="startInCodeEditorMode">
+                                                  :startInCodeEditorMode="startInCodeEditorMode"
+                                                  @preventToggleOff="onPreventCodeEditorToggleOff">
                                 <template #default="{ isEditorShown }">
                                     <div v-show="!updateIsEditorShown(isEditorShown)"
                                          class="note-editable"
@@ -57,6 +65,8 @@
             <StylesheetsPlugin htmlCssReplacementSelector=".note-editor" bodyCssReplacementSelector=".note-editing-area" />
 
             <MetaTagsPlugin />
+
+            <LavaLanguagePlugin />
         </template>
     </RockFormField>
 </template>
@@ -85,11 +95,13 @@
 
 <script setup lang="ts">
     import { PropType, computed, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
+    import NotificationBox from "./notificationBox.obs";
     import RockFormField from "./rockFormField.obs";
     import AssetManagerPlugin from "./NoteEditor/assetManagerPlugin.partial.obs";
     import EditSourceCodePlugin from "./NoteEditor/editSourceCodePlugin.partial.obs";
     import FileBrowserPlugin from "./NoteEditor/fileBrowserPlugin.partial.obs";
     import ImageBrowserPlugin from "./NoteEditor/imageBrowserPlugin.partial.obs";
+    import LavaLanguagePlugin from "./NoteEditor/lavaLanguagePlugin.partial.obs";
     import MergeFieldPlugin from "./NoteEditor/mergeFieldPlugin.partial.obs";
     import MetaTagsPlugin from "./NoteEditor/metaTagsPlugin.partial.obs";
     import ParagraphPlugin from "./NoteEditor/paragraphPlugin.partial.obs";
@@ -208,6 +220,8 @@
     const toolbarId = ref<string | undefined>();
     const tinyMceInstance = ref<Editor | undefined>();
     const toolbarElement = ref<HTMLElement | undefined>();
+    const isCodeEditorWarningDismissed = ref<boolean>(false);
+    const isCodeEditorWarningShown = ref<boolean>(false);
 
     // Keep track of the TinyMCE value to compare with the modelValue.
     const tinyMceValue = ref<string | undefined>();
@@ -234,7 +248,9 @@
 
     // #region Computed Values
 
-    const editorHeightCss = computed<string>(() => `${props.editorHeight + yOffset.value}px`);
+    const editorHeightCss = computed<string>(() => {
+        return `${props.editorHeight + yOffset.value}px`;
+    });
 
     // #endregion
 
@@ -278,6 +294,12 @@
     function onResizeEnd(_event: MouseEvent): void {
         document.removeEventListener("mousemove", onResize);
         resizerElement.value?.addEventListener("mousedown", onResizeStart, { once: true });
+    }
+
+    /** Event handler for the code editor toggle off being prevented. */
+    function onPreventCodeEditorToggleOff(event: { isPrevented: boolean }): void {
+        isCodeEditorWarningDismissed.value = false;
+        isCodeEditorWarningShown.value = event.isPrevented;
     }
 
     // #endregion
