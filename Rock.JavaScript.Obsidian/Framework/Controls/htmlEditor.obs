@@ -172,8 +172,7 @@
          */
         encryptedDocumentRootFolder: {
             type: String,
-            // ~/Content
-            default: "EAAAAAedEq9b2IhgNtIJosSVA8uXx8DMo0Tt+YiDjn8Ijj7N"
+            default: ""
         },
 
         /**
@@ -182,7 +181,7 @@
         encryptedImageRootFolder: {
             type: String,
             // ~/Content
-            default: "EAAAAAedEq9b2IhgNtIJosSVA8uXx8DMo0Tt+YiDjn8Ijj7N"
+            default: ""
         },
 
         /**
