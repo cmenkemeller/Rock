@@ -320,6 +320,11 @@ namespace Rock.SystemGuid
         public const string MOBILE_CORE_SMART_SEARCH = "9AA64485-9641-4A06-9450-B5244BC1464A";
 
         /// <summary>
+        /// The mobile Core &gt; <see cref="Rock.Blocks.Types.Mobile.Core.QuickNote"/> block type.
+        /// </summary>
+        public const string MOBILE_CORE_QUICK_NOTE = "B7E187C8-6F74-4FBD-8853-5BAC48F5822C";
+
+        /// <summary>
         /// The mobile Groups &gt; <see cref="Rock.Blocks.Types.Mobile.Groups.GroupRegistration">Group Registration</see> block type.
         /// </summary>
         public const string MOBILE_GROUPS_GROUP_REGISTRATION = "8A42E4FA-9FE1-493C-B6D8-7A766D96E912";
