@@ -49,6 +49,24 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="DataTextBox" /> will allow special characters. This property is meant to be used when dealing with Person names.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if special characters allowed; otherwise, <c>false</c>.
+        /// </value>
+        public override bool NoSpecialCharacters
+        {
+            get
+            {
+                return base.NoSpecialCharacters;
+            }
+            set
+            {
+                base.NoSpecialCharacters = value;
+            }
+        }
+
+        /// <summary>
         /// Gets or sets representing characters or strings, delimited by <see cref="Delimiter"/> that are not valid or allowed
         /// </summary>
         public string NotAllowed

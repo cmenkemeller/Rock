@@ -110,6 +110,7 @@ defineRule("required", (value: unknown, params?: unknown[]): ValidationResult =>
 });
 
 defineRule("nospecialcharacters", (value: unknown): ValidationResult => {
+    // Gets or sets a value indicating whether the an input will allow special characters. This property is meant to be used when dealing with Person names.
     const pattern: RegExp = /[({[\]})"]/;
 
     if (typeof value === "string") {

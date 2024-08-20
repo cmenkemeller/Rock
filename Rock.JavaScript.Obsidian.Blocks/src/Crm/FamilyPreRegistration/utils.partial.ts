@@ -553,6 +553,9 @@ export function required(value: unknown, params?: unknown[]): ValidationResult {
     return true;
 }
 
+/**
+ * Validates whether a name can include special characters.
+ */
 export function noSpecialCharacters (value: unknown): ValidationResult {
     const pattern: RegExp = /[({[\]})"]/;
 
