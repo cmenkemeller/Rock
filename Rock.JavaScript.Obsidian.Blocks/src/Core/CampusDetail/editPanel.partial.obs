@@ -38,6 +38,8 @@
 
                 <KeyValueList v-model="serviceTimes"
                               label="Service Times"
+                              keyPlaceholder="Day"
+                              valuePlaceholder="Time"
                               help="A list of days and times that this campus has services." />
             </div>
 
@@ -197,7 +199,7 @@
         setPropertiesBoxValue(newValue, "url", url.value);
 
         emit("update:modelValue", newValue);
-    });
+    }, { deep: true });
 
     watchPropertyChanges(propRefs, emit);
 </script>
