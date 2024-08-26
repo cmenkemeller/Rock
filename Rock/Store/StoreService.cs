@@ -89,7 +89,6 @@ namespace Rock.Store
             var client = new RestClient( _rockStoreUrl );
             client.Timeout = _clientTimeout;
 
-
             string organizationKey = GetOrganizationKey();
             string encodedUserName = HttpUtility.UrlEncode( Convert.ToBase64String( Encoding.UTF8.GetBytes( username ) ) );
             string encodedPassword = HttpUtility.UrlEncode( Convert.ToBase64String( Encoding.UTF8.GetBytes( password ) ) );
