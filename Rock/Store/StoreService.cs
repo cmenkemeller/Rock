@@ -104,7 +104,7 @@ namespace Rock.Store
                 packageId
             };
 
-            var request = new RestRequest( requestUrl, Method.GET );
+            var request = new RestRequest( requestUrl, Method.POST );
             request.RequestFormat = DataFormat.Json;
             request.AddJsonBody( body );
 
