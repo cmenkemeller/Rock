@@ -301,7 +301,7 @@ namespace Rock.Blocks.Finance
             entity.LoadAttributes( rockContext );
 
             // New entity is being created, prepare for edit mode by default.
-            if ( RequestContext.CurrentPerson != null )
+            if ( GetCurrentPerson() != null )
             {
                 box.Entity = GetEntityBagForEdit( entity );
             }
