@@ -32,6 +32,9 @@ registerFieldType(FieldTypeGuids.Address, new AddressFieldType());
 import { AssessmentTypesFieldType } from "./assessmentTypesField.partial";
 registerFieldType(FieldTypeGuids.AssessmentType, new AssessmentTypesFieldType());
 
+import { AssetFieldType } from "./assetField.partial";
+registerFieldType(FieldTypeGuids.Asset, new AssetFieldType());
+
 import { AssetStorageProviderFieldType } from "./assetStorageProviderField.partial";
 registerFieldType(FieldTypeGuids.AssetStorageProvider, new AssetStorageProviderFieldType());
 

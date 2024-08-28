@@ -22,8 +22,8 @@ using System.Web.UI;
 using Newtonsoft.Json;
 
 using Rock.Attribute;
-using Rock.Data;
-using Rock.Model;
+using Rock.Security;
+using Rock.Security.SecurityGrantRules;
 using Rock.Web.Cache;
 using Rock.Web.Cache.Entities;
 using Rock.Web.UI.Controls;
@@ -34,9 +34,9 @@ namespace Rock.Field.Types
     ///
     /// </summary>
     /// <seealso cref="Rock.Field.FieldType" />
-    [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [Rock.SystemGuid.FieldTypeGuid( "4E4E8692-23B4-49EA-88B4-2AB07899E0EE" )]
-    public class AssetFieldType : FieldType
+    [RockPlatformSupport( Utility.RockPlatform.WebForms, Utility.RockPlatform.Obsidian )]
+    [Rock.SystemGuid.FieldTypeGuid( Rock.SystemGuid.FieldType.ASSET )]
+    public class AssetFieldType : FieldType, ISecurityGrantFieldType
     {
         /// <summary>
         /// The picker button template
@@ -84,7 +84,7 @@ namespace Rock.Field.Types
                 return uri;
             }
 
-            if ( asset.AssetStorageProviderId <= 0)
+            if ( asset.AssetStorageProviderId <= 0 )
             {
                 return string.Empty;
             }
@@ -238,5 +238,13 @@ namespace Rock.Field.Types
 
 #endif
         #endregion
+
+        /// <inheritdoc/>
+        public void AddRulesToSecurityGrant( SecurityGrant grant, Dictionary<string, string> privateConfigurationValues )
+        {
+            grant.AddRule( new AssetAndFileManagerSecurityGrantRule( Rock.Security.Authorization.VIEW ) );
+            grant.AddRule( new AssetAndFileManagerSecurityGrantRule( Rock.Security.Authorization.EDIT ) );
+            grant.AddRule( new AssetAndFileManagerSecurityGrantRule( Rock.Security.Authorization.DELETE ) );
+        }
     }
 }
