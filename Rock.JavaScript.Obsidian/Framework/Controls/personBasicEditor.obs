@@ -3,8 +3,8 @@
     <div :class="{ 'row': !showInOneColumn }">
         <div :class="{ 'col-sm-4': !showInOneColumn }">
             <DefinedValuePicker v-if="!hideTitle" v-model="personTitle" :definedTypeGuid="DefinedType.PersonTitle" :label="fullPrefix + 'Title'" class="input-width-md" formGroupClasses="field-title" showBlankItem />
-            <TextBox v-model="firstName" :label="fullPrefix + 'First Name'" :rules="['required', 'nospecialcharacters']" formGroupClasses="field-firstname" />
-            <TextBox v-model="lastName" :label="fullPrefix + 'Last Name'" :rules="['required', 'nospecialcharacters']" formGroupClasses="field-firstname" />
+            <TextBox v-model="firstName" :label="fullPrefix + 'First Name'" :rules="['required', 'nospecialcharacters', 'noemojisorspecialfonts']"  formGroupClasses="field-firstname" />
+            <TextBox v-model="lastName" :label="fullPrefix + 'Last Name'" :rules="['required', 'nospecialcharacters', 'noemojisorspecialfonts']"  formGroupClasses="field-firstname" />
             <DefinedValuePicker v-if="!hideSuffix" v-model="personSuffix" :definedTypeGuid="DefinedType.PersonSuffix" :label="fullPrefix + 'Suffix'" class="input-width-md" formGroupClasses="field-suffix" showBlankItem />
             <EmailBox v-if="showEmail" v-model="email" :label="fullPrefix + 'Email'" formGroupClasses="field-email" :rules="requireEmail ? 'required' : ''" />
             <PhoneNumberBox v-if="showMobilePhone" v-model="mobilePhoneNumber" v-model:countryCode="mobilePhoneCountryCode" :label="fullPrefix + 'Mobile Phone'" formGroupClasses="field-mobilephone" :rules="requireMobilePhone ? 'required' : ''" />

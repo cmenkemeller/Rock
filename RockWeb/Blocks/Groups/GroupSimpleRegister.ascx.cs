@@ -88,15 +88,22 @@ namespace RockWeb.Blocks.Groups
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnSave_Click( object sender, EventArgs e )
         {
+            string specialCharPattern = @"[\(\{\[\)\}\]""]";
+            string emojisAndSpecialFontsPattern = @"(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|[\uD835][\uDC00-\uDFFF])";
+
             if ( string.IsNullOrWhiteSpace( txtFirstName.Text ) ||
                 string.IsNullOrWhiteSpace( txtLastName.Text ) ||
                 string.IsNullOrWhiteSpace( txtEmail.Text ) )
             {
                 ShowError( "Missing Information", "Please enter a value for First Name, Last Name, and Email" );
             }
-            else if ( System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, @"[\(\{\[\)\}\]""]" ) || System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, @"[\(\{\[\)\}\]""]" ) )
+            else if ( System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, specialCharPattern ) || System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, specialCharPattern ) )
             {
                 ShowError( "First and Last Name", "cannot contain special characters such as quotes, parentheses, etc." );
+            }
+            else if ( System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, emojisAndSpecialFontsPattern ) || System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, emojisAndSpecialFontsPattern ) )
+            {
+                ShowError( "First and Last Name", "cannot contain emojis or special fonts." );
             }
             else
             {
