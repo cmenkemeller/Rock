@@ -8,10 +8,10 @@
                               @update:modelValue="updatePersonName($event)" />
                 <FirstNameTextBox v-model="firstName"
                                   label="First Name"
-                                  rules="required" />
+                                  :rules="['required', 'nospecialcharacters']" />
                 <TextBox v-model="lastName"
                          label="Last Name"
-                         :rules="isLastNameRequired" />
+                         :rules="[isLastNameRequired, 'nospecialcharacters']" />
                 <EmailBox v-model="email"
                           label="Email" />
                 <DatePicker v-model="expirationDate"

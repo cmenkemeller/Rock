@@ -18,6 +18,8 @@ using System;
 using System.Data.Entity;
 using System.Data.Entity.SqlServer;
 using System.Linq;
+using System.Text.RegularExpressions;
+
 using Rock.Data;
 using Rock.Web.Cache;
 
@@ -48,6 +50,13 @@ namespace Rock.Model
                 {
                     case EntityContextState.Added:
                         {
+                            if ( this.Entity.GroupTypeId == GroupTypeCache.GetFamilyGroupType().Id )
+                            {
+                                // Remove emojis and other symbol characters
+                                string emojiAndSpecialFontPattern = @"(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|[\uD835][\uDC00-\uDFFF])";
+                                this.Entity.Name = this.Entity.Name != null ? Regex.Replace( this.Entity.Name, emojiAndSpecialFontPattern, string.Empty ) : null;
+                            }
+
                             HistoryChangeList.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Group" ).SetNewValue( Entity.Name );
 
                             History.EvaluateChange( HistoryChangeList, "Name", string.Empty, Entity.Name );
