@@ -809,6 +809,7 @@
     <Compile Include="Bus\Consumer\RockConsumerAsync.cs" />
     <Compile Include="Bus\Exceptions\BusException.cs" />
     <Compile Include="Bus\Faults\ReceiveFaultObserver.cs" />
+    <Compile Include="Bus\Message\CloudPrintLabelMessage.cs" />
     <Compile Include="Bus\Message\CloudPrintProxyStatusMessage.cs" />
     <Compile Include="Bus\Message\NewItemCacheAddedMessage.cs" />
     <Compile Include="Bus\Message\ClearReferencedEntityDependenciesMessage.cs" />
@@ -838,12 +839,16 @@
     <Compile Include="CheckIn\v2\AreaOpportunity.cs" />
     <Compile Include="CheckIn\v2\AttendanceSessionRequest.cs" />
     <Compile Include="CheckIn\v2\CheckInFieldFilterBuilder.cs" />
+    <Compile Include="CheckIn\v2\CloudPrintLabelConsumer.cs" />
     <Compile Include="CheckIn\v2\CloudPrintProxyStatusConsumer.cs" />
     <Compile Include="CheckIn\v2\CloudPrintSocket.cs" />
     <Compile Include="CheckIn\v2\DefaultLabelProvider.cs" />
     <Compile Include="CheckIn\v2\DefaultSaveProvider.cs" />
+    <Compile Include="CheckIn\v2\FamilyRegistration.cs" />
+    <Compile Include="CheckIn\v2\FamilyRegistrationSaveResult.cs" />
     <Compile Include="CheckIn\v2\Filters\BirthMonthOpportunityFilter.cs" />
     <Compile Include="CheckIn\v2\Filters\LocationClosedOpportunityFilter.cs" />
+    <Compile Include="CheckIn\v2\IValidPropertiesBoxExtensions.cs" />
     <Compile Include="CheckIn\v2\Labels\AttendanceLabel.cs" />
     <Compile Include="CheckIn\v2\Labels\AttendanceLabelData.cs" />
     <Compile Include="CheckIn\v2\Labels\AttendeePhotoFieldConfiguration.cs" />
@@ -1461,6 +1466,7 @@
     <Compile Include="Plugin\HotFixes\193_MigratoinRollupForV15_4_1.cs" />
     <Compile Include="Plugin\HotFixes\192_MailgunCopyApiKeyToHttpWebhookSigningKey.cs" />
     <Compile Include="Plugin\HotFixes\200_AddMaxMindGeolocation.cs" />
+    <Compile Include="Plugin\HotFixes\206_MigrationRollupsForV17_0_13.cs" />
     <Compile Include="Plugin\HotFixes\205_MigrationRollupsForV17_0_12.cs" />
     <Compile Include="Plugin\HotFixes\HotFixMigrationResource.Designer.cs">
       <AutoGen>True</AutoGen>
