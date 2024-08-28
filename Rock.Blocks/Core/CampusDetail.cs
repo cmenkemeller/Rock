@@ -347,7 +347,7 @@ namespace Rock.Blocks.Core
                 return true;
             }
 
-            var urlRegex = @"^(http[s]?:\/\/)?[^\s([" + '"' + @" <,>]*\.?[^\s[" + '"' + @",><]*\/$";
+            var urlRegex = @"^(http[s]?:\/\/)?[^\s([" + '"' + @" <,>]*\.?[^\s[" + '"' + @",><]*$";
 
             return Regex.IsMatch( url, urlRegex );
         }
@@ -548,7 +548,14 @@ namespace Rock.Blocks.Core
             box.IfValidProperty( nameof( box.Bag.PhoneNumber ),
                 () =>
                 {
-                    entity.PhoneNumber = PhoneNumber.FormattedNumber( box.Bag.PhoneNumberCountryCode, box.Bag.PhoneNumber, box.Bag.PhoneNumberCountryCode != PhoneNumber.DefaultCountryCode() );
+                    if( box.IsValidProperty( nameof( box.Bag.PhoneNumberCountryCode ) ) )
+                    {
+                        entity.PhoneNumber = PhoneNumber.FormattedNumber( box.Bag.PhoneNumberCountryCode, box.Bag.PhoneNumber, box.Bag.PhoneNumberCountryCode != PhoneNumber.DefaultCountryCode() );
+                    }
+                    else
+                    {
+                        entity.PhoneNumber = PhoneNumber.FormattedNumber( PhoneNumber.DefaultCountryCode(), box.Bag.PhoneNumber, false );
+                    }
                 } );
 
             box.IfValidProperty( nameof( box.Bag.ServiceTimes ),
