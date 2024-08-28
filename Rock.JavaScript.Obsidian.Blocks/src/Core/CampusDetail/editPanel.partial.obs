@@ -49,10 +49,10 @@
                                     :definedTypeGuid="DefinedType.CampusType" />
 
                 <UrlLinkBox v-model="url"
-                            label="URL"
-                            requiresTrailingSlash />
+                            label="URL" />
 
                 <PhoneNumberBox v-model="phoneNumber"
+                                v-model:countryCode="phoneNumberCountryCode"
                                 label="Phone Number" />
 
                 <LocationPicker v-model="location"
@@ -120,6 +120,7 @@
     const shortCode = propertyRef(props.modelValue.bag?.shortCode ?? "", "ShortCode");
     const timeZoneId = propertyRef(props.modelValue.bag?.timeZoneId ?? "", "TimeZoneId");
     const url = propertyRef(props.modelValue.bag?.url ?? "", "Url");
+    const phoneNumberCountryCode = propertyRef(props.modelValue.bag?.phoneNumberCountryCode ?? "", "PhoneNumber");
 
     // The properties that are being edited. This should only contain
     // objects returned by propertyRef().
@@ -134,7 +135,8 @@
         serviceTimes,
         shortCode,
         timeZoneId,
-        url];
+        url,
+        phoneNumberCountryCode];
 
     // #endregion
 
@@ -170,6 +172,7 @@
         updateRefValue(leaderPersonAlias, props.modelValue.bag?.leaderPersonAlias ?? undefined);
         updateRefValue(location, props.modelValue.bag?.location ?? null);
         updateRefValue(name, props.modelValue.bag?.name ?? "");
+        updateRefValue(phoneNumberCountryCode, props.modelValue.bag?.phoneNumberCountryCode ?? "");
         updateRefValue(phoneNumber, props.modelValue.bag?.phoneNumber ?? "");
         updateRefValue(serviceTimes, (props.modelValue.bag?.serviceTimes ?? []).map((s): KeyValueItem => ({ key: s.value, value: s.text })));
         updateRefValue(shortCode, props.modelValue.bag?.shortCode ?? "");
@@ -192,6 +195,7 @@
         setPropertiesBoxValue(newValue, "leaderPersonAlias", leaderPersonAlias.value);
         setPropertiesBoxValue(newValue, "location", location.value);
         setPropertiesBoxValue(newValue, "name", name.value);
+        setPropertiesBoxValue(newValue, "phoneNumberCountryCode", phoneNumberCountryCode.value);
         setPropertiesBoxValue(newValue, "phoneNumber", phoneNumber.value);
         setPropertiesBoxValue(newValue, "serviceTimes", serviceTimes.value.map((s): ListItemBag => ({ value: s.key ?? "", text: s.value ?? "" })));
         setPropertiesBoxValue(newValue, "shortCode", shortCode.value);

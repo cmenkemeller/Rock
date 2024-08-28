@@ -111,5 +111,11 @@ namespace Rock.ViewModels.Blocks.Core.CampusDetail
         /// </summary>
         /// <value>The URL.</value>
         public string Url { get; set; }
+
+        /// <summary>
+        /// Get or sets the Country Code of the Phone Number
+        /// </summary>
+        /// <value>The Phone Number Country Code.</value>
+        public string PhoneNumberCountryCode { get; set; }
     }
 }

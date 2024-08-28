@@ -80,4 +80,7 @@ export type CampusBag = {
 
     /** Gets or sets the URL. */
     url?: string | null;
+
+    /** Get or sets the Country Code of the Phone Number. */
+    phoneNumberCountryCode?: string | null;
 };

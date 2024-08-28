@@ -48,8 +48,8 @@ namespace Rock.Blocks.Core
 
     #endregion
 
-    [Rock.SystemGuid.EntityTypeGuid( "A61EAF51-5DB4-451E-9F88-9D4C6ACCE73B")]
-    [Rock.SystemGuid.BlockTypeGuid( "507F5108-FB55-48F0-A66E-CC3D5185D35D")]
+    [Rock.SystemGuid.EntityTypeGuid( "A61EAF51-5DB4-451E-9F88-9D4C6ACCE73B" )]
+    [Rock.SystemGuid.BlockTypeGuid( "507F5108-FB55-48F0-A66E-CC3D5185D35D" )]
     public class CampusDetail : RockEntityDetailBlockType<Campus, CampusBag>
     {
         #region Keys
@@ -426,7 +426,6 @@ namespace Rock.Blocks.Core
                 LeaderPersonAlias = entity.LeaderPersonAlias.ToListItemBag(),
                 Location = entity.Location.ToListItemBag(),
                 Name = entity.Name,
-                PhoneNumber = entity.PhoneNumber,
                 ServiceTimes = ConvertServiceTimesToBags( entity.ServiceTimes ),
                 ShortCode = entity.ShortCode,
                 TimeZoneId = entity.TimeZoneId,
@@ -444,6 +443,25 @@ namespace Rock.Blocks.Core
 
             var bag = GetCommonEntityBag( entity );
 
+            var countryCodePart = "";
+            var numberPart = "";
+            var hasCountryCode = PhoneNumber.TryParseNumber( entity.PhoneNumber, out countryCodePart, out numberPart );
+            if ( hasCountryCode )
+            {
+                // Reformat the number according to the country code.
+                var formattedNumber = PhoneNumber.FormattedNumber( countryCodePart, numberPart, countryCodePart != PhoneNumber.DefaultCountryCode() );
+                if ( !string.IsNullOrWhiteSpace( formattedNumber ) )
+                {
+                    numberPart = formattedNumber;
+                }
+                bag.PhoneNumberCountryCode = countryCodePart;
+                bag.PhoneNumber = numberPart;
+            }
+            else
+            {
+                bag.PhoneNumber = entity.PhoneNumber;
+            }
+
             bag.LoadAttributesAndValuesForPublicView( entity, RequestContext.CurrentPerson );
 
             return bag;
@@ -458,6 +476,25 @@ namespace Rock.Blocks.Core
             }
 
             var bag = GetCommonEntityBag( entity );
+
+            var countryCodePart = "";
+            var numberPart = "";
+            var hasCountryCode = PhoneNumber.TryParseNumber( entity.PhoneNumber, out countryCodePart, out numberPart );
+            if ( hasCountryCode )
+            {
+                // Reformat the number according to the country code.
+                var formattedNumber = PhoneNumber.FormattedNumber( countryCodePart, numberPart, false );
+                if ( !string.IsNullOrWhiteSpace( formattedNumber ) )
+                {
+                    numberPart = formattedNumber;
+                }
+                bag.PhoneNumberCountryCode = countryCodePart;
+                bag.PhoneNumber = numberPart;
+            }
+            else
+            {
+                bag.PhoneNumber = entity.PhoneNumber;
+            }
 
             bag.LoadAttributesAndValuesForPublicEdit( entity, RequestContext.CurrentPerson );
 
@@ -509,7 +546,10 @@ namespace Rock.Blocks.Core
                 () => entity.Name = box.Bag.Name );
 
             box.IfValidProperty( nameof( box.Bag.PhoneNumber ),
-                () => entity.PhoneNumber = box.Bag.PhoneNumber );
+                () =>
+                {
+                    entity.PhoneNumber = PhoneNumber.FormattedNumber( box.Bag.PhoneNumberCountryCode, box.Bag.PhoneNumber, box.Bag.PhoneNumberCountryCode != PhoneNumber.DefaultCountryCode() );
+                } );
 
             box.IfValidProperty( nameof( box.Bag.ServiceTimes ),
                 () => entity.ServiceTimes = ConvertServiceTimesFromBags( box.Bag.ServiceTimes ) );
@@ -675,7 +715,7 @@ namespace Rock.Blocks.Core
             entity = entityService.Get( entity.Id );
             entity.LoadAttributes( RockContext );
 
-            var bag = GetEntityBagForEdit( entity );
+            var bag = GetEntityBagForView( entity );
 
             return ActionOk( new ValidPropertiesBox<CampusBag>
             {
