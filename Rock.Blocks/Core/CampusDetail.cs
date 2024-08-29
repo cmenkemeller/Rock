@@ -526,24 +526,7 @@ namespace Rock.Blocks.Core
 
             var bag = GetCommonEntityBag( entity );
 
-            var countryCodePart = "";
-            var numberPart = "";
-            var hasCountryCode = PhoneNumber.TryParseNumber( entity.PhoneNumber, out countryCodePart, out numberPart );
-            if ( hasCountryCode )
-            {
-                // Reformat the number according to the country code.
-                var formattedNumber = PhoneNumber.FormattedNumber( countryCodePart, numberPart, countryCodePart != PhoneNumber.DefaultCountryCode() );
-                if ( !string.IsNullOrWhiteSpace( formattedNumber ) )
-                {
-                    numberPart = formattedNumber;
-                }
-                bag.PhoneNumberCountryCode = countryCodePart;
-                bag.PhoneNumber = numberPart;
-            }
-            else
-            {
-                bag.PhoneNumber = entity.PhoneNumber;
-            }
+            bag.PhoneNumber = entity.PhoneNumber;
 
             bag.LoadAttributesAndValuesForPublicView( entity, RequestContext.CurrentPerson );
 
@@ -637,7 +620,7 @@ namespace Rock.Blocks.Core
             box.IfValidProperty( nameof( box.Bag.PhoneNumber ),
                 () =>
                 {
-                    if ( box.IsValidProperty( nameof( box.Bag.PhoneNumberCountryCode ) ) )
+                    if ( box.IsValidProperty( nameof( box.Bag.PhoneNumberCountryCode ) ) && !box.Bag.PhoneNumberCountryCode.IsNullOrWhiteSpace() )
                     {
                         entity.PhoneNumber = PhoneNumber.FormattedNumber( box.Bag.PhoneNumberCountryCode, box.Bag.PhoneNumber, box.Bag.PhoneNumberCountryCode != PhoneNumber.DefaultCountryCode() );
                     }
