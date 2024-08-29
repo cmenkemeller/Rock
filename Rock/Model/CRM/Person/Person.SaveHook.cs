@@ -146,6 +146,13 @@ namespace Rock.Model
                     this.Entity.LastName = this.Entity.LastName.StandardizeQuotes();
                     this.Entity.NickName = this.Entity.NickName.StandardizeQuotes();
 
+                    // Remove emojis and other symbol characters
+                    string emojiAndSpecialFontPattern = @"(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|[\uD835][\uDC00-\uDFFF])";
+                    this.Entity.FirstName = this.Entity.FirstName != null ? Regex.Replace( this.Entity.FirstName, emojiAndSpecialFontPattern, string.Empty ) : null;
+                    this.Entity.LastName = this.Entity.LastName != null ? Regex.Replace( this.Entity.LastName, emojiAndSpecialFontPattern, string.Empty ) : null;
+                    this.Entity.NickName = this.Entity.NickName != null ? Regex.Replace( this.Entity.NickName, emojiAndSpecialFontPattern, string.Empty ) : null;
+                    this.Entity.MiddleName = this.Entity.MiddleName != null ? Regex.Replace( this.Entity.MiddleName, emojiAndSpecialFontPattern, string.Empty ) : null;
+
                     // Remove extra spaces between words (Issue #2990)
                     this.Entity.FirstName = this.Entity.FirstName != null ? Regex.Replace( this.Entity.FirstName, @"\s+", " " ).Trim() : null;
                     this.Entity.LastName = this.Entity.LastName != null ? Regex.Replace( this.Entity.LastName, @"\s+", " " ).Trim() : null;
