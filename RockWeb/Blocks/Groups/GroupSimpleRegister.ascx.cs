@@ -95,11 +95,11 @@ namespace RockWeb.Blocks.Groups
             {
                 ShowError( "Missing Information", "Please enter a value for First Name, Last Name, and Email" );
             }
-            else if ( !System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, RegexPatterns.SpecialCharacterPattern ) || !System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, RegexPatterns.SpecialCharacterPattern ) )
+            else if ( System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, RegexPatterns.SpecialCharacterRemovalPattern ) || System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, RegexPatterns.SpecialCharacterRemovalPattern ) )
             {
                 ShowError( "First and Last Name", "cannot contain special characters such as quotes, parentheses, etc." );
             }
-            else if ( !System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, RegexPatterns.EmojiAndSpecialFontPattern ) || !System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, RegexPatterns.EmojiAndSpecialFontPattern ) )
+            else if ( System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, RegexPatterns.EmojiAndSpecialFontRemovalPattern ) || System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, RegexPatterns.EmojiAndSpecialFontRemovalPattern ) )
             {
                 ShowError( "First and Last Name", "cannot contain emojis or special fonts." );
             }

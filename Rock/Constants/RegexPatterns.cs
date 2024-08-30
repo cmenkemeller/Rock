@@ -34,6 +34,11 @@ namespace Rock.Constants
         public static string SpecialCharacterPattern = @"^[^\(\{\[\)\}\]""]*$";
 
         /// <summary>
+        /// Regular expression pattern used to identify and remove specific special characters
+        /// </summary>
+        public static string SpecialCharacterRemovalPattern = @"[\(\{\[\)\}\]""]";
+
+        /// <summary>
         /// A regular expression pattern string for matching strings that do not contain emoji or special font characters.
         /// </summary>
         /// <remarks>
@@ -50,5 +55,10 @@ namespace Rock.Constants
         /// It can be used to validate input that should not contain emoji or special font characters.
         /// </remarks>
         public static string EmojiAndSpecialFontPattern = @"^[^\u00a9\u00ae\u2000-\u3300\uD83C\uD000-\uDFFF\uD83D\uD000-\uDFFF\uD83E\uD000-\uDFFF\uD835\uDC00-\uDFFF]*$";
+
+        /// <summary>
+        /// Regular expression pattern used to identify and remove emojis and special font characters.
+        /// </summary>
+        public static string EmojiAndSpecialFontRemovalPattern = @"[\u00A9\u00AE\u2000-\u3300\uD83C\uD000-\uDFFF\uD83D\uD000-\uDFFF\uD83E\uD000-\uDFFF\uD835\uDC00-\uDFFF]";
     }
 }

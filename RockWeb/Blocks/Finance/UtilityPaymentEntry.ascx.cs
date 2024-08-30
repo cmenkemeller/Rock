@@ -3066,12 +3066,12 @@ mission. We are so grateful for your commitment.</p>
                     errorMessages.Add( "Make sure to enter both a first and last name" );
                 }
 
-                if ( !System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, RegexPatterns.SpecialCharacterPattern ) || !System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, RegexPatterns.SpecialCharacterPattern ) )
+                if ( System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, RegexPatterns.SpecialCharacterRemovalPattern ) || System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, RegexPatterns.SpecialCharacterRemovalPattern ) )
                 {
                     errorMessages.Add( "Make sure to enter a first and last name that does not contain special characters such as quotes, parentheses, etc." );
                 }
 
-                if ( !System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, RegexPatterns.EmojiAndSpecialFontPattern ) || !System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, RegexPatterns.EmojiAndSpecialFontPattern ) )
+                if ( System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, RegexPatterns.EmojiAndSpecialFontRemovalPattern ) || System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, RegexPatterns.EmojiAndSpecialFontRemovalPattern ) )
                 {
                     errorMessages.Add( "Make sure to enter a first and last name that does not contain emojis or special fonts." );
                 }
