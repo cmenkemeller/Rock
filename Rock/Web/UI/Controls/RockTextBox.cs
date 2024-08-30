@@ -17,6 +17,7 @@
 using System.ComponentModel;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using Rock.Constants;
 
 namespace Rock.Web.UI.Controls
 {
@@ -646,7 +647,7 @@ namespace Rock.Web.UI.Controls
             if ( SpecialCharactersValidator != null && NoSpecialCharacters )
             {
                 SpecialCharactersValidator.Enabled = true;
-                SpecialCharactersValidator.ValidationExpression = @"^[^\(\{\[\)\}\]""]*$";
+                SpecialCharactersValidator.ValidationExpression = RegexPatterns.SpecialCharacterPattern;
                 if ( NoSpecialCharactersErrorMessage.IsNullOrWhiteSpace() )
                 {
                     SpecialCharactersValidator.ErrorMessage = $"{this.Label} cannot contain special characters such as quotes, parentheses, etc.";
@@ -662,7 +663,7 @@ namespace Rock.Web.UI.Controls
             if ( EmojiAndSpecialFontValidator != null && NoEmojisOrSpecialFonts )
             {
                 EmojiAndSpecialFontValidator.Enabled = true;
-                EmojiAndSpecialFontValidator.ValidationExpression = @"^[^\u00a9\u00ae\u2000-\u3300\uD83C\uD000-\uDFFF\uD83D\uD000-\uDFFF\uD83E\uD000-\uDFFF\uD835\uDC00-\uDFFF]*$";
+                EmojiAndSpecialFontValidator.ValidationExpression = RegexPatterns.EmojiAndSpecialFontPattern;
                 if ( NoEmojisOrSpecialFontsErrorMessage.IsNullOrWhiteSpace() )
                 {
                     EmojiAndSpecialFontValidator.ErrorMessage = $"{this.Label} cannot contain emojis or special fonts.";

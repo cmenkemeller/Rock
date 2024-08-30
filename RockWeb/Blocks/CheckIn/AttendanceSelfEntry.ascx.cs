@@ -647,22 +647,22 @@ ORDER BY [Text]",
                     errors.Add( "Last Name is required." );
                 }
 
-                if ( System.Text.RegularExpressions.Regex.IsMatch( tbOtherFirstName.Text, @"[\(\{\[\)\}\]""]" ) )
+                if ( !System.Text.RegularExpressions.Regex.IsMatch( tbOtherFirstName.Text, RegexPatterns.SpecialCharacterPattern ) )
                 {
                     errors.Add( "First Name cannot contain special characters such as quotes, parentheses, etc." );
                 }
 
-                if ( System.Text.RegularExpressions.Regex.IsMatch( tbOtherLastName.Text, @"[\(\{\[\)\}\]""]" ) )
+                if ( !System.Text.RegularExpressions.Regex.IsMatch( tbOtherLastName.Text, RegexPatterns.SpecialCharacterPattern ) )
                 {
                     errors.Add( "Last Name cannot contain special characters such as quotes, parentheses, etc." );
                 }
 
-                if ( System.Text.RegularExpressions.Regex.IsMatch( tbOtherFirstName.Text, @"(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|[\uD835][\uDC00-\uDFFF])" ) )
+                if ( !System.Text.RegularExpressions.Regex.IsMatch( tbOtherFirstName.Text, RegexPatterns.EmojiAndSpecialFontPattern ) )
                 {
                     errors.Add( "First Name cannot contain emojis or special fonts." );
                 }
 
-                if ( System.Text.RegularExpressions.Regex.IsMatch( tbOtherLastName.Text, @"(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|[\uD835][\uDC00-\uDFFF])" ) )
+                if ( !System.Text.RegularExpressions.Regex.IsMatch( tbOtherLastName.Text, RegexPatterns.EmojiAndSpecialFontPattern ) )
                 {
                     errors.Add( "Last Name cannot contain emojis or special fonts." );
                 }

@@ -22,6 +22,7 @@ import { toNumberOrNull } from "@Obsidian/Utility/numberUtils";
 import { isNullOrWhiteSpace, containsHtmlTag } from "@Obsidian/Utility/stringUtils";
 import { isUrl } from "@Obsidian/Utility/url";
 import { containsRequiredRule, defineRule, normalizeRules, parseRule, rulesPropType, validateValue } from "@Obsidian/Utility/validationRules";
+import { getSpecialCharacterPattern, getEmojiPattern, getSpecialFontPattern } from "@Obsidian/Core/Utilities/regexPatterns";
 
 // For backwards compatibility:
 export {
@@ -111,11 +112,9 @@ defineRule("required", (value: unknown, params?: unknown[]): ValidationResult =>
 
 defineRule("nospecialcharacters", (value: unknown): ValidationResult => {
     // Gets or sets a value indicating whether the an input will allow special characters. This property is meant to be used when dealing with Person names.
-    const pattern: RegExp = /[({[\]})"]/;
-
     if (typeof value === "string") {
         // Checks if a string contains special characters
-        if (pattern.test(value)) {
+        if (getSpecialCharacterPattern().test(value)) {
             return "cannot contain special characters such as quotes, parentheses, etc.";
         }
     }
@@ -125,14 +124,9 @@ defineRule("nospecialcharacters", (value: unknown): ValidationResult => {
 
 defineRule("noemojisorspecialfonts", (value: unknown): ValidationResult => {
     // Gets or sets a value indicating whether the an input will allow emojis and special fonts. This property is meant to be used when dealing with Person names.
-    // Regular expression to match emojis and special Unicode characters.
-    const emojiPattern: RegExp = /[\u{1F000}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}]/u;
-    // Regular expression to match special font characters.
-    const specialFontPattern: RegExp = /[\u{1D400}-\u{1D7FF}\u{1F100}-\u{1F1FF}]/u;
-
     if (typeof value === "string") {
         // Checks if a string contains emojis or special fonts.
-        if (emojiPattern.test(value) || specialFontPattern.test(value)) {
+        if (getEmojiPattern().test(value) || getSpecialFontPattern().test(value)) {
             return "cannot contain emojis or special fonts.";
         }
     }

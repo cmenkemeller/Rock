@@ -37,6 +37,7 @@ using Rock.Utility;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using Rock.Constants;
 
 namespace RockWeb.Blocks.Finance
 {
@@ -3065,16 +3066,12 @@ mission. We are so grateful for your commitment.</p>
                     errorMessages.Add( "Make sure to enter both a first and last name" );
                 }
 
-                string specialCharPattern = @"[\(\{\[\)\}\]""]";
-
-                if ( System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, specialCharPattern ) || System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, specialCharPattern ) )
+                if ( !System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, RegexPatterns.SpecialCharacterPattern ) || !System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, RegexPatterns.SpecialCharacterPattern ) )
                 {
                     errorMessages.Add( "Make sure to enter a first and last name that does not contain special characters such as quotes, parentheses, etc." );
                 }
 
-                string emojisAndSpecialFontsPattern = @"(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|[\uD835][\uDC00-\uDFFF])";
-
-                if ( System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, emojisAndSpecialFontsPattern ) || System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, emojisAndSpecialFontsPattern ) )
+                if ( !System.Text.RegularExpressions.Regex.IsMatch( txtFirstName.Text, RegexPatterns.EmojiAndSpecialFontPattern ) || !System.Text.RegularExpressions.Regex.IsMatch( txtLastName.Text, RegexPatterns.EmojiAndSpecialFontPattern ) )
                 {
                     errorMessages.Add( "Make sure to enter a first and last name that does not contain emojis or special fonts." );
                 }
