@@ -205,9 +205,10 @@ namespace Rock.Blocks.Types.Mobile.Reminders
         /// <param name="renewPeriodDays">The renew period days.</param>
         /// <param name="renewMaxCount">The renew maximum count.</param>
         /// <param name="assignedToPrimaryAliasGuid">The person this reminder should be assigned to.</param>
+        /// <param name="linkedNoteGuid">The note to link to this reminder, by setting the EntityId of the note to the newly created Reminder Id.</param>
         /// <param name="rockContext">The rock context.</param>
         /// <remarks>This method should only be called when there is a Current Person in the request.</remarks>
-        private void CreateReminder( Guid reminderTypeGuid, Guid entityGuid, DateTime reminderDate, string note, int? renewPeriodDays, int? renewMaxCount, Guid? assignedToPrimaryAliasGuid, RockContext rockContext )
+        private void CreateReminder( Guid reminderTypeGuid, Guid entityGuid, DateTime reminderDate, string note, int? renewPeriodDays, int? renewMaxCount, Guid? assignedToPrimaryAliasGuid, Guid? linkedNoteGuid, RockContext rockContext )
         {
             var reminderService = new ReminderService( rockContext );
             var reminderType = new ReminderTypeService( rockContext ).Get( reminderTypeGuid );
@@ -253,6 +254,19 @@ namespace Rock.Blocks.Types.Mobile.Reminders
 
             reminderService.Add( reminder );
             rockContext.SaveChanges();
+
+            // If we have a note to link to this reminder, update the note.
+            if ( linkedNoteGuid.HasValue )
+            {
+                var noteService = new NoteService( rockContext );
+                var noteEntity = noteService.Get( linkedNoteGuid.Value );
+
+                if ( noteEntity != null )
+                {
+                    noteEntity.EntityId = reminder.Id;
+                    rockContext.SaveChanges();
+                }
+            }
         }
 
         /// <summary>
@@ -265,9 +279,10 @@ namespace Rock.Blocks.Types.Mobile.Reminders
         /// <param name="renewPeriodDays">The renew period days.</param>
         /// <param name="renewMaxCount">The renew maximum count.</param>
         /// <param name="assignedToPersonAliasGuid">The person this reminder should be assigned to.</param>
+        /// <param name="linkedNoteGuid">The note to link to this reminder, by setting the EntityId of the note to the Reminder Id.</param>
         /// <param name="rockContext">The rock context.</param>
         /// <remarks>This method should only be called when there is a Current Person in the request.</remarks>
-        private void UpdateReminder( Guid reminderGuid, Guid reminderTypeGuid, DateTime reminderDate, string note, int? renewPeriodDays, int? renewMaxCount, Guid? assignedToPersonAliasGuid, RockContext rockContext )
+        private void UpdateReminder( Guid reminderGuid, Guid reminderTypeGuid, DateTime reminderDate, string note, int? renewPeriodDays, int? renewMaxCount, Guid? assignedToPersonAliasGuid, Guid? linkedNoteGuid, RockContext rockContext )
         {
             var reminderService = new ReminderService( rockContext );
             var reminder = reminderService.Get( reminderGuid );
@@ -295,6 +310,19 @@ namespace Rock.Blocks.Types.Mobile.Reminders
             }
 
             rockContext.SaveChanges();
+
+            // If we have a note to link to this reminder, update the note.
+            if ( linkedNoteGuid.HasValue )
+            {
+                var noteService = new NoteService( rockContext );
+                var noteEntity = noteService.Get( linkedNoteGuid.Value );
+
+                if ( noteEntity != null )
+                {
+                    noteEntity.EntityId = reminder.Id;
+                    rockContext.SaveChanges();
+                }
+            }
         }
 
         /// <summary>
@@ -468,15 +496,17 @@ namespace Rock.Blocks.Types.Mobile.Reminders
 
             using ( var rockContext = new RockContext() )
             {
+                var linkedNoteGuid = RequestContext.GetPageParameter( "LinkedNoteGuid" ).AsGuidOrNull();
+
                 // If we have an existing reminder, update that.
                 if ( reminderGuid.HasValue )
                 {
-                    UpdateReminder( reminderGuid.Value, reminderBag.ReminderTypeGuid, reminderBag.ReminderDate.DateTime, reminderBag.Note, reminderBag.RenewPeriodDays, reminderBag.RenewMaxCount, reminderBag.AssignedToPrimaryAliasGuid, rockContext );
+                    UpdateReminder( reminderGuid.Value, reminderBag.ReminderTypeGuid, reminderBag.ReminderDate.DateTime, reminderBag.Note, reminderBag.RenewPeriodDays, reminderBag.RenewMaxCount, reminderBag.AssignedToPrimaryAliasGuid, linkedNoteGuid, rockContext );
                 }
                 // Otherwise, create a new reminder.
                 else
                 {
-                    CreateReminder( reminderBag.ReminderTypeGuid, reminderBag.EntityGuid, reminderBag.ReminderDate.DateTime, reminderBag.Note, reminderBag.RenewPeriodDays, reminderBag.RenewMaxCount, reminderBag.AssignedToPrimaryAliasGuid, rockContext );
+                    CreateReminder( reminderBag.ReminderTypeGuid, reminderBag.EntityGuid, reminderBag.ReminderDate.DateTime, reminderBag.Note, reminderBag.RenewPeriodDays, reminderBag.RenewMaxCount, reminderBag.AssignedToPrimaryAliasGuid, linkedNoteGuid, rockContext );
                 }
 
                 return ActionOk();
