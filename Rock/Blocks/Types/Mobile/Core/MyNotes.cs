@@ -193,7 +193,7 @@ namespace Rock.Blocks.Types.Mobile.Core
         /// Gets the item templates for each note item.
         /// </summary>
         /// <returns></returns>
-        private void PopulateNoteItemsInformation( List<NoteItemBag> notes, RockContext rockContext )
+        private void PopulateNoteItemsInformation( List<NoteItemBag> notes )
         {
             // Load our common note entity types.
             var personEntityType = EntityTypeCache.Get<Person>();
@@ -202,11 +202,11 @@ namespace Rock.Blocks.Types.Mobile.Core
             var connectionRequestEntityType = EntityTypeCache.Get<ConnectionRequest>();
 
             // Load our services for each entity type.
-            var personService = new PersonService( rockContext );
-            var reminderTypeService = new ReminderTypeService( rockContext );
-            var reminderService = new ReminderService( rockContext );
-            var connectionService = new ConnectionRequestService( rockContext );
-            var personAliasService = new PersonAliasService( rockContext );
+            var personService = new PersonService( RockContext );
+            var reminderTypeService = new ReminderTypeService( RockContext );
+            var reminderService = new ReminderService( RockContext );
+            var connectionService = new ConnectionRequestService( RockContext );
+            var personAliasService = new PersonAliasService( RockContext );
 
             // Group all of the notes by their entity type.
             // This will allow us to load the additional entity information
@@ -265,9 +265,9 @@ namespace Rock.Blocks.Types.Mobile.Core
                 var noteTypeEntityTypeId = NoteTypeCache.Get( note.NoteTypeId )?.EntityTypeId;
                 if ( noteTypeEntityTypeId.HasValue )
                 {
-                    if( note.EntityId.HasValue )
+                    if ( note.EntityId.HasValue )
                     {
-                        var entity = new EntityTypeService( rockContext ).GetEntity( noteTypeEntityTypeId.Value, note.EntityId.Value );
+                        var entity = new EntityTypeService( RockContext ).GetEntity( noteTypeEntityTypeId.Value, note.EntityId.Value );
                         note.EntityName = entity?.ToString();
                         note.EntityGuid = entity?.Guid;
                     }
@@ -297,7 +297,7 @@ namespace Rock.Blocks.Types.Mobile.Core
                     }
                     else
                     {
-                        var entity = new EntityTypeService( rockContext ).GetEntity( reminderEntityType.Id, reminder.EntityId );
+                        var entity = new EntityTypeService( RockContext ).GetEntity( reminderEntityType.Id, reminder.EntityId );
                         note.EntityName = entity?.ToString();
                     }
                 }
@@ -336,9 +336,9 @@ namespace Rock.Blocks.Types.Mobile.Core
         /// <param name="filter">The filter options to use for the notes.</param>
         /// <param name="count">The number of notes to load.</param>
         /// <returns>A list of the notes returned from the query and a flag indicating whether or not the person has more notes.</returns>
-        private static (List<NoteItemBag> Notes, bool HasMore) GetNotesCreatedByPerson( Guid personGuid, DateTime? beforeDate, RockContext rockContext, FilterOptionsBag filter, int count )
+        private (List<NoteItemBag> Notes, bool HasMore) GetNotesCreatedByPerson( Guid personGuid, DateTime? beforeDate, FilterOptionsBag filter, int count )
         {
-            var noteService = new NoteService( rockContext );
+            var noteService = new NoteService( RockContext );
 
             // Load all of the notes created by the person.
             var notesQry = noteService.Queryable()
@@ -420,13 +420,13 @@ namespace Rock.Blocks.Types.Mobile.Core
             // Re-run the query but double the amount of notes we load to ensure we have enough to take.
             if ( !notes.Any() )
             {
-                return GetNotesCreatedByPerson( personGuid, lastSeenDate, rockContext, filter, count * 2 );
+                return GetNotesCreatedByPerson( personGuid, lastSeenDate, filter, count * 2 );
             }
 
             return (notes, true);
         }
 
-        private List<NoteTypeCache> GetViewableNoteTypes( RockContext rockContext )
+        private List<NoteTypeCache> GetViewableNoteTypes()
         {
             return NoteTypeCache.All()
                 .Where( nt => nt.UserSelectable )
@@ -450,27 +450,25 @@ namespace Rock.Blocks.Types.Mobile.Core
                 return ActionUnauthorized();
             }
 
-            using ( var rockContext = new RockContext() )
+
+            var notesBag = GetNotesCreatedByPerson( RequestContext.CurrentPerson.Guid, null, options.Filter, 50 );
+            PopulateNoteItemsInformation( notesBag.Notes );
+
+            var viewableNoteTypes = GetViewableNoteTypes().Select( nt => new
             {
-                var notesBag = GetNotesCreatedByPerson( RequestContext.CurrentPerson.Guid, null, rockContext, options.Filter, 50 );
-                PopulateNoteItemsInformation( notesBag.Notes, rockContext );
+                Name = nt.Name,
+                Guid = nt.Guid,
+                UserSelectable = nt.UserSelectable,
+                IsMentionEnabled = nt.IsMentionEnabled,
+                EntityTypeId = nt.EntityTypeId,
+            } );
 
-                var viewableNoteTypes = GetViewableNoteTypes( rockContext ).Select( nt => new
-                {
-                    Name = nt.Name,
-                    Guid = nt.Guid,
-                    UserSelectable = nt.UserSelectable,
-                    IsMentionEnabled = nt.IsMentionEnabled,
-                    EntityTypeId = nt.EntityTypeId,
-                } );
-
-                return ActionOk( new
-                {
-                    Notes = notesBag.Notes,
-                    ViewableNoteTypes = viewableNoteTypes,
-                    HasMore = notesBag.HasMore
-                } );
-            }
+            return ActionOk( new
+            {
+                Notes = notesBag.Notes,
+                ViewableNoteTypes = viewableNoteTypes,
+                HasMore = notesBag.HasMore
+            } );
         }
 
         /// <summary>
@@ -487,8 +485,8 @@ namespace Rock.Blocks.Types.Mobile.Core
 
             using ( var rockContext = new RockContext() )
             {
-                var notesBag = GetNotesCreatedByPerson( RequestContext.CurrentPerson.Guid, options.BeforeDate?.Date, rockContext, options.Filter, options.Count );
-                PopulateNoteItemsInformation( notesBag.Notes, rockContext );
+                var notesBag = GetNotesCreatedByPerson( RequestContext.CurrentPerson.Guid, options.BeforeDate?.Date, options.Filter, options.Count );
+                PopulateNoteItemsInformation( notesBag.Notes );
 
                 return ActionOk( new
                 {
@@ -506,36 +504,39 @@ namespace Rock.Blocks.Types.Mobile.Core
         [BlockAction]
         public BlockActionResult DeleteNote( DeleteNoteRequestBag options )
         {
-            using ( var rockContext = new RockContext() )
+
+            var service = new NoteService( RockContext );
+            var note = service.Get( options.NoteGuid );
+
+            if ( note == null )
             {
-                var service = new NoteService( rockContext );
-                var note = service.Get( options.NoteGuid );
+                return ActionNotFound();
+            }
 
-                if ( note == null )
-                {
-                    return ActionNotFound();
-                }
+            if ( !note.IsAuthorized( Authorization.EDIT, RequestContext.CurrentPerson ) )
+            {
+                // Rock.Constants strings include HTML so don't use.
+                return ActionForbidden( "You are not authorized to delete this note." );
+            }
 
-                if ( !note.IsAuthorized( Authorization.EDIT, RequestContext.CurrentPerson ) )
-                {
-                    // Rock.Constants strings include HTML so don't use.
-                    return ActionForbidden( "You are not authorized to delete this note." );
-                }
+            if ( service.CanDeleteChildNotes( note, RequestContext.CurrentPerson, out var errorMessage ) && service.CanDelete( note, out errorMessage ) )
+            {
+                service.Delete( note, true );
+                RockContext.SaveChanges();
 
-                if ( service.CanDeleteChildNotes( note, RequestContext.CurrentPerson, out var errorMessage ) && service.CanDelete( note, out errorMessage ) )
-                {
-                    service.Delete( note, true );
-                    rockContext.SaveChanges();
-
-                    return ActionOk();
-                }
-                else
-                {
-                    return ActionForbidden( errorMessage );
-                }
+                return ActionOk();
+            }
+            else
+            {
+                return ActionForbidden( errorMessage );
             }
         }
 
+        /// <summary>
+        /// Updates an existing note.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
         [BlockAction]
         public BlockActionResult UpdateNote( UpdateNoteRequestBag options )
         {
@@ -563,6 +564,11 @@ namespace Rock.Blocks.Types.Mobile.Core
             return ActionOk();
         }
 
+        /// <summary>
+        /// Will link a note to a person.
+        /// </summary>
+        /// <param name="options">The options for linking a note to a person.</param>
+        /// <returns></returns>
         [BlockAction]
         public BlockActionResult LinkToPerson( LinkToPersonRequestBag options )
         {
