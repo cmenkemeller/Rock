@@ -420,7 +420,7 @@ namespace Rock.Blocks.Communication
                     box.Mode = this.Mode;
                     box.Title = GetTitle( communication );
 
-                    var communicationData = GetCommunicationData( rockContext, communication, currentPerson, box.Mediums.Select( m => m.Value.AsGuid() ) );
+                    var communicationData = GetInitialCommunicationData( rockContext, communication, currentPerson, box.Mediums.Select( m => m.Value.AsGuid() ) );
                     box.Communication = communicationData.Communication;
                     box.MediumOptions = communicationData.MediumOptions;
                 }
@@ -1097,6 +1097,10 @@ namespace Rock.Blocks.Communication
             {
                 return new EmailMediumDataService();
             }
+            else if ( medium is Rock.Communication.Medium.Sms )
+            {
+                return new SmsMediumDataService();
+            }
 
             // Return no-op behavior by default.
             return new NoOpMediumDataService();
@@ -1262,7 +1266,7 @@ namespace Rock.Blocks.Communication
         /// <param name="communication">The communication.</param>
         /// <param name="currentPerson">The logged in person.</param>
         /// <param name="validMediumGuids">The valid medium unique identifiers.</param>
-        private ( CommunicationEntryCommunicationBag Communication, CommunicationEntryMediumOptionsBaseBag MediumOptions ) GetCommunicationData( RockContext rockContext, Model.Communication communication, Person currentPerson, IEnumerable<Guid> validMediumGuids )
+        private ( CommunicationEntryCommunicationBag Communication, CommunicationEntryMediumOptionsBaseBag MediumOptions ) GetInitialCommunicationData( RockContext rockContext, Model.Communication communication, Person currentPerson, IEnumerable<Guid> validMediumGuids )
         {
             if ( communication == null )
             {
@@ -1273,7 +1277,7 @@ namespace Rock.Blocks.Communication
                     FromEmail = currentPerson.Email,
                     FromName = currentPerson.FullName,
                     Id = 0,
-                    IsBulkCommunication = this.DefaultAsBulk || ( this.Mode == Mode.Simple && this.IsSendSimpleAsBulkEnabled ),
+                    IsBulkCommunication = this.DefaultAsBulk,
                     SenderPersonAliasId = currentPerson.PrimaryAliasId,
                     Status = CommunicationStatus.Transient,
                 };
@@ -1284,20 +1288,153 @@ namespace Rock.Blocks.Communication
             var communicationCopyTarget = new CommunicationDetailsAdapter( communicationBag, rockContext );
             CommunicationEntryHelper.Copy( communication, communicationCopyTarget );
 
+            // These properties are not copied in the CommunicationEntryHelper.Copy method so copy them here.
+            communicationBag.CommunicationId = communication.Id;
+            communicationBag.CommunicationGuid = communication.Guid;
+            communicationBag.FutureSendDateTime = communication.FutureSendDateTime;
+            communicationBag.Status = communication.Status;
+
+            SetInitialRecipientData( rockContext, communication, communicationBag );
+            SetInitialCommunicationListData( rockContext, communication, communicationBag );
+            SetInitialMediumData( rockContext, communication, validMediumGuids, communicationBag );
+
+            // Get the medium options (this is needed here to find the valid templates for the selected medium).
+            var mediumOptions = GetMediumOptions( communicationBag.MediumEntityTypeGuid, currentPerson );
+
+            SetInitialTemplateData( rockContext, communication, currentPerson, communicationBag, communicationCopyTarget, mediumOptions );
+
             // Override the sender information to the logged in person since they are creating/editing the communication.
             communicationBag.FromAddress = currentPerson.Email;
             communicationBag.FromName = currentPerson.FullName;
 
-            // These props are not copied in the CommunicationEntryHelper.Copy method,
-            // so copy them here.
-            communicationBag.CommunicationId = communication.Id;
-            communicationBag.CommunicationGuid = communication.Guid;
-            communicationBag.FutureSendDateTime = communication.FutureSendDateTime;
-            communicationBag.IsBulkCommunication = communication.IsBulkCommunication;
-            communicationBag.Status = communication.Status;
+            // Override the "Bulk" option since this block may be configured to automatically set it.
+            communicationBag.IsBulkCommunication = communication.IsBulkCommunication
+                || ( this.Mode == Mode.Simple && this.IsSendSimpleAsBulkEnabled );
 
-            // Get the recipients.
+            return (communicationBag, mediumOptions);
+        }
+
+        private void SetInitialTemplateData( RockContext rockContext, Model.Communication communication, Person currentPerson, CommunicationEntryCommunicationBag communicationBag, CommunicationDetailsAdapter communicationCopyTarget, CommunicationEntryMediumOptionsBaseBag mediumOptions )
+        {
+            var template = communication.CommunicationTemplate;
+            if ( template == null )
+            {
+                // If the communication doesn't have a template, try using the template from the page parameter.
+                var communicationTemplateGuid = this.TemplateGuidPageParameter;
+                if ( communicationTemplateGuid.HasValue )
+                {
+                    template = new CommunicationTemplateService( rockContext ).Get( communicationTemplateGuid.Value );
+                }
+
+                if ( template == null )
+                {
+                    // If the template is still null, use the default template from the block setting.
+                    var defaultCommunicationTemplateGuid = this.DefaultTemplateGuid;
+                    if ( defaultCommunicationTemplateGuid.HasValue )
+                    {
+                        template = new CommunicationTemplateService( rockContext ).Get( defaultCommunicationTemplateGuid.Value );
+                    }
+                }
+            }
+
+            if ( template != null && communication.Status == CommunicationStatus.Transient )
+            {
+                communicationBag.CommunicationTemplateGuid = template.Guid;
+
+                if ( mediumOptions.Templates?.Any( t => t.Value.AsGuid() == template.Guid ) == true )
+                {
+                    // Copy communication data from the template.
+                    CommunicationEntryHelper.CopyTemplate( template, communicationCopyTarget, this.RequestContext );
+                }
+            }
+            else
+            {
+                communicationBag.CommunicationTemplateGuid = null;
+            }
+        }
+
+        private void SetInitialMediumData( RockContext rockContext, Model.Communication communication, IEnumerable<Guid> validMediumGuids, CommunicationEntryCommunicationBag communicationBag )
+        {
+            if ( communication.Id > 0 )
+            {
+                // Use the medium type on the existing communication.
+                communicationBag.MediumEntityTypeGuid = GetMediumEntityTypeGuid( communication.CommunicationType ) ?? Guid.Empty;
+            }
+            else if ( this.MediumIdPageParameter.HasValue )
+            {
+                // Use the medium page parameter.
+                var mediumGuid = EntityTypeCache.Get( this.MediumIdPageParameter.Value, rockContext )?.Guid;
+
+                if ( mediumGuid.HasValue )
+                {
+                    communicationBag.MediumEntityTypeGuid = mediumGuid.Value;
+                }
+            }
+            else
+            {
+                communicationBag.MediumEntityTypeGuid = Guid.Empty;
+            }
+
+            // Ensure the medium is one of the valid selections.
+            if ( communicationBag.MediumEntityTypeGuid.IsEmpty() || !validMediumGuids.Contains( communicationBag.MediumEntityTypeGuid ) )
+            {
+                communicationBag.MediumEntityTypeGuid = validMediumGuids.FirstOrDefault();
+            }
+        }
+
+        private void SetInitialCommunicationListData( RockContext rockContext, Model.Communication communication, CommunicationEntryCommunicationBag communicationBag )
+        {
+            if ( communication.ListGroupId.HasValue )
+            {
+                var listGroup = communication.ListGroup;
+                communicationBag.CommunicationListGroupGuid = listGroup.Guid;
+
+                if ( listGroup.Attributes == null )
+                {
+                    listGroup.LoadAttributes();
+                }
+
+                var name = listGroup.GetAttributeValue( "PublicName" );
+
+                if ( name.IsNullOrWhiteSpace() )
+                {
+                    name = listGroup.Name;
+                }
+
+                communicationBag.CommunicationListName = name;
+
+                var segmentDataViewGuids = communication.Segments
+                    .SplitDelimitedValues()
+                    .AsGuidList();
+                var segmentDataViewIds = new DataViewService( rockContext )
+                    .GetByGuids( segmentDataViewGuids )
+                    .Select( a => a.Id )
+                    .ToList();
+
+                communicationBag.CommunicationListRecipientCount = GetRecipientQuery( rockContext,
+                    new RecipientQueryOptions
+                    {
+                        CommunicationListRecipientQueryOptions = new CommunicationListRecipientQueryOptions
+                        {
+                            CommunicationListGroupId = listGroup.Id,
+                            SegmentCriteria = communication.SegmentCriteria,
+                            SegmentDataViewIds = segmentDataViewIds
+                        }
+                    } )
+                    .Count();
+            }
+            else
+            {
+                communicationBag.CommunicationListGroupGuid = null;
+                communicationBag.CommunicationListName = null;
+                communicationBag.CommunicationListRecipientCount = null;
+            }
+        }
+
+        private void SetInitialRecipientData( RockContext rockContext, Model.Communication communication, CommunicationEntryCommunicationBag communicationBag )
+        {
             var recipientBags = new List<CommunicationEntryRecipientBag>();
+
             if ( communication.Id == 0 )
             {
                 if ( this.IsPersonPageParameterEnabled )
@@ -1326,6 +1463,7 @@ namespace Rock.Blocks.Communication
                                 } );
                         }
 
+                        // TODO JMH This does nothing because it's modifying the entity. Should this even be happening? It may be trying to be smrt by assuming that its not bulk initiallty because only 1 recipient, but its prolly not needed.
                         // Set bulk to false since this communication is only being sent to one person.
                         communication.IsBulkCommunication = false;
                     }
@@ -1345,112 +1483,6 @@ namespace Rock.Blocks.Communication
             // Split up the known recipients and the "nameless" recipients.
             communicationBag.Recipients = recipientBags.Where( r => !r.IsNameless ).ToList();
             communicationBag.AdditionalEmailAddresses = recipientBags.Where( r => r.IsNameless ).Select( r => r.Email ).ToList();
-
-            // Get the communication list information.
-            if ( communication.ListGroupId.HasValue )
-            {
-                var listGroup = communication.ListGroup;
-                communicationBag.CommunicationListGroupGuid = listGroup.Guid;
-
-                if ( listGroup.Attributes == null )
-                {
-                    listGroup.LoadAttributes();
-                }
-
-                var name = listGroup.GetAttributeValue( "PublicName" );
-
-                if ( name.IsNullOrWhiteSpace() )
-                {
-                    name = listGroup.Name;
-                }
-
-                communicationBag.CommunicationListName = name;
-
-                var segmentDataViewGuids = communication.Segments
-                    .SplitDelimitedValues()
-                    .AsGuidList();
-                var segmentDataViewIds = new DataViewService( rockContext )
-                    .GetByGuids( segmentDataViewGuids )
-                    .Select( a => a.Id )
-                    .ToList();
-                communicationBag.CommunicationListRecipientCount = GetRecipientQuery( rockContext,
-                    new RecipientQueryOptions
-                    {
-                        CommunicationListRecipientQueryOptions = new CommunicationListRecipientQueryOptions
-                        {
-                            CommunicationListGroupId = listGroup.Id,
-                            SegmentCriteria = communication.SegmentCriteria,
-                            SegmentDataViewIds = segmentDataViewIds
-                        }
-                    } )
-                    .Count();
-            }
-
-            // Get the medium.
-            var mediumId = this.MediumIdPageParameter;
-            if ( communication.Id > 0 )
-            {
-                // Use the medium type on the existing communication.
-                communicationBag.MediumEntityTypeGuid = GetMediumEntityTypeGuid( communication.CommunicationType ) ?? Guid.Empty;
-            }
-            else if ( mediumId.HasValue )
-            {
-                // Use the medium page parameter.
-                var mediumGuid = EntityTypeCache.Get( mediumId.Value, rockContext )?.Guid;
-
-                if ( mediumGuid.HasValue && validMediumGuids.Contains( mediumGuid.Value ) )
-                {
-                    // The supplied medium has a valid Guid so use it.
-                    communicationBag.MediumEntityTypeGuid = mediumGuid.Value;
-                }
-            }
-
-            // Ensure the medium is one of the valid selections.
-            if ( !validMediumGuids.Contains( communicationBag.MediumEntityTypeGuid ) )
-            {
-                communicationBag.MediumEntityTypeGuid = validMediumGuids.FirstOrDefault();
-            }
-
-            // Get the medium options (this is needed here to find the valid templates for the selected medium).
-            var mediumOptions = GetMediumOptions( communicationBag.MediumEntityTypeGuid, currentPerson );
-
-            // Get the template.
-            var template = communication.CommunicationTemplate;
-            if ( template == null )
-            {
-                var communicationTemplateGuid = this.TemplateGuidPageParameter;
-                if ( communicationTemplateGuid.HasValue )
-                {
-                    // The communication has no template so use the template associated with the page parameter.
-                    template = new CommunicationTemplateService( rockContext ).Get( communicationTemplateGuid.Value );
-                }
-
-                if ( template == null )
-                {
-                    // Use the default template from the block setting.
-                    var defaultCommunicationTemplateGuid = this.DefaultTemplateGuid;
-                    if ( defaultCommunicationTemplateGuid.HasValue )
-                    {
-                        template = new CommunicationTemplateService( rockContext ).Get( defaultCommunicationTemplateGuid.Value );
-                    }
-                }
-            }
-            communicationBag.CommunicationTemplateGuid = template?.Guid;
-
-            if ( template != null && communication.Status == CommunicationStatus.Transient )
-            {
-                if ( mediumOptions.Templates?.Any( t => t.Value.AsGuid() == template.Guid ) == true )
-                {
-                    // Copy communication data from the template.
-                    CommunicationEntryHelper.CopyTemplate( template, communicationCopyTarget, this.RequestContext );
-                    
-                    // Override the sender information to the logged in person since they are creating/editing the communication.
-                    communicationBag.FromAddress = currentPerson.Email;
-                    communicationBag.FromName = currentPerson.FullName;
-                }
-            }
-
-            return ( communicationBag, mediumOptions );
         }
 
         /// <summary>
@@ -1995,8 +2027,27 @@ namespace Rock.Blocks.Communication
         {
             public void OnCommunicationSave( RockContext rockContext, CommunicationEntryCommunicationBag communication )
             {
-                // On saving the email communication, mark all the file attachments as not temporary.
+                // When saving the communication, mark all the file attachments as not temporary.
                 var binaryFileGuids = communication.EmailAttachmentBinaryFiles.Select( bf => bf.Value.AsGuid() ).Where( g => !g.IsEmpty() ).ToList();
+                if ( binaryFileGuids.Any() )
+                {
+                    var binaryFilesQuery = new BinaryFileService( rockContext )
+                        .Queryable()
+                        .Where( f => binaryFileGuids.Contains( f.Guid ) );
+                    foreach ( var binaryFile in binaryFilesQuery )
+                    {
+                        binaryFile.IsTemporary = false;
+                    }
+                }
+            }
+        }
+
+        private class SmsMediumDataService : IMediumDataService
+        {
+            public void OnCommunicationSave( RockContext rockContext, CommunicationEntryCommunicationBag communication )
+            {
+                // When saving the communication, mark all the file attachments as not temporary.
+                var binaryFileGuids = communication.SmsAttachmentBinaryFiles.Select( bf => bf.Value.AsGuid() ).Where( g => !g.IsEmpty() ).ToList();
                 if ( binaryFileGuids.Any() )
                 {
                     var binaryFilesQuery = new BinaryFileService( rockContext )
