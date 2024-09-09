@@ -389,8 +389,8 @@ namespace Rock.SystemGuid
         public const string DATA_MIGRATIONS_167_POPULATE_ENTITY_INTENTS_FROM_ADDITIONAL_SETTINGS_JSON = "155C2051-1513-4BB3-83AD-8D37EBBC3F59";
 
         /// <summary>
-        /// The Job to run Post v17.0 Data Migrations to chop AccountEdit Block
+        /// The Job to run Post v16.7 Data Migrations to chop AccountEdit Block.
         /// </summary>
-        public const string DATA_MIGRATIONS_197_CHOP_ACCOUNT_EDIT_BLOCK = "E581688C-E60D-4841-B3C3-C535CAD0002D";
+        public const string DATA_MIGRATIONS_167_CHOP_ACCOUNT_EDIT_BLOCK = "E581688C-E60D-4841-B3C3-C535CAD0002D";
     }
 }
