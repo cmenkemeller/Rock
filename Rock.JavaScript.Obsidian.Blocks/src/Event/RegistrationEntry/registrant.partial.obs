@@ -9,7 +9,7 @@
                     </div>
                     <div v-if="isFamilyMembersDropDownVisible" class="row">
                         <div class="col-md-6">
-                            <DropDownList :modelValue="currentRegistrant.personGuid ?? ''" @update:modelValue="onSetPersonGuid" :items="familyMemberOptions" label="Family Member to Register" />
+                            <DropDownList :modelValue="currentRegistrant.personGuid ?? ''" @update:modelValue="onSetPersonGuid" :items="familyMemberOptions" :label="isCreatingNewFamily ? 'Guest to Register' : 'Family Member to Register'" :showBlankItem="false" />
                         </div>
                     </div>
                 </template>
@@ -156,6 +156,8 @@
     const signatureToken = ref<string>("");
     const formResetKey = ref<string>("");
     const isNextDisabled = ref<boolean>(false);
+    const newFamilyGuid = ref<string>("");
+    const isCreatingNewFamily = ref<boolean>(false);
 
     // #endregion
 
@@ -318,9 +320,11 @@
             });
         }
 
+        newFamilyGuid.value = newGuid();
+
         // Add the current person (registrant) if not already added
         const familyGuid = !props.currentRegistrant.familyGuid || usedFamilyGuids[props.currentRegistrant.familyGuid] == true
-            ? newGuid()
+            ? newFamilyGuid.value
             : props.currentRegistrant.familyGuid;
         options.push({
             text: "None of the above",
@@ -366,12 +370,25 @@
             .filter(r => r.personGuid && r.personGuid !== props.currentRegistrant.personGuid)
             .map(r => r.personGuid);
 
-        return viewModel.value.familyMembers
+        const familyMembers =  viewModel.value.familyMembers
             ?.filter(fm => fm.guid && !usedFamilyMemberGuids.includes(fm.guid))
             ?.map(fm => ({
                 text: fm.fullName,
                 value: fm.guid
             })) ?? [];
+
+        var newPersonOptionText = "New Family Member";
+
+        if (isCreatingNewFamily.value) {
+            newPersonOptionText = "Guest";
+        }
+
+        var newPersonOptions = {
+                text: newPersonOptionText,
+                value: null
+            };
+
+        return [...familyMembers, newPersonOptions];
     });
 
     const firstName = computed<string>(() => {
@@ -776,6 +793,13 @@
     }
 
     function onSetFamilyGuid(familyGuid: Guid): void {
+        if (familyGuid === newFamilyGuid.value) {
+            isCreatingNewFamily.value = true;
+        }
+        else {
+            isCreatingNewFamily.value = false;
+        }
+
         if (familyGuid !== props.currentRegistrant.familyGuid) {
             props.currentRegistrant.familyGuid = familyGuid;
             props.currentRegistrant.personGuid = null;
