@@ -18,7 +18,7 @@ import { defineComponent, ref, watch } from "vue";
 import { getFieldEditorProps } from "./utils";
 import AssetPicker from "@Obsidian/Controls/Internal/assetPicker.obs";
 import { PickerDisplayStyle } from "@Obsidian/Enums/Controls/pickerDisplayStyle";
-import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
+import { FileAsset } from "@Obsidian/ViewModels/Controls/fileAsset";
 
 
 export const EditComponent = defineComponent({
@@ -32,19 +32,44 @@ export const EditComponent = defineComponent({
 
     setup(props, { emit }) {
         // The internal value used by the text editor.
-        const internalValue = ref<ListItemBag>({});
+        const internalValue = ref<Partial<FileAsset> | null>(null);
         const displayStyle = PickerDisplayStyle.Condensed;
 
         // Watch for changes from the parent component and update the text editor.
         watch(() => props.modelValue, () => {
-            internalValue.value = JSON.parse(props.modelValue || "{}");
+            console.log("MODEL PROP", props.modelValue);
+            const modelProp = JSON.parse(props.modelValue || "{}");
+
+            internalValue.value = {
+                assetStorageProviderId: modelProp?.AssetStorageProviderId,
+                key: modelProp?.Key,
+                iconPath: modelProp?.IconPath,
+                name: modelProp?.Name,
+                uri: modelProp?.Url
+            };
         }, {
             immediate: true
         });
 
         // Watch for changes from the text editor and update the parent component.
         watch(internalValue, () => {
-            emit("update:modelValue", JSON.stringify(internalValue.value));
+            if (internalValue.value) {
+
+                const value = {
+                    AssetStorageProviderId: internalValue.value?.assetStorageProviderId?.toString(),
+                    Key: internalValue.value?.key,
+                    IconPath: internalValue.value?.iconPath,
+                    Name: internalValue.value?.name,
+                    Url: internalValue.value?.uri
+                };
+                console.log("INTERNAL MODEL", value);
+
+                emit("update:modelValue", JSON.stringify(value));
+            }
+            else {
+                console.log("INTERNAL MODEL", "");
+                emit("update:modelValue", "");
+            }
         });
 
         return {

@@ -410,9 +410,16 @@ namespace Rock.Blocks.Core
         /// <returns>A string that represents the security grant token.</string>
         private string GetSecurityGrantToken()
         {
+            var fieldTypes = FieldTypeCache.All();
             var securityGrant = new Rock.Security.SecurityGrant();
 
-            securityGrant.AddRulesForAttributes( new Model.Attribute(), GetCurrentPerson() );
+            foreach ( var fieldType in fieldTypes )
+            {
+                if ( fieldType.Field is Rock.Field.ISecurityGrantFieldType grantFieldType )
+                {
+                    grantFieldType.AddRulesToSecurityGrant( securityGrant );
+                }
+            }
 
             return securityGrant.ToToken();
         }
