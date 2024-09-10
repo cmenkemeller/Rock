@@ -33,6 +33,7 @@ using Rock.Web.Cache;
 using Rock.Common.Mobile.Blocks.Connection.ConnectionRequestDetail;
 using GroupMemberStatus = Rock.Model.GroupMemberStatus;
 using System.Data.Entity;
+using Rock.Utility;
 
 namespace Rock.Blocks.Types.Mobile.Connection
 {
@@ -86,6 +87,16 @@ namespace Rock.Blocks.Types.Mobile.Connection
             /// The requester id key key.
             /// </summary>
             public const string RequesterIdKey = "RequesterIdKey";
+
+            /// <summary>
+            /// The linked note guid page parameter key.
+            /// </summary>
+            public const string LinkedNoteGuid = "LinkedNoteGuid";
+
+            /// <summary>
+            /// The linked note type guid page parameter key.
+            /// </summary>
+            public const string LinkedNoteTypeGuid = "LinkedNoteTypeGuid";
         }
 
         /// <summary>
@@ -636,6 +647,30 @@ namespace Rock.Blocks.Types.Mobile.Connection
             };
         }
 
+        /// <summary>
+        /// Links a connection to a note.
+        /// </summary>
+        /// <param name="linkedNoteGuid">The GUID of the note to link the connection to.</param>
+        /// <param name="linkedNoteTypeGuid">The Note Type to update the note to.</param>
+        /// <param name="connectionId">The connection request identifier.</param>
+        /// <param name="rockContext">The Rock Context.</param>
+        private void LinkConnectionToNote( Guid linkedNoteGuid, Guid linkedNoteTypeGuid, int connectionId, RockContext rockContext )
+        {
+            var noteService = new NoteService( rockContext );
+            var note = noteService.Get( linkedNoteGuid );
+            var noteType = NoteTypeCache.Get( linkedNoteTypeGuid );
+
+            if ( note == null || noteType == null )
+            {
+                return;
+            }
+
+            note.EntityId = connectionId;
+            note.NoteTypeId = noteType.Id;
+
+            rockContext.SaveChanges();
+        }
+
         #endregion
 
         #region Block Actions
@@ -775,6 +810,14 @@ namespace Rock.Blocks.Types.Mobile.Connection
                 if ( saveResult.IsNullOrWhiteSpace() )
                 {
                     return ActionBadRequest( "There was an error creating the connection request." );
+                }
+
+                var linkedNoteGuid = RequestContext.GetPageParameter( PageParameterKey.LinkedNoteGuid ).AsGuidOrNull();
+                var linkedNoteTypeGuid = RequestContext.GetPageParameter( PageParameterKey.LinkedNoteTypeGuid ).AsGuidOrNull();
+                
+                if( linkedNoteGuid.HasValue && linkedNoteTypeGuid.HasValue )
+                {
+                    LinkConnectionToNote( linkedNoteGuid.Value, linkedNoteTypeGuid.Value, IdHasher.Instance.GetId( saveResult ).Value, rockContext );
                 }
 
                 return ActionOk( new SaveConnectionRequestResponseBag

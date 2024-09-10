@@ -4,15 +4,11 @@ using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
 
-using Microsoft.Ajax.Utilities;
-
 using Rock.Attribute;
-using Rock.Common.Mobile.Blocks.Core.Notes;
 using Rock.Data;
 using Rock.Mobile;
 using Rock.Model;
 using Rock.Security;
-using Rock.ViewModels.Blocks.Core.Notes;
 using Rock.ViewModels.Utility;
 using Rock.Web.Cache;
 
@@ -54,29 +50,45 @@ namespace Rock.Blocks.Types.Mobile.Core
         EntityTypeName = "Rock.Model.Person",
         Key = AttributeKey.PersonNoteTypes )]
 
+    [NoteTypeField( "Reminder Note Type",
+        Description = "The note type to link when creating a reminder.",
+        AllowMultiple = false,
+        IsRequired = false,
+        Order = 3,
+        EntityTypeName = "Rock.Model.Reminder",
+        Key = AttributeKey.ReminderNoteType )]
+
+    [NoteTypeField( "Connection Note Type",
+        Description = "The note type to link when creating a connection.",
+        AllowMultiple = false,
+        IsRequired = false,
+        Order = 4,
+        EntityTypeName = "Rock.Model.ConnectionRequest",
+        Key = AttributeKey.ConnectionNoteType )]
+
     [LinkedPage( "Person Profile Detail Page",
         Description = "The page to link to view a person profile when a note is associated to a person.",
         IsRequired = false,
         Key = AttributeKey.PersonProfilePage,
-        Order = 3 )]
+        Order = 5 )]
 
     [LinkedPage( "Reminder Detail Page",
         Description = "The page to link to view a reminder when a note is associated to a reminder.",
         IsRequired = false,
         Key = AttributeKey.ReminderDetailPage,
-        Order = 4 )]
+        Order = 6 )]
 
     [LinkedPage( "Add Connection Page",
         Description = "The page to link to add a connection that will be associated with the note.",
         IsRequired = false,
         Key = AttributeKey.AddConnectionPage,
-        Order = 5 )]
+        Order = 7 )]
 
     [LinkedPage( "Connection Detail Page",
         Description = "The page to link to view a connection.",
         IsRequired = false,
         Key = AttributeKey.ConnectionDetailPage,
-        Order = 6 )]
+        Order = 8 )]
 
     [BooleanField( "Group Notes by Date",
         Description = "When enabled, notes will be grouped by date.",
@@ -84,7 +96,7 @@ namespace Rock.Blocks.Types.Mobile.Core
         DefaultBooleanValue = true,
         ControlType = Field.Types.BooleanFieldType.BooleanControlType.Toggle,
         Key = AttributeKey.GroupNotesByDate,
-        Order = 7 )]
+        Order = 9 )]
 
     #endregion
 
@@ -113,6 +125,16 @@ namespace Rock.Blocks.Types.Mobile.Core
             /// The note types key.
             /// </summary>
             public const string PersonNoteTypes = "PersonNoteTypes";
+
+            /// <summary>
+            /// The reminder note type key.
+            /// </summary>
+            public const string ReminderNoteType = "ReminderNoteType";
+
+            /// <summary>
+            /// The connection note type key.
+            /// </summary>
+            public const string ConnectionNoteType = "ConnectionNoteType";
 
             /// <summary>
             /// The person profile page key.
@@ -163,6 +185,16 @@ namespace Rock.Blocks.Types.Mobile.Core
         protected ICollection<Guid> PersonNoteTypes => GetAttributeValue( AttributeKey.PersonNoteTypes ).SplitDelimitedValues().AsGuidList();
 
         /// <summary>
+        /// Gets the note type to use for adding a reminder.
+        /// </summary>
+        protected Guid? ReminderNoteTypeGuid => GetAttributeValue( AttributeKey.ReminderNoteType ).AsGuidOrNull();
+
+        /// <summary>
+        /// Gets the note type to use for adding a connection.
+        /// </summary>
+        protected Guid? ConnectionNoteTypeGuid => GetAttributeValue( AttributeKey.ConnectionNoteType ).AsGuidOrNull();
+
+        /// <summary>
         /// Gets the detail page unique identifier.
         /// </summary>
         /// <value>
@@ -185,9 +217,46 @@ namespace Rock.Blocks.Types.Mobile.Core
         /// </summary>
         protected Guid? ReminderDetailPageGuid => GetAttributeValue( AttributeKey.ReminderDetailPage ).AsGuidOrNull();
 
+        /// <summary>
+        /// Whether or not to group notes by date.
+        /// </summary>
+        protected bool GroupNotesByDate => GetAttributeValue( AttributeKey.GroupNotesByDate ).AsBoolean();
+
+        #endregion
+
+        #region IRockMobileBlockType Implementation
+
+        /// <inheritdoc />
+        public override object GetMobileConfigurationValues()
+        {
+            return new
+            {
+                GroupNotesByDate = GroupNotesByDate,
+                EnableSwipeForOptions = EnableSwipeForOptions,
+                AddConnectionPageGuid = AddConnectionPageGuid,
+                AddReminderPageGuid = ReminderDetailPageGuid,
+                ReminderNoteTypeGuid = ReminderNoteTypeGuid,
+                ConnectionNoteTypeGuid = ConnectionNoteTypeGuid,
+            };
+        }
+
         #endregion
 
         #region Methods
+
+        /// <summary>
+        /// Gets the note types that can be used when linking a note to a person.
+        /// </summary>
+        /// <returns></returns>
+        private List<NoteTypeCache> GetPersonNoteTypes()
+        {
+            var personEntityTypeId = EntityTypeCache.Get<Person>().Id;
+
+            return NoteTypeCache.GetByEntity( personEntityTypeId, string.Empty, string.Empty, false )
+                .Where( a => ( PersonNoteTypes == null || !PersonNoteTypes.Any() ) || PersonNoteTypes.Contains( a.Guid ) )
+                .Where( a => a.IsAuthorized( Authorization.VIEW, RequestContext.CurrentPerson ) )
+                .ToList();
+        }
 
         /// <summary>
         /// Gets the item templates for each note item.
@@ -317,11 +386,14 @@ namespace Rock.Blocks.Types.Mobile.Core
                 mergeFields.Add( "PersonAliasEntityTypeId", personAliasEntityType.Id );
                 mergeFields.Add( "PersonAliasEntityTypeGuid", personAliasEntityType.Guid );
                 mergeFields.Add( "ReminderEntityTypeId", reminderEntityType.Id );
+                mergeFields.Add( "ReminderNoteTypeGuid", ReminderNoteTypeGuid );
+                mergeFields.Add( "ConnectionNoteTypeGuid", ConnectionNoteTypeGuid );
                 mergeFields.Add( "ConnectionEntityTypeId", connectionRequestEntityType.Id );
                 mergeFields.Add( "PersonDetailPage", PersonProfilePageGuid );
                 mergeFields.Add( "ReminderDetailPage", ReminderDetailPageGuid );
                 mergeFields.Add( "ConnectionDetailPage", ViewConnectionPageGuid );
                 mergeFields.Add( "AddConnectionPage", AddConnectionPageGuid );
+                mergeFields.Add( "GroupNotesByDate", GroupNotesByDate );
 
                 note.Template = NoteItemTemplate.ResolveMergeFields( mergeFields );
             }
@@ -331,12 +403,12 @@ namespace Rock.Blocks.Types.Mobile.Core
         /// Gets the notes created by the specified person.
         /// </summary>
         /// <param name="personGuid">The person who created the notes.</param>
-        /// <param name="rockContext">The Rock context.</param>
         /// <param name="beforeDate">Load notes after the specified date, not inclusive.</param>
+        /// <param name="index">The index of the notes to load.</param>
         /// <param name="filter">The filter options to use for the notes.</param>
         /// <param name="count">The number of notes to load.</param>
         /// <returns>A list of the notes returned from the query and a flag indicating whether or not the person has more notes.</returns>
-        private (List<NoteItemBag> Notes, bool HasMore) GetNotesCreatedByPerson( Guid personGuid, DateTime? beforeDate, FilterOptionsBag filter, int count )
+        private (List<NoteItemBag> Notes, bool HasMore) GetNotesCreatedByPerson( Guid personGuid, DateTime? beforeDate, int? index, FilterOptionsBag filter, int count )
         {
             var noteService = new NoteService( RockContext );
 
@@ -379,6 +451,12 @@ namespace Rock.Blocks.Types.Mobile.Core
                 notesQry = notesQry.Where( n => n.CreatedDateTime >= dateMinimum );
             }
 
+            // This really shouldn't be used in tandem with BeforeDate.
+            if ( index.HasValue )
+            {
+                notesQry = notesQry.Skip( index.Value );
+            }
+
             var notes = notesQry.OrderByDescending( n => n.CreatedDateTime )
                 .Take( count )
                 .Select( note => new NoteItemBag
@@ -405,22 +483,29 @@ namespace Rock.Blocks.Types.Mobile.Core
                 return (new List<NoteItemBag>(), false);
             }
 
-            // This is the last, also the "oldest" date returned from our query.
-            // We want to remove all notes created on this date to prevent returning
-            // some but not all notes of a day.
+            // If there are less notes than the count requested we don't need to continue.
             if ( notes.Count < count )
             {
                 return (notes, false);
             }
 
-            var lastSeenDate = notes.Last().CreatedDateTime.Date;
-            notes.RemoveAll( n => n.CreatedDateTime.Date == lastSeenDate );
-
-            // This catches the case in which we have removed every note (we only had one date).
-            // Re-run the query but double the amount of notes we load to ensure we have enough to take.
-            if ( !notes.Any() )
+            // Filter out the oldest note in the list if we have a before date.
+            // This is to ensure that we don't return a partial result set of notes
+            // for a specific date.
+            if ( beforeDate.HasValue )
             {
-                return GetNotesCreatedByPerson( personGuid, lastSeenDate, filter, count * 2 );
+                // This is the last, also the "oldest" date returned from our query.
+                // We want to remove all notes created on this date to prevent returning
+                // some but not all notes of a day.
+                var lastSeenDate = notes.Last().CreatedDateTime.Date;
+                notes.RemoveAll( n => n.CreatedDateTime.Date == lastSeenDate );
+
+                // This catches the case in which we have removed every note (we only had one date).
+                // Re-run the query but double the amount of notes we load to ensure we have enough to take.
+                if ( !notes.Any() )
+                {
+                    return GetNotesCreatedByPerson( personGuid, lastSeenDate, index, filter, count * 2 );
+                }
             }
 
             return (notes, true);
@@ -428,10 +513,82 @@ namespace Rock.Blocks.Types.Mobile.Core
 
         private List<NoteTypeCache> GetViewableNoteTypes()
         {
+            // We want to get a distinct list of all of the note type IDs that the user
+            // has left a note for.
+            var noteService = new NoteService( RockContext );
+
+            var noteTypeIds = noteService.Queryable()
+                .Where( n => n.CreatedByPersonAliasId != null && n.CreatedByPersonAliasId == RequestContext.CurrentPerson.PrimaryAliasId )
+                .Select( n => n.NoteTypeId )
+                .Distinct()
+                .ToList();
+
             return NoteTypeCache.All()
-                .Where( nt => nt.UserSelectable )
+                .Where( nt => noteTypeIds.Contains( nt.Id ) && nt.UserSelectable )
                 .Where( a => a.IsAuthorized( Authorization.VIEW, RequestContext.CurrentPerson ) )
                 .ToList();
+        }
+
+        /// <summary>
+        /// Deletes the linked entity for the note.
+        /// </summary>
+        /// <param name="note">The note to delete the linked entity for.</param>
+        /// <param name="result">The result from deleting the linked entity.</param>
+        /// <returns>A <see cref="BlockActionResult"/> that describes if we successfully deleted the entity.</returns>
+        private bool DeleteLinkedEntity( Rock.Model.Note note, out BlockActionResult result )
+        {
+            var reminderEntityType = EntityTypeCache.Get<Reminder>();
+            var connectionRequestEntityType = EntityTypeCache.Get<ConnectionRequest>();
+
+            // If we're trying to delete an entity on a note
+            // that doesn't have one, this is an invalid request.
+            if ( !note.EntityId.HasValue )
+            {
+                result = ActionBadRequest( "The note does not have a linked entity." );
+                return false;
+            }
+
+            // We only support deleting reminders and connection requests as of today.
+            if ( note.NoteType.EntityTypeId == reminderEntityType.Id )
+            {
+                var reminderService = new ReminderService( RockContext );
+                var reminder = reminderService.Get( note.EntityId.Value );
+
+                if ( !reminderService.CanDelete( reminder, out var errorMessage ) )
+                {
+                    result = ActionBadRequest( errorMessage );
+                    return false;
+                }
+
+                if ( reminder != null )
+                {
+                    reminderService.Delete( reminder );
+                }
+            }
+            else if ( note.NoteType.EntityTypeId == connectionRequestEntityType.Id )
+            {
+                var connectionService = new ConnectionRequestService( RockContext );
+                var connection = connectionService.Get( note.EntityId.Value );
+
+                if ( !connectionService.CanDelete( connection, out var errorMessage ) )
+                {
+                    result = ActionBadRequest( errorMessage );
+                    return false;
+                }
+
+                if ( connection != null )
+                {
+                    connectionService.Delete( connection );
+                }
+            }
+            else
+            {
+                result = ActionBadRequest( "The linked entity type is not supported to be deleted." );
+                return false;
+            }
+
+            result = null;
+            return true;
         }
 
         #endregion
@@ -451,7 +608,7 @@ namespace Rock.Blocks.Types.Mobile.Core
             }
 
 
-            var notesBag = GetNotesCreatedByPerson( RequestContext.CurrentPerson.Guid, null, options.Filter, 50 );
+            var notesBag = GetNotesCreatedByPerson( RequestContext.CurrentPerson.Guid, null, null, options.Filter, options.Count );
             PopulateNoteItemsInformation( notesBag.Notes );
 
             var viewableNoteTypes = GetViewableNoteTypes().Select( nt => new
@@ -467,6 +624,11 @@ namespace Rock.Blocks.Types.Mobile.Core
             {
                 Notes = notesBag.Notes,
                 ViewableNoteTypes = viewableNoteTypes,
+                LinkPersonNoteTypes = GetPersonNoteTypes().Select( nt => new ListItemBag
+                {
+                    Text = nt.Name,
+                    Value = nt.Guid.ToString()
+                } ).ToList(),
                 HasMore = notesBag.HasMore
             } );
         }
@@ -485,7 +647,7 @@ namespace Rock.Blocks.Types.Mobile.Core
 
             using ( var rockContext = new RockContext() )
             {
-                var notesBag = GetNotesCreatedByPerson( RequestContext.CurrentPerson.Guid, options.BeforeDate?.Date, options.Filter, options.Count );
+                var notesBag = GetNotesCreatedByPerson( RequestContext.CurrentPerson.Guid, options.BeforeDate?.Date, options.Index, options.Filter, options.Count );
                 PopulateNoteItemsInformation( notesBag.Notes );
 
                 return ActionOk( new
@@ -504,7 +666,6 @@ namespace Rock.Blocks.Types.Mobile.Core
         [BlockAction]
         public BlockActionResult DeleteNote( DeleteNoteRequestBag options )
         {
-
             var service = new NoteService( RockContext );
             var note = service.Get( options.NoteGuid );
 
@@ -521,9 +682,13 @@ namespace Rock.Blocks.Types.Mobile.Core
 
             if ( service.CanDeleteChildNotes( note, RequestContext.CurrentPerson, out var errorMessage ) && service.CanDelete( note, out errorMessage ) )
             {
+                if ( options.DeleteLinkedEntity && !DeleteLinkedEntity( note, out var result ) )
+                {
+                    return result;
+                }
+
                 service.Delete( note, true );
                 RockContext.SaveChanges();
-
                 return ActionOk();
             }
             else
@@ -553,7 +718,6 @@ namespace Rock.Blocks.Types.Mobile.Core
             {
                 return ActionForbidden( "You are not authorized to edit this note." );
             }
-
 
             note.Text = options.NoteText;
             note.IsAlert = options.IsAlert;
@@ -646,6 +810,8 @@ namespace Rock.Blocks.Types.Mobile.Core
         public class DeleteNoteRequestBag
         {
             public Guid NoteGuid { get; set; }
+
+            public bool DeleteLinkedEntity { get; set; }
         }
 
 
@@ -714,6 +880,7 @@ namespace Rock.Blocks.Types.Mobile.Core
         public class GetMyNotesRequestBag
         {
             public int Count { get; set; } = 50;
+            public int? Index { get; set; }
             public DateTimeOffset? BeforeDate { get; set; }
             public FilterOptionsBag Filter { get; set; }
         }
