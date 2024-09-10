@@ -52,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-    import { computed, ref } from "vue";
+    import { computed, ref, onMounted } from "vue";
     import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
     import { DetailPanelMode } from "@Obsidian/Enums/Controls/detailPanelMode";
     import RockButton from "@Obsidian/Controls/rockButton.obs";
@@ -72,6 +72,7 @@
     import { ValidPropertiesBox } from "@Obsidian/ViewModels/Utility/validPropertiesBox";
     import { EntityType } from "@Obsidian/SystemGuids/entityType";
     import BadgeList from "@Obsidian/Controls/badgeList.obs";
+    import { useStore } from "@Obsidian/PageState";
 
     const config = useConfigurationValues<DetailBlockBox<BusinessDetailBag, BusinessDetailOptionsBag>>();
     const invokeBlockAction = useInvokeBlockAction();
@@ -191,6 +192,7 @@
             }
         }
         else {
+            useStore().setAreSecondaryBlocksShown(true);
             panelMode.value = DetailPanelMode.View;
         }
     }
@@ -213,6 +215,7 @@
             };
 
             panelMode.value = DetailPanelMode.Edit;
+            useStore().setAreSecondaryBlocksShown(false);
         }
     }
 
@@ -233,6 +236,7 @@
         if (result.isSuccess && result.data) {
             if (result.statusCode === 200 && typeof result.data === "object") {
                 businessDetailViewBag.value = result.data.bag;
+                useStore().setAreSecondaryBlocksShown(true);
                 panelMode.value = DetailPanelMode.View;
             }
             else if (result.statusCode === 201 && typeof result.data === "string") {
@@ -273,6 +277,15 @@
         businessDetailEditBag.value = { bag: config.entity };
         panelMode.value = DetailPanelMode.Add;
     }
+
+    onMounted(() => {
+        if (config.entity?.idKey) {
+            useStore().setAreSecondaryBlocksShown(true);
+        }
+        else {
+            useStore().setAreSecondaryBlocksShown(false);
+        }
+    });
 
     onConfigurationValuesChanged(useReloadBlock());
 
