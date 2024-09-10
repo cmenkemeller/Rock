@@ -84,6 +84,7 @@
     const isSaving = ref(false);
     const submitForm = ref(false);
     const customActionClassList = ref(["action", "panel-action-context", "clickable"]);
+    const store = useStore();
 
     const businessDetailViewBag = ref(config.entity);
     const businessDetailEditBag = ref<ValidPropertiesBox<BusinessDetailBag>>({
@@ -192,7 +193,7 @@
             }
         }
         else {
-            useStore().setAreSecondaryBlocksShown(true);
+            store.setAreSecondaryBlocksShown(true);
             panelMode.value = DetailPanelMode.View;
         }
     }
@@ -215,7 +216,7 @@
             };
 
             panelMode.value = DetailPanelMode.Edit;
-            useStore().setAreSecondaryBlocksShown(false);
+            store.setAreSecondaryBlocksShown(false);
         }
     }
 
@@ -236,7 +237,7 @@
         if (result.isSuccess && result.data) {
             if (result.statusCode === 200 && typeof result.data === "object") {
                 businessDetailViewBag.value = result.data.bag;
-                useStore().setAreSecondaryBlocksShown(true);
+                store.setAreSecondaryBlocksShown(true);
                 panelMode.value = DetailPanelMode.View;
             }
             else if (result.statusCode === 201 && typeof result.data === "string") {
@@ -280,10 +281,10 @@
 
     onMounted(() => {
         if (config.entity?.idKey) {
-            useStore().setAreSecondaryBlocksShown(true);
+            store.setAreSecondaryBlocksShown(true);
         }
         else {
-            useStore().setAreSecondaryBlocksShown(false);
+            store.setAreSecondaryBlocksShown(false);
         }
     });
 
