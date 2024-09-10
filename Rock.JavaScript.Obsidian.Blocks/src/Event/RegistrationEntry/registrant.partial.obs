@@ -121,6 +121,7 @@
     const registrationEntryState = use(CurrentRegistrationEntryState);
     const getRegistrationEntryBlockArgs = use(GetPersistSessionArgs);
     const registrationEntryTerms = use(RegistrationEntryTerms);
+    const newFamilyGuid = newGuid();
 
     // Make sure current registrant properties are initialized.
     if (!props.currentRegistrant.feeItemQuantities) {
@@ -156,7 +157,6 @@
     const signatureToken = ref<string>("");
     const formResetKey = ref<string>("");
     const isNextDisabled = ref<boolean>(false);
-    const newFamilyGuid = ref<string>("");
     const isCreatingNewFamily = ref<boolean>(false);
 
     // #endregion
@@ -320,11 +320,9 @@
             });
         }
 
-        newFamilyGuid.value = newGuid();
-
         // Add the current person (registrant) if not already added
         const familyGuid = !props.currentRegistrant.familyGuid || usedFamilyGuids[props.currentRegistrant.familyGuid] == true
-            ? newFamilyGuid.value
+            ? newFamilyGuid
             : props.currentRegistrant.familyGuid;
         options.push({
             text: "None of the above",
@@ -377,13 +375,13 @@
                 value: fm.guid
             })) ?? [];
 
-        var newPersonOptionText = "New Family Member";
+        let newPersonOptionText = "New Family Member";
 
         if (isCreatingNewFamily.value) {
             newPersonOptionText = "Guest";
         }
 
-        var newPersonOptions = {
+        let newPersonOptions = {
                 text: newPersonOptionText,
                 value: null
             };
@@ -793,7 +791,7 @@
     }
 
     function onSetFamilyGuid(familyGuid: Guid): void {
-        if (familyGuid === newFamilyGuid.value) {
+        if (familyGuid === newFamilyGuid) {
             isCreatingNewFamily.value = true;
         }
         else {
