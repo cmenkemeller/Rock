@@ -18,8 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using Rock.Data;
 
+using Rock.Data;
+using Rock.Utility;
 using Rock.ViewModels.Blocks.Event.RegistrationEntry;
 
 namespace Rock.Model
@@ -243,6 +244,9 @@ namespace Rock.Model
                         }
                     }
 
+                    var decimalPlaces = ( int ) Math.Pow( 10, new RockCurrencyCodeInfo().DecimalPlaces );
+                    costSummary.DiscountedCost = Math.Truncate( costSummary.DiscountedCost * decimalPlaces ) / decimalPlaces;
+
                     // If registration allows a minimum payment calculate that amount, otherwise use the discounted amount as minimum
                     costSummary.MinPayment = minimumInitialPaymentPerRegistrant.HasValue ? minimumInitialPaymentPerRegistrant.Value : costSummary.DiscountedCost;
                     costSummary.DefaultPayment = defaultPaymentAmountPerRegistrant;
@@ -304,6 +308,9 @@ namespace Rock.Model
                             }
                         }
                     }
+
+                    var decimalPlaces = ( int ) Math.Pow( 10, new RockCurrencyCodeInfo().DecimalPlaces );
+                    feeCostSummary.DiscountedCost = Math.Truncate( feeCostSummary.DiscountedCost * decimalPlaces ) / decimalPlaces;
 
                     // If template allows a minimum payment, then fees are not included, otherwise it is included
                     feeCostSummary.MinPayment = minimumInitialPaymentPerRegistrant.HasValue ? 0 : feeCostSummary.DiscountedCost;

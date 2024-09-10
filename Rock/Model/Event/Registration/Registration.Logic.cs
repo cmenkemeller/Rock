@@ -14,18 +14,19 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text;
+
 using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
 using Rock.Lava;
 using Rock.Security;
+using Rock.Utility;
 using Rock.Web.Cache;
 
 namespace Rock.Model
@@ -33,7 +34,7 @@ namespace Rock.Model
     public partial class Registration
     {
         #region Properties
-        
+
         /// <summary>
         /// Gets a boolean value indicating whether this registration has an active payment plan.
         /// </summary>
@@ -114,6 +115,9 @@ namespace Rock.Model
                         discountedCost += registrant.DiscountedCost( DiscountPercentage, DiscountAmount );
                     }
                 }
+
+                var decimalPlaces = (int) Math.Pow( 10, new RockCurrencyCodeInfo().DecimalPlaces );
+                discountedCost = ( Math.Truncate(discountedCost * decimalPlaces) ) / decimalPlaces;
 
                 return discountedCost;
             }
@@ -448,7 +452,7 @@ Registration By: {0} Total Cost/Fees:{1}
 
         #endregion Methods
     }
-    
+
     /// <summary>
     /// A Registration-PaymentPlan pair.
     /// </summary>

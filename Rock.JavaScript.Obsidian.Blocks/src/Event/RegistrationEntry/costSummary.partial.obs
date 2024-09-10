@@ -363,8 +363,9 @@
             rules.push("notblank");
         }
 
+        console.log("maxAmountCanBePaid " + maxAmountCanBePaid.value);
         rules.push(`gte:${min}`);
-        rules.push(`lte:${max}`);
+        rules.push(`lte:${maxAmountCanBePaid.value}`);
 
         return rules;
     });
