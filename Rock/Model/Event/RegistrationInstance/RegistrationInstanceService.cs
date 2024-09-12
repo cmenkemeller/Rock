@@ -162,6 +162,7 @@ namespace Rock.Model
             var costs = new List<RegistrationCostSummaryInfo>();
             var discountedRegistrantsRemaining = context.Discount?.RegistrationTemplateDiscount?.MaxRegistrants;
             var discountModel = context.Discount?.RegistrationTemplateDiscount;
+            var decimalPlaces = RockCurrencyCodeInfo.GetDecimalPlaces();
 
             // When we first submit the initial registration, context.Registration
             // is null so it can never have a value. When returning to an existing
@@ -244,9 +245,7 @@ namespace Rock.Model
                         }
                     }
 
-                    var decimalPlaces = ( int ) Math.Pow( 10, new RockCurrencyCodeInfo().DecimalPlaces );
-                    costSummary.DiscountedCost = Math.Truncate( costSummary.DiscountedCost * decimalPlaces ) / decimalPlaces;
-
+                    costSummary.DiscountedCost = decimal.Round( costSummary.DiscountedCost, decimalPlaces );
                     // If registration allows a minimum payment calculate that amount, otherwise use the discounted amount as minimum
                     costSummary.MinPayment = minimumInitialPaymentPerRegistrant.HasValue ? minimumInitialPaymentPerRegistrant.Value : costSummary.DiscountedCost;
                     costSummary.DefaultPayment = defaultPaymentAmountPerRegistrant;
@@ -309,8 +308,7 @@ namespace Rock.Model
                         }
                     }
 
-                    var decimalPlaces = ( int ) Math.Pow( 10, new RockCurrencyCodeInfo().DecimalPlaces );
-                    feeCostSummary.DiscountedCost = Math.Truncate( feeCostSummary.DiscountedCost * decimalPlaces ) / decimalPlaces;
+                    feeCostSummary.DiscountedCost = decimal.Round( feeCostSummary.DiscountedCost, decimalPlaces );
 
                     // If template allows a minimum payment, then fees are not included, otherwise it is included
                     feeCostSummary.MinPayment = minimumInitialPaymentPerRegistrant.HasValue ? 0 : feeCostSummary.DiscountedCost;

@@ -16,6 +16,7 @@
 
 using System.ComponentModel.DataAnnotations.Schema;
 using Rock.Lava;
+using Rock.Utility;
 
 namespace Rock.Model
 {
@@ -50,12 +51,15 @@ namespace Rock.Model
         /// <returns></returns>
         public decimal DiscountedCost ( decimal discountPercent )
         {
+            var decimalPlaces = RockCurrencyCodeInfo.GetDecimalPlaces();
             var discountedCost = TotalCost;
             
             if ( RegistrationTemplateFee != null && RegistrationTemplateFee.DiscountApplies && ( RegistrationRegistrant == null || RegistrationRegistrant.DiscountApplies ) )
             {
                 discountedCost -= discountedCost * discountPercent;
             }
+
+            discountedCost = decimal.Round( discountedCost, decimalPlaces );
 
             return discountedCost;
         }

@@ -16,10 +16,10 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Data.Entity;
 using System.Linq;
 
 using Rock.Lava;
+using Rock.Utility;
 using Rock.Web.Cache;
 
 namespace Rock.Model
@@ -35,7 +35,7 @@ namespace Rock.Model
         /// </value>
         [NotMapped]
         [LavaVisible]
-        public virtual string NickName 
+        public virtual string NickName
         {
             get
             {
@@ -47,7 +47,7 @@ namespace Rock.Model
                 return string.Empty;
             }
         }
-        
+
         /// <summary>
         /// Gets the first name.
         /// </summary>
@@ -56,7 +56,7 @@ namespace Rock.Model
         /// </value>
         [NotMapped]
         [LavaVisible]
-        public virtual string FirstName 
+        public virtual string FirstName
         {
             get
             {
@@ -68,7 +68,7 @@ namespace Rock.Model
                 return string.Empty;
             }
         }
-        
+
         /// <summary>
         /// Gets the last name.
         /// </summary>
@@ -176,6 +176,9 @@ namespace Rock.Model
             }
 
             var discountedCost = Cost - ( DiscountApplies ? ( Cost * discountPercent ) : 0.0M );
+
+            var decimalPlaces = RockCurrencyCodeInfo.GetDecimalPlaces();
+            discountedCost = decimal.Round( discountedCost, decimalPlaces );
             if ( Fees != null )
             {
                 foreach ( var fee in Fees )

@@ -116,9 +116,6 @@ namespace Rock.Model
                     }
                 }
 
-                var decimalPlaces = (int) Math.Pow( 10, new RockCurrencyCodeInfo().DecimalPlaces );
-                discountedCost = ( Math.Truncate(discountedCost * decimalPlaces) ) / decimalPlaces;
-
                 return discountedCost;
             }
         }
