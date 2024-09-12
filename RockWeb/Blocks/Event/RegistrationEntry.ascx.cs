@@ -5805,6 +5805,8 @@ namespace RockWeb.Blocks.Event
             lRegistrationTermLoggedInPerson.Text = RegistrationTerm;
             lDiscountCodeLabel.Text = DiscountCodeTerm;
 
+            var currencyDecimalPlaces = RockCurrencyCodeInfo.GetDecimalPlaces();
+
             if ( RegistrationTemplate.RegistrantsSameFamily == RegistrantsSameFamily.Ask )
             {
                 var familyOptions = RegistrationState.GetFamilyOptions( RegistrationTemplate, RegistrationState.RegistrantCount );
@@ -6000,6 +6002,8 @@ namespace RockWeb.Blocks.Event
                             }
                         }
 
+                        costSummary.DiscountedCost = decimal.Round( costSummary.DiscountedCost, currencyDecimalPlaces );
+
                         // If registration allows a minimum payment calculate that amount, otherwise use the discounted amount as minimum
                         costSummary.MinPayment = minimumInitialPaymentPerRegistrant.HasValue ? minimumInitialPaymentPerRegistrant.Value : costSummary.DiscountedCost;
                         costSummary.DefaultPayment = defaultPaymentAmountPerRegistrant;
@@ -6059,6 +6063,8 @@ namespace RockWeb.Blocks.Event
                                         }
                                     }
                                 }
+
+                                feeCostSummary.DiscountedCost = decimal.Round( feeCostSummary.DiscountedCost, currencyDecimalPlaces );
 
                                 // If template allows a minimum payment, then fees are not included, otherwise it is included
                                 feeCostSummary.MinPayment = minimumInitialPaymentPerRegistrant.HasValue ? 0 : feeCostSummary.DiscountedCost;
