@@ -113,6 +113,10 @@
     <Compile Include="Blocks\Core\TaggedItemList\TaggedItemListOptionsBag.cs" />
     <Compile Include="Blocks\Engagement\StreakTypeExclusionList\StreakTypeExclusionListOptionsBag.cs" />
     <Compile Include="Blocks\Engagement\StreakMapEditor\StreakMapEditorBag.cs" />
+    <Compile Include="Blocks\Reporting\PageParameterFilter\EditableFilterBag.cs" />
+    <Compile Include="Blocks\Reporting\PageParameterFilter\PageParameterFilterCustomSettingsBag.cs" />
+    <Compile Include="Blocks\Reporting\PageParameterFilter\PageParameterFilterCustomSettingsOptionsBag.cs" />
+    <Compile Include="Blocks\Reporting\PageParameterFilter\PageParameterFilterInitializationBox.cs" />
     <Compile Include="Blocks\Security\AuthScopeList\AuthScopeListOptionsBag.cs" />
     <Compile Include="Blocks\Security\AuthClientList\AuthClientListOptionsBag.cs" />
     <Compile Include="Blocks\Security\SecurityChangeAuditList\SecurityChangeAuditListOptionsBag.cs" />

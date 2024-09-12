@@ -37,7 +37,8 @@
 
         <div class="row">
             <div class="col-md-6">
-                <CategoryPicker v-model="categories"
+                <CategoryPicker v-if="isCategoriesVisible"
+                                v-model="categories"
                                 label="Categories"
                                 :entityTypeGuid="EntityType.Attribute"
                                 entityTypeQualifierColumn="EntityTypeId"
@@ -49,7 +50,8 @@
 
                 <div class="row">
                     <div class="col-sm-6">
-                        <CheckBox v-model="isRequired"
+                        <CheckBox v-if="isIsRequiredVisible"
+                                  v-model="isRequired"
                                   label="Required"
                                   text="Yes" />
                     </div>
@@ -80,7 +82,8 @@
         <Panel title="Advanced Settings" hasCollapse>
             <div class="row">
                 <div class="col-md-6">
-                    <CheckBox label="Enable History"
+                    <CheckBox v-if="isHistoryEnabledVisible"
+                              label="Enable History"
                               v-model="isHistoryEnabled"
                               help="If selected, changes to the value of this attribute will be stored in attribute value history."
                               text="Yes" />
@@ -150,6 +153,16 @@
             type: String as PropType<Guid | undefined>
         },
 
+        isCategoriesVisible: {
+            type: Boolean as PropType<boolean>,
+            default: true
+        },
+
+        isIsRequiredVisible: {
+            type: Boolean as PropType<boolean>,
+            default: true
+        },
+
         isAnalyticsVisible: {
             type: Boolean as PropType<boolean>,
             default: false
@@ -161,6 +174,11 @@
         },
 
         isShowOnBulkVisible: {
+            type: Boolean as PropType<boolean>,
+            default: true
+        },
+
+        isHistoryEnabledVisible: {
             type: Boolean as PropType<boolean>,
             default: true
         },
