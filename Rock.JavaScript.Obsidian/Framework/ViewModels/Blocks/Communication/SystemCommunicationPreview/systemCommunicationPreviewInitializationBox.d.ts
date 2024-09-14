@@ -21,6 +21,7 @@
 // </copyright>
 //
 
+import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
 import { PublicAttributeBag } from "@Obsidian/ViewModels/Utility/publicAttributeBag";
 
 export type SystemCommunicationPreviewInitializationBox = {
@@ -33,8 +34,8 @@ export type SystemCommunicationPreviewInitializationBox = {
     /** Get or set the body. */
     body?: string | null;
 
-    /** Get or set the date. */
-    date?: string | null;
+    /** Get or set the date options. */
+    dateOptions?: ListItemBag[] | null;
 
     /** Get or set the email address */
     email?: string | null;
@@ -54,13 +55,16 @@ export type SystemCommunicationPreviewInitializationBox = {
     /** Gets or sets the identifier key of this entity. */
     idKey?: string | null;
 
-    /** Get or set the publication date */
+    /** Get or set the publication date. */
     publicationDate?: string | null;
 
     /** Get or set the subject. */
     subject?: string | null;
 
-    /** Get or set the Person ID */
+    /** Get or set the Target Person bag */
+    targetPersonBag?: ListItemBag | null;
+
+    /** Get or set the Target Person ID */
     targetPersonId: number;
 
     /** Get or set the title. */

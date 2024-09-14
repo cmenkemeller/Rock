@@ -120,6 +120,7 @@
     }
 
     type PersonSearchResult = {
+        id?: string | null;
         guid?: string | null;
         primaryAliasGuid?: string | null;
         name?: string | null;
@@ -194,6 +195,7 @@
 
     const emit = defineEmits<{
         (e: "update:modelValue", value: ListItemBag | undefined): void;
+        (e: "update:selectedPersonId", value: string | null | undefined): void;
         (e: "update:isSearchModeOpen", value: boolean): void;
     }>();
 
@@ -374,6 +376,7 @@
      */
     function onClear(): void {
         emit("update:modelValue", undefined);
+        emit("update:selectedPersonId", undefined);
     }
 
     /**
@@ -417,6 +420,7 @@
 
         // Emit the new value and close the popup.
         emit("update:modelValue", internalValue.value);
+        emit("update:selectedPersonId", person?.id);
         showPopup.value = false;
     }
 
@@ -451,7 +455,7 @@
 
     // Watch for changes in our provided value and update the UI.
     watch(() => props.modelValue, () => internalValue.value = props.modelValue);
-    
+
     watch(showPopup, () => {
         emit("update:isSearchModeOpen", showPopup.value);
     });

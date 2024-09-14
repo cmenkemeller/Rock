@@ -20,7 +20,8 @@
                               help="Date to use when previewing the message. The default date is today's date." />
 
                 <!-- Person Picker -->
-                <PersonPicker @update:modelValue="handlePersonSelected"
+                <PersonPicker v-model="targetPerson"
+                              @update:selectedPersonId="handlePersonSelected"
                               label="Target Person"
                               help="Person used to customize the email preview." />
 
@@ -67,7 +68,7 @@
     </Panel>
 
     <!-- Modal for Sending Test Email -->
-    <Modal v-model="isSendTestModalVisible" :title="'Send Test Email'">
+    <Modal v-model="isSendTestModalVisible" :title="'Send Test Email'" @save="sendTest" saveText="Send">
         <div v-if="emailError">
             <NotificationBox alertType="danger" :dismissible="true">
                 {{ emailMessage }}
@@ -78,12 +79,7 @@
                 {{ emailMessage }}
             </NotificationBox>
         </div>
-        <div class="form-group">
-            <EmailBox v-model="testEmail" label="Email" required />
-        </div>
-        <div>
-            <RockButton btnType="primary" @click="sendTest">Send</RockButton>
-        </div>
+        <EmailBox v-model="testEmail" label="Email" rules="required" help="This will temporarily change your email address during the test, but it will be changed back after the test is complete." />
     </Modal>
 </template>
 
@@ -99,6 +95,7 @@
     import Modal from "@Obsidian/Controls/modal.obs";
     import EmailBox from "@Obsidian/Controls/emailBox.obs";
     import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+    import { useStore } from "@Obsidian/PageState";
 
     // #region Values
 
@@ -106,12 +103,12 @@
     const { hasSendDate } = config;
     const invokeBlockAction = useInvokeBlockAction();
 
-    const targetPersonId = ref<number>(0);
+    const targetPerson = ref<ListItemBag | undefined>(config.targetPersonBag ?? undefined);
+    const targetPersonId = ref<string>("");
     const systemCommunicationName = ref<string>(config.title || "System Communication Preview");
     const fromName = ref<string | null | undefined>(config.fromName);
     const fromEmail = ref<string | null | undefined>(config.from);
     const emailSubject = ref<string | null | undefined>(config.subject);
-    const emailDate = ref<string | null | undefined>(config.date);
     const emailContent = ref<string | null | undefined>(config.body);
     const testEmail = ref<string>("");
     const emailFrom = computed(() => {
@@ -120,29 +117,38 @@
         return `<${emailAddress}>`;
     });
 
-    const currentDate = formatDate(new Date());
-    const formattedCurrentDate = formatDate(currentDate);
-    const selectedMessageDate = ref<string>(formattedCurrentDate);
+    const selectedMessageDate = ref<string>(config.publicationDate ?? "");
+
     const systemCommunicationId = ref<number>(0);
 
     const isSendTestModalVisible = ref<boolean>(false);
-    const messageDateOptions = ref<ListItemBag[]>([]);
+    const messageDateOptions = ref<ListItemBag[]>(config.dateOptions ?? []);
     const isMobileView = ref<boolean>(false);
     const emailError = ref<boolean>(false);
     const emailSuccess = ref<boolean>(false);
     const emailMessage = ref<string>("");
     const emailPreviewContainer = ref<HTMLElement | null>(null);
 
+    const emailDate = computed(() => messageDateOptions.value.find(d => d.value === selectedMessageDate.value)?.text);
+
+    const store = useStore();
+
     // #endregion
 
     // #region Functions
+
+    // function getClosestDate(): string {
+    //     var matchingDate = messageDateOptions.value.find(() => )
+    // }
 
     /**
      * Adjusts the CSS in the email content for the mobile view preview
      */
     function adjustEmailContentForMobile(): void {
-        if (!emailPreviewContainer) return;
-
+        if (!emailPreviewContainer) {
+            console.log("I've been hit");
+            return;
+        }
         // Adjusting styles for table.body
         const bodyTables = emailPreviewContainer.value?.querySelectorAll("table.body");
         bodyTables?.forEach(table => {
@@ -196,76 +202,36 @@
     }
 
     /**
-     * Fetches the date options for the message date dropdown
-     */
-    async function fetchDateOptions(): Promise<void> {
-        try {
-            const result = await invokeBlockAction<ListItemBag[]>("GetDateOptions");
-            if (result.isSuccess && result.data) {
-                messageDateOptions.value = result.data;
-            }
-            else {
-                console.error("Failed to fetch date options:", result.errorMessage);
-            }
-        }
-        catch (error) {
-            console.error("Error fetching date options:", error);
-        }
-    }
-
-    /**
-     * Formats the date string to 'YYYY-MM-DD'
-     * @param dateString The date string to format
-     */
-    function formatDate(dateString): string {
-        // Check if the dateString is valid and in the expected format 'YYYYMMDD'
-        if (!/^\d{8}$/.test(dateString)) {
-            return "";
-        }
-
-        // Extract year, month, and day using substring
-        const year = dateString.substring(0, 4);
-        const month = dateString.substring(4, 6);
-        const day = dateString.substring(6, 8);
-
-        // Return formatted date string 'YYYY-MM-DD'
-        return `${year}-${month}-${day}`;
-    }
-
-    /**
      * Handles the person selected event from the PersonPicker
      * @param selectedPerson The selected person
      */
-    async function handlePersonSelected(selectedPerson): Promise<void> {
-        if (selectedPerson && selectedPerson.value) {
-            try {
-                const bag = { personAliasGuid: selectedPerson.value };
-                const result = await invokeBlockAction("GetTargetPerson", { bag });
-                if (result.isSuccess && result.data) {
-                    // Update the targetPersonId with the returned person ID
-                    targetPersonId.value = (result.data as { id?: number }).id || 0;
-                    // Proceed with updating the URL parameters and preview
-                    updateUrlParameters();
-                    updatePreview();
-                }
-            }
-            catch (error) {
-                console.error("Error fetching person data:", error);
-            }
+    function handlePersonSelected(personId: string | null | undefined): void {
+        if (personId) {
+            targetPersonId.value = personId;
         }
+        else {
+            // Default to the currently logged in person.
+            targetPersonId.value = "0";
+
+            //TODO: can't get the picker to update...
+            // targetPerson.value = {
+            //     value: store.state.currentPerson?.primaryAliasGuid
+            // };
+        }
+
+        updateUrlParameters();
+        updatePreview();
     }
 
     /**
      * Updates the preview content based on the selected Person and message date if provided
      */
     async function updatePreview(): Promise<void> {
-        const publicationDate = formatDate(selectedMessageDate.value);
-
         try {
             const box: SystemCommunicationPreviewInitializationBox = {
                 id: systemCommunicationId.value,
-                targetPersonId: targetPersonId.value,
-                publicationDate: publicationDate,
+                targetPersonId: targetPersonId.value ? parseInt(targetPersonId.value) : 0,
+                publicationDate: selectedMessageDate.value,
                 hasSendDate: false
             };
 
@@ -274,7 +240,7 @@
             if (result.isSuccess && result.data) {
                 emailContent.value = result.data.body;
                 emailSubject.value = result.data.subject;
-                emailDate.value = result.data.date || "";
+
                 updateEmailFrom(result.data.fromName || "", result.data.from || "");
             }
 
@@ -299,12 +265,6 @@
      * Sends a test email to the entered email address
      */
     async function sendTest(): Promise<void> {
-        if (!testEmail.value) {
-            emailError.value = true;
-            emailMessage.value = "Please enter a valid email address.";
-            return;
-        }
-
         emailError.value = false;
         emailSuccess.value = false;
 
@@ -313,8 +273,9 @@
             const box: SystemCommunicationPreviewInitializationBox = {
                 id: systemCommunicationId.value,
                 email: testEmail.value,
-                targetPersonId: targetPersonId.value,
-                hasSendDate: false
+                targetPersonId: parseInt(targetPersonId.value),
+                hasSendDate: false, // Todo fix this.
+                publicationDate: selectedMessageDate.value
             };
 
             const result = await invokeBlockAction("SendTestEmail", { box });
@@ -338,12 +299,13 @@
     /**
      * Updates the URL parameters with the selected Person and message date
      */
-    function updateUrlParameters(): void {
+    function updateUrlParameters (): void {
         const queryParams = new URLSearchParams(window.location.search);
         // The systems communication ID will be retrieved from the URL parameters
         const systemCommunicationIdParam = queryParams.get("SystemCommunicationId");
         systemCommunicationId.value = systemCommunicationIdParam ? parseInt(systemCommunicationIdParam) : 0;
-        queryParams.set("TargetPersonId", targetPersonId.value.toString());
+
+        queryParams.set("TargetPersonId", targetPersonId.value);
         queryParams.set("PublicationDate", selectedMessageDate.value);
 
         history.pushState(null, "", "?" + queryParams.toString());
@@ -352,26 +314,26 @@
     /**
      * Reads the URL parameters and sets the targetPersonId and selectedMessageDate
      */
-    function readUrlParameters(): void {
-        const queryParams = new URLSearchParams(window.location.search);
-        const urlPersonId = queryParams.get("TargetPersonId");
-        const urlDate = queryParams.get("PublicationDate");
+    // function readUrlParameters(): void {
+    //     const queryParams = new URLSearchParams(window.location.search);
+    //     const urlPersonId = queryParams.get("TargetPersonId");
+    //     const urlDate = queryParams.get("PublicationDate");
 
-        if (urlPersonId) {
-            targetPersonId.value = parseInt(urlPersonId);
-        }
-        else {
-            // set targetPersonId to CurrentPerson's ID
-            targetPersonId.value = 4;
-        }
+    //     if (urlPersonId) {
+    //         targetPersonId.value = urlPersonId;
+    //     }
+    //     else {
+    //         // set targetPersonId to CurrentPerson's ID
+    //         // targetPersonId.value = 4;
+    //     }
 
-        if (urlDate) {
-            selectedMessageDate.value = urlDate;
-        }
-        else {
-            selectedMessageDate.value = currentDate;
-        }
-    }
+    //     if (urlDate) {
+    //         selectedMessageDate.value = urlDate;
+    //     }
+    //     else {
+    //         selectedMessageDate.value = currentDate;
+    //     }
+    // }
 
     // #endregion
 
@@ -390,8 +352,7 @@
     // #endregion
 
     function onInit(): void {
-        fetchDateOptions();
-        readUrlParameters();
+        // readUrlParameters();
         updateUrlParameters();
     }
 
