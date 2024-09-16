@@ -30,7 +30,7 @@ namespace Rock.Blocks.Types.Mobile.Core
     [BlockTemplateField( "Note Item Template",
         Description = "The item template to use when rendering the notes.",
         TemplateBlockValueGuid = SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_MY_NOTES,
-        DefaultValue = "9A088BB9-C517-44C2-970B-D5CF3830F07A",
+        DefaultValue = "421F2759-B6B6-4C47-AA42-320B6DB9F0A7",
         IsRequired = true,
         Key = AttributeKey.NoteItemTemplate,
         Order = 0 )]

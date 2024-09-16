@@ -26,6 +26,7 @@ namespace Rock.Blocks.Types.Mobile.Core
         Description = "The note type associated with the Quick Note.",
         AllowMultiple = false,
         IsRequired = false,
+        DefaultValue = Rock.SystemGuid.NoteType.QUICK_NOTE,
         Order = 0,
         Key = AttributeKey.NoteType )]
 
