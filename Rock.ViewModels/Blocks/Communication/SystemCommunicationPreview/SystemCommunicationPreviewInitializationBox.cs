@@ -86,5 +86,10 @@ namespace Rock.ViewModels.Blocks.Communication.SystemCommunicationPreview
         /// Get or set the Target Person bag
         /// </summary>
         public ListItemBag TargetPersonBag { get; set; }
+
+        /// <summary>
+        /// Get or set the error message
+        /// </summary>
+        public string ErrorMessage { get; set; }
     }
 }

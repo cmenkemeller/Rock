@@ -20,10 +20,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Web.UI.WebControls;
-
-using CSScriptEvaluatorApi;
-
 using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
@@ -86,7 +82,6 @@ namespace Rock.Blocks.Communication
     {
         #region Fields
 
-        internal bool HasSendDate { get; set; }
         internal bool HasSystemCommunication = false;
         internal bool HasTargetPerson = false;
 
@@ -161,7 +156,10 @@ namespace Rock.Blocks.Communication
                 }
                 else
                 {
-                    return null;
+                    return new SystemCommunicationPreviewInitializationBox
+                    {
+                        ErrorMessage = "A communication template was not specified in the block setting or using the [SystemCommunicationId] url parameter."
+                    };
                 }
             }
 
@@ -171,6 +169,8 @@ namespace Rock.Blocks.Communication
             if ( systemCommunication != null )
             {
                 var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, null );
+                var hasSendDate = systemCommunication.Body.Contains( "{{ SendDateTime }}" );
+
                 ListItemBag targetPersonBag;
                 var targetPersonId = RequestContext.GetPageParameter( "TargetPersonId" ).ToIntSafe();
                 var personAliasService = new PersonAliasService( rockContext );
@@ -186,15 +186,19 @@ namespace Rock.Blocks.Communication
                 }
 
                 var dateOptions = GetDateOptions();
-                var publicationDate = GetDateInfo( dateOptions );
+                var publicationDateValue = string.Empty;
 
-                mergeFields.AddOrReplace( MergeFieldKey.SendDateTime, publicationDate.Text );
+                if ( hasSendDate )
+                {
+                    var publicationDate = GetDateInfo( dateOptions );
+                    mergeFields.AddOrReplace( MergeFieldKey.SendDateTime, publicationDate.Text );
+                    publicationDateValue = publicationDate.Value;
+                }
 
                 var targetPerson = new PersonService( rockContext ).Get( targetPersonId );
                 mergeFields.AddOrReplace( MergeFieldKey.Person, targetPerson );
                 string bodyHtml = systemCommunication.Body.ResolveMergeFields( mergeFields );
                 string subjectHtml = systemCommunication.Subject.ResolveMergeFields( mergeFields );
-                var hasSendDate = systemCommunication.Body.Contains( "{{ SendDateTime }}" );
 
                 var systemCommunicationPreviewInitializationBox = new SystemCommunicationPreviewInitializationBox
                 {
@@ -203,7 +207,7 @@ namespace Rock.Blocks.Communication
                     FromName = systemCommunication.FromName.IsNullOrWhiteSpace() ? globalAttributes.GetValue( "OrganizationName" ) : systemCommunication.FromName,
                     Subject = subjectHtml,
                     Body = bodyHtml,
-                    PublicationDate = publicationDate.Value,
+                    PublicationDate = publicationDateValue,
                     DateOptions = dateOptions,
                     HasSendDate = hasSendDate,
                     TargetPersonBag = targetPersonBag,
@@ -213,31 +217,40 @@ namespace Rock.Blocks.Communication
                 return systemCommunicationPreviewInitializationBox;
             }
 
-            return null;
+            return ActionBadRequest( "A communication template was not specified in the block setting or using the [SystemCommunicationId] url parameter." );
         }
 
         private ListItemBag GetDateInfo( List<ListItemBag> dateOptions )
         {
             // Attempt to get the send date from the URL params
             string sendDateParam = RequestContext.GetPageParameter( "PublicationDate" );
-            DateTime publicationDate;
 
-            if ( DateTime.TryParse( sendDateParam, out publicationDate ) )
+            if ( DateTime.TryParse( sendDateParam, out DateTime publicationDate ) )
             {
                 var publicationDateValue = publicationDate.ToString( "yyyy-MM-dd" );
-                var incomingDateItem = dateOptions.AsQueryable().Where( d => d.Value == publicationDateValue ).FirstOrDefault();
 
-                if ( incomingDateItem != null )
+                if ( dateOptions.Count > 0 )
                 {
-                    return incomingDateItem;
+                    var incomingDateItem = dateOptions.AsQueryable().Where( d => d.Value == publicationDateValue ).FirstOrDefault();
+
+                    if ( incomingDateItem != null )
+                    {
+                        return incomingDateItem;
+                    }
+
+                    return GetClosestDateToSelection( publicationDate, dateOptions );
                 }
 
-                //Todo: Check if this affects dates when the picker is not displayed.
-                return GetClosestDateToSelection( publicationDate, dateOptions );
+                return new ListItemBag { Text = publicationDate.ToString( "MMMM d, yyyy" ), Value = publicationDateValue };
             }
 
-            // Todo: This needs to be converted to "closest" date if there are options available. 
             var currentDate = RockDateTime.Now;
+
+            if ( dateOptions.Count > 0 )
+            {
+                return GetClosestDateToSelection( currentDate, dateOptions );
+            }
+
             return new ListItemBag { Text = currentDate.ToString( "MMMM d, yyyy" ), Value = currentDate.ToString( "yyyy-MM-dd" ) };
         }
 
@@ -351,30 +364,35 @@ namespace Rock.Blocks.Communication
                     rockEmailMessage.Message = appendTemplate + rockEmailMessage.Message;
                 }
 
-                string publicationDate;
-                string formattedPublicationDate;
+                var publicationDate = string.Empty;
+                var formattedPublicationDate = string.Empty;
 
-                if ( DateTime.TryParse( box.PublicationDate, out var dateItemValue ) )
+                if ( box.HasSendDate )
                 {
-                    publicationDate = box.PublicationDate;
-                    formattedPublicationDate = dateItemValue.ToString( "MMMM d, yyyy" );
-                }
-                else
-                {
-                    DateTime currentDate = RockDateTime.Now;
-
-                    if (box.HasSendDate)
+                    if ( DateTime.TryParse( box.PublicationDate, out var dateItemValue ) )
                     {
-                        var publicationDateBag = GetClosestDateToSelection( currentDate );
-                        publicationDate = publicationDateBag.Value;
-                        formattedPublicationDate = publicationDateBag.Text;
+                        publicationDate = box.PublicationDate;
+                        formattedPublicationDate = dateItemValue.ToString( "MMMM d, yyyy" );
                     }
                     else
                     {
-                        publicationDate = currentDate.ToString( "yyyy-MM-dd" );
-                        formattedPublicationDate = currentDate.ToString( "MMMM d, yyyy" );
+                        DateTime currentDate = RockDateTime.Now;
+                        var dateOptions = GetDateOptions();
+
+                        if ( dateOptions.Count > 0 )
+                        {
+                            var publicationDateBag = GetClosestDateToSelection( currentDate );
+                            publicationDate = publicationDateBag.Value;
+                            formattedPublicationDate = publicationDateBag.Text;
+                        }
+                        else
+                        {
+                            publicationDate = currentDate.ToString( "yyyy-MM-dd" );
+                            formattedPublicationDate = currentDate.ToString( "MMMM d, yyyy" );
+                        }
                     }
                 }
+
 
                 var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, null );
                 mergeFields.AddOrReplace( MergeFieldKey.SendDateTime, formattedPublicationDate );
@@ -390,6 +408,10 @@ namespace Rock.Blocks.Communication
                     {
                         mergeFields.AddOrReplace( MergeFieldKey.Person, person );
                     }
+                }
+                else
+                {
+                    mergeFields.AddOrReplace( MergeFieldKey.Person, RequestContext.CurrentPerson );
                 }
 
                 string bodyHtml = systemCommunication.Body.ResolveMergeFields( mergeFields );
@@ -419,19 +441,36 @@ namespace Rock.Blocks.Communication
             {
                 var systemCommunicationService = new SystemCommunicationService( rockContext );
                 var personService = new PersonService( rockContext );
+                SystemCommunication systemCommunication = null;
 
                 // Fetch the system communication
-                var systemCommunication = systemCommunicationService.Get( box.Id );
+                var systemCommunicationGuid = GetAttributeValue( AttributeKey.SystemCommunication ).AsGuid();
+                if ( !systemCommunicationGuid.IsEmpty() )
+                {
+                    systemCommunication = systemCommunicationService.Get( systemCommunicationGuid );
+                }
+                else if ( box.Id > 0 )
+                {
+                    systemCommunication = systemCommunicationService.Get( box.Id );
+                }
                 if ( systemCommunication == null )
                 {
                     return ActionNotFound( "System Communication not found" );
                 }
 
                 // Fetch the target person
-                var targetPerson = personService.Get( box.TargetPersonId );
-                if ( targetPerson == null )
+                Person targetPerson;
+                if ( box.TargetPersonId > 0 )
                 {
-                    return ActionNotFound( "Target person not found." );
+                    targetPerson = new PersonService( rockContext ).Get( box.TargetPersonId );
+                    if ( targetPerson == null )
+                    {
+                        return ActionBadRequest( "Target person not found." );
+                    }
+                }
+                else
+                {
+                    targetPerson = RequestContext.CurrentPerson;
                 }
 
                 // Temporarily change the person's email address

@@ -40,6 +40,9 @@ export type SystemCommunicationPreviewInitializationBox = {
     /** Get or set the email address */
     email?: string | null;
 
+    /** Get or set the error message */
+    errorMessage?: string | null;
+
     /** Get or set the from. */
     from?: string | null;
 

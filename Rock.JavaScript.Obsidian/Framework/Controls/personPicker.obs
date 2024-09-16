@@ -190,12 +190,17 @@
         isSearchModeOpen: {
             type: Boolean as PropType<boolean>,
             default: false
+        },
+
+        selectedPersonId: {
+            type: String as PropType<string>,
+            default: ""
         }
     });
 
     const emit = defineEmits<{
         (e: "update:modelValue", value: ListItemBag | undefined): void;
-        (e: "update:selectedPersonId", value: string | null | undefined): void;
+        (e: "update:selectedPersonId", value: string): void;
         (e: "update:isSearchModeOpen", value: boolean): void;
     }>();
 
@@ -376,7 +381,7 @@
      */
     function onClear(): void {
         emit("update:modelValue", undefined);
-        emit("update:selectedPersonId", undefined);
+        emit("update:selectedPersonId", "");
     }
 
     /**
@@ -420,7 +425,7 @@
 
         // Emit the new value and close the popup.
         emit("update:modelValue", internalValue.value);
-        emit("update:selectedPersonId", person?.id);
+        emit("update:selectedPersonId", person?.id ?? "");
         showPopup.value = false;
     }
 
