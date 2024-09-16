@@ -5,6 +5,7 @@ using System.Data.Entity;
 using System.Linq;
 
 using Rock.Attribute;
+using Rock.Common.Mobile.Blocks.Core.MyNotes;
 using Rock.Data;
 using Rock.Mobile;
 using Rock.Model;
@@ -229,7 +230,7 @@ namespace Rock.Blocks.Types.Mobile.Core
         /// <inheritdoc />
         public override object GetMobileConfigurationValues()
         {
-            return new
+            return new Rock.Common.Mobile.Blocks.Core.MyNotes.Configuration
             {
                 GroupNotesByDate = GroupNotesByDate,
                 EnableSwipeForOptions = EnableSwipeForOptions,
@@ -248,7 +249,7 @@ namespace Rock.Blocks.Types.Mobile.Core
         /// Gets the note types that can be used when linking a note to a person.
         /// </summary>
         /// <returns></returns>
-        private List<NoteTypeCache> GetPersonNoteTypes()
+        private List<NoteTypeCache> GetLinkToPersonNoteTypes()
         {
             var personEntityTypeId = EntityTypeCache.Get<Person>().Id;
 
@@ -463,7 +464,6 @@ namespace Rock.Blocks.Types.Mobile.Core
                 {
                     EntityId = note.EntityId,
                     NoteText = note.Text,
-                    NoteDate = note.CreatedDateTime,
                     NoteTypeName = note.NoteType.Name,
                     NoteTypeColor = note.NoteType.Color,
                     NoteTypeGuid = note.NoteType.Guid,
@@ -511,7 +511,11 @@ namespace Rock.Blocks.Types.Mobile.Core
             return (notes, true);
         }
 
-        private List<NoteTypeCache> GetViewableNoteTypes()
+        /// <summary>
+        /// Returns a list of note types that the person has left a note for.
+        /// </summary>
+        /// <returns></returns>
+        private List<NoteTypeCache> GetNoteTypesWithNoteCreatedByPerson()
         {
             // We want to get a distinct list of all of the note type IDs that the user
             // has left a note for.
@@ -611,7 +615,7 @@ namespace Rock.Blocks.Types.Mobile.Core
             var notesBag = GetNotesCreatedByPerson( RequestContext.CurrentPerson.Guid, null, null, options.Filter, options.Count );
             PopulateNoteItemsInformation( notesBag.Notes );
 
-            var viewableNoteTypes = GetViewableNoteTypes().Select( nt => new
+            var viewableNoteTypes = GetNoteTypesWithNoteCreatedByPerson().Select( nt => new
             {
                 Name = nt.Name,
                 Guid = nt.Guid,
@@ -624,7 +628,7 @@ namespace Rock.Blocks.Types.Mobile.Core
             {
                 Notes = notesBag.Notes,
                 ViewableNoteTypes = viewableNoteTypes,
-                LinkPersonNoteTypes = GetPersonNoteTypes().Select( nt => new ListItemBag
+                LinkPersonNoteTypes = GetLinkToPersonNoteTypes().Select( nt => new ListItemBag
                 {
                     Text = nt.Name,
                     Value = nt.Guid.ToString()
@@ -758,131 +762,47 @@ namespace Rock.Blocks.Types.Mobile.Core
             return ActionOk();
         }
 
-        #endregion
-
-        #region Helper Classes
 
         /// <summary>
-        /// The request bag to link a note to a person.
+        /// Gets the note types that can be used when linking a note to a person.
         /// </summary>
-        public class LinkToPersonRequestBag
+        /// <param name="noteGuid">The note guid.</param>
+        /// <returns></returns>
+        [BlockAction]
+        public BlockActionResult GetSingleNote( Guid noteGuid )
         {
-            /// <summary>
-            /// The person to link the note to.
-            /// </summary>
-            public Guid PersonGuid { get; set; }
+            var noteService = new NoteService( RockContext );
+            var note = noteService.Get( noteGuid );
 
-            /// <summary>
-            /// The note to link to the person.
-            /// </summary>
-            public Guid NoteGuid { get; set; }
+            if ( note == null )
+            {
+                return ActionNotFound();
+            }
 
-            /// <summary>
-            /// The note type to use for the note.
-            /// </summary>
-            public Guid NoteTypeGuid { get; set; }
+            if ( !note.IsAuthorized( Authorization.VIEW, RequestContext.CurrentPerson ) )
+            {
+                return ActionForbidden( "You are not authorized to view this note." );
+            }
 
-            /// <summary>
-            /// Whether or not this note should be marked as an alert.
-            /// </summary>
-            public bool IsAlert { get; set; }
+            var noteItem = new NoteItemBag
+            {
+                EntityId = note.EntityId,
+                NoteText = note.Text,
+                NoteTypeName = note.NoteType.Name,
+                NoteTypeColor = note.NoteType.Color,
+                NoteTypeGuid = note.NoteType.Guid,
+                CreatedDateTime = note.CreatedDateTime.Value,
+                NoteTypeId = note.NoteTypeId,
+                NoteTypeEntityTypeId = note.NoteType.EntityTypeId,
+                Guid = note.Guid,
+                IsPrivateNote = note.IsPrivateNote,
+                IsAlert = note.IsAlert ?? false,
+                Id = note.Id,
+            };
 
-            /// <summary>
-            /// Whether or not this note should be pinned to the top.
-            /// </summary>
-            public bool PinToTop { get; set; }
+            PopulateNoteItemsInformation( new List<NoteItemBag> { noteItem } );
 
-            /// <summary>
-            /// Whether or not this note should be marked as private.
-            /// </summary>
-            public bool IsPrivate { get; set; }
-        }
-
-        public class UpdateNoteRequestBag
-        {
-            public Guid NoteGuid { get; set; }
-            public string NoteText { get; set; }
-            public Guid NoteTypeGuid { get; set; }
-            public bool IsAlert { get; set; }
-            public bool IsPrivate { get; set; }
-        }
-
-        public class DeleteNoteRequestBag
-        {
-            public Guid NoteGuid { get; set; }
-
-            public bool DeleteLinkedEntity { get; set; }
-        }
-
-
-        private class NoteItemBag
-        {
-            public int Id { get; set; }
-            public Guid Guid { get; set; }
-            public int? EntityId { get; set; }
-            public Guid? EntityGuid { get; set; }
-            public int NoteTypeId { get; set; }
-            public int NoteTypeEntityTypeId { get; set; }
-            public Guid? NoteTypeEntityTypeGuid { get; set; }
-            public string EntityName { get; set; }
-            public string NoteText { get; set; }
-            public DateTime? NoteDate { get; set; }
-            public string NoteTypeName { get; set; }
-            public string AssociationTypeDescription { get; set; }
-            public string AssociationTypeColor { get; set; }
-            public DateTime CreatedDateTime { get; set; }
-            public string PhotoUrl { get; set; }
-            public string Template { get; set; }
-            public string NoteTypeColor { get; set; }
-            public string EntityTypeName { get; set; }
-            /// <summary>
-            /// Gets or sets the note type unique identifier.
-            /// </summary>
-            public Guid NoteTypeGuid { get; set; }
-
-            public bool IsPrivateNote { get; set; }
-
-            public bool IsAlert { get; set; }
-        }
-
-        /// <summary>
-        /// A bag of filter options.
-        /// </summary>
-        public class FilterOptionsBag
-        {
-            /// <summary>
-            /// Whether to show linked notes.
-            /// </summary>
-            public bool ShowLinkedNotes { get; set; }
-
-            /// <summary>
-            /// Whether to show standalone notes.
-            /// </summary>
-            public bool ShowStandaloneNotes { get; set; }
-
-            /// <summary>
-            /// The note types to limit to.
-            /// </summary>
-            public List<Guid> LimitToNoteTypes { get; set; } = new List<Guid>();
-
-            /// <summary>
-            /// The number of days to limit to.
-            /// </summary>
-            public int WithinDays { get; set; } = 0;
-
-            public bool UseCustomDateRange { get; set; }
-
-            public DateTime? DateRangeStart { get; set; }
-
-            public DateTime? DateRangeEnd { get; set; }
-        }
-
-        public class GetMyNotesRequestBag
-        {
-            public int Count { get; set; } = 50;
-            public int? Index { get; set; }
-            public DateTimeOffset? BeforeDate { get; set; }
-            public FilterOptionsBag Filter { get; set; }
+            return ActionOk( noteItem );
         }
 
         #endregion
