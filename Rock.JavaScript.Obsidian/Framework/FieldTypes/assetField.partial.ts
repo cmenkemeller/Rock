@@ -39,14 +39,14 @@ export class AssetFieldType extends FieldTypeBase {
         console.log("GET TEXT VALUE", value, configurationValues);
         try {
             const asset = JSON.parse(value || "{}") as Partial<FileAsset>;
-            const textValue = `${addressValue.street1 ?? ""} ${addressValue.street2 ?? ""} ${addressValue.city ?? ""}, ${addressValue.state ?? ""} ${addressValue.postalCode ?? ""}`;
+            const textValue = `${asset}`;
 
             return textValue === "," ? "" : textValue;
         }
         catch {
             return value;
         }
-        return value ?? "";
+        // return value ?? "";
     }
 
     public override getEditComponent(): Component {
