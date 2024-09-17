@@ -195,6 +195,11 @@
         selectedPersonId: {
             type: String as PropType<string>,
             default: ""
+        },
+
+        isClearable: {
+            type: Boolean as PropType<boolean>,
+            default: true
         }
     });
 
@@ -208,7 +213,7 @@
     const internalValue = ref(props.modelValue);
 
     /** Determines if the clear button should be shown. */
-    const showClear = computed(() => props.modelValue?.value);
+    const showClear = computed(() => props.modelValue?.value && props.isClearable);
 
     /** True if the popup person picker should be visible. */
     const showPopup = ref(false);

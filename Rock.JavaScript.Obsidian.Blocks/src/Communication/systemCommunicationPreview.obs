@@ -23,11 +23,10 @@
                 <!-- Person Picker -->
                 <PersonPicker v-model="targetPerson"
                               v-model:selectedPersonId="targetPersonId"
+                              @update:modelValue="handlePersonUpdate"
+                              :isClearable="targetPerson?.value !== store.state.currentPerson?.primaryAliasGuid"
                               label="Target Person"
                               help="Person used to customize the email preview." />
-
-                <!-- Update Button -->
-                <RockButton btnType="primary" @click="updatePreview">Update</RockButton>
             </div>
 
 
@@ -144,7 +143,7 @@
 </style>
 
 <script setup lang="ts">
-    import { computed, ref, watch } from "vue";
+    import { computed, nextTick, ref, watch } from "vue";
     import { onConfigurationValuesChanged, useConfigurationValues, useInvokeBlockAction, useReloadBlock } from "@Obsidian/Utility/block";
     import { SystemCommunicationPreviewInitializationBox } from "@Obsidian/ViewModels/Blocks/Communication/SystemCommunicationPreview/systemCommunicationPreviewInitializationBox";
     import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
@@ -157,9 +156,11 @@
     import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
     import { RockDateTime } from "@Obsidian/Utility/rockDateTime";
     import { asBoolean } from "@Obsidian/Utility/booleanUtils";
+    import { useStore } from "@Obsidian/PageState";
 
     // #region Values
 
+    const store = useStore();
     const config = useConfigurationValues<SystemCommunicationPreviewInitializationBox>();
     const invokeBlockAction = useInvokeBlockAction();
 
@@ -204,6 +205,19 @@
      */
     function openSendTestModal(): void {
         isSendTestModalVisible.value = true;
+    }
+
+    function handlePersonUpdate(): void {
+        nextTick(() => {
+            if (!targetPerson.value) {
+                targetPerson.value = {
+                    text: store.state.currentPerson?.fullName,
+                    value: store.state.currentPerson?.primaryAliasGuid
+                };
+            }
+
+            updatePreview();
+        });
     }
 
     /**
@@ -299,7 +313,7 @@
     // #region Watchers
 
     // Watcher for changes to the date dropdown and person picker
-    watch([selectedMessageDate, targetPersonId], () => {
+    watch(selectedMessageDate, () => {
         updatePreview();
     });
 
