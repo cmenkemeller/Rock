@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
+
 using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
@@ -220,6 +221,11 @@ namespace Rock.Blocks.Communication
             return ActionBadRequest( "A communication template was not specified in the block setting or using the [SystemCommunicationId] url parameter." );
         }
 
+        /// <summary>
+        /// Gets the date info based on the Page Parameter.
+        /// </summary>
+        /// <param name="dateOptions">The possible date options</param>
+        /// <returns>A ListItemBag of the selected Date</returns>
         private ListItemBag GetDateInfo( List<ListItemBag> dateOptions )
         {
             // Attempt to get the send date from the URL params
@@ -254,6 +260,12 @@ namespace Rock.Blocks.Communication
             return new ListItemBag { Text = currentDate.ToString( "MMMM d, yyyy" ), Value = currentDate.ToString( "yyyy-MM-dd" ) };
         }
 
+        /// <summary>
+        /// Compares the selected date to the date options and finds the closest match.
+        /// </summary>
+        /// <param name="publicationDate">The selected DateTime</param>
+        /// <param name="dateOptions">The date options</param>
+        /// <returns>The closest date as a ListItemBag</returns>
         private ListItemBag GetClosestDateToSelection(DateTime publicationDate, List<ListItemBag> dateOptions = null )
         {
             if (dateOptions == null)
@@ -285,6 +297,10 @@ namespace Rock.Blocks.Communication
             return new ListItemBag { Text = closestDate.ToString( "MMMM d, yyyy" ), Value = closestDate.ToString( "yyyy-MM-dd" ) };
         }
 
+        /// <summary>
+        /// Gets the date options that should be displayed in the dropdown based on the block settings.
+        /// </summary>
+        /// <returns>List of ListItemBag's that contain the date options</returns>
         private List<ListItemBag> GetDateOptions()
         {
             var dayOfWeeks = GetAttributeValues( AttributeKey.SendDaysOfTheWeek )
@@ -392,7 +408,6 @@ namespace Rock.Blocks.Communication
                         }
                     }
                 }
-
 
                 var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, null );
                 mergeFields.AddOrReplace( MergeFieldKey.SendDateTime, formattedPublicationDate );

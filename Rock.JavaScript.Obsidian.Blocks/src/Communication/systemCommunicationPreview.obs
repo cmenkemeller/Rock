@@ -29,7 +29,6 @@
                               help="Person used to customize the email preview." />
             </div>
 
-
             <!-- Email Preview -->
             <div class="col-md-9">
                 <NotificationBox alertType="danger" v-if="initializationErrorMessage">
@@ -207,6 +206,9 @@
         isSendTestModalVisible.value = true;
     }
 
+    /**
+     * Calls the updatePreview logic and sets the person picker back to the current person if a person was cleared.
+     */
     function handlePersonUpdate(): void {
         nextTick(() => {
             if (!targetPerson.value) {
