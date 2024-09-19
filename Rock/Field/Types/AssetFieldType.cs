@@ -19,8 +19,6 @@ using System.Linq;
 #if WEBFORMS
 using System.Web.UI;
 
-using CSScriptLibrary;
-
 #endif
 using Newtonsoft.Json;
 
@@ -68,6 +66,7 @@ namespace Rock.Field.Types
 
         #region Formatting
 
+        /// <inheritdoc/>
         public override string GetPublicValue( string privateValue, Dictionary<string, string> privateConfigurationValues )
         {
             Dictionary<string, string> asset = JsonConvert.DeserializeObject<Dictionary<string, string>>( privateValue );
@@ -77,9 +76,9 @@ namespace Rock.Field.Types
                 return string.Empty;
             }
 
-            asset.SetValue( "Url", GetTextValue( privateValue, privateConfigurationValues ) );
+            asset.AddOrReplace( "Url", GetTextValue( privateValue, privateConfigurationValues ) );
 
-            return asset.ToCamelCaseJson( false, true );
+            return asset.ToJson( false, true );
         }
 
         /// <inheritdoc/>

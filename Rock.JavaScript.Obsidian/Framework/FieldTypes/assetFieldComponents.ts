@@ -37,7 +37,6 @@ export const EditComponent = defineComponent({
 
         // Watch for changes from the parent component and update the text editor.
         watch(() => props.modelValue, () => {
-            console.log("MODEL PROP", props.modelValue);
             const modelProp = JSON.parse(props.modelValue || "{}");
 
             internalValue.value = {
@@ -53,8 +52,7 @@ export const EditComponent = defineComponent({
 
         // Watch for changes from the text editor and update the parent component.
         watch(internalValue, () => {
-            if (internalValue.value) {
-
+            if (internalValue.value && internalValue.value.key) {
                 const value = {
                     AssetStorageProviderId: internalValue.value?.assetStorageProviderId?.toString(),
                     Key: internalValue.value?.key,
@@ -62,12 +60,9 @@ export const EditComponent = defineComponent({
                     Name: internalValue.value?.name,
                     Url: internalValue.value?.uri
                 };
-                console.log("INTERNAL MODEL", value);
-
                 emit("update:modelValue", JSON.stringify(value));
             }
             else {
-                console.log("INTERNAL MODEL", "");
                 emit("update:modelValue", "");
             }
         });

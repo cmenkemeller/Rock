@@ -17,6 +17,7 @@
 import { Component } from "vue";
 import { defineAsyncComponent } from "@Obsidian/Utility/component";
 import { FieldTypeBase } from "./fieldType";
+import { escapeHtml } from "@Obsidian/Utility/stringUtils";
 import { FileAsset } from "@Obsidian/ViewModels/Controls/fileAsset";
 
 // The edit component can be quite large, so load it only as needed.
@@ -33,20 +34,30 @@ const configurationComponent = defineAsyncComponent(async () => {
  * The field type handler for the Asset Storage Provider Type field.
  */
 export class AssetFieldType extends FieldTypeBase {
-    public override getTextValue(value: string, configurationValues: Record<string, string>): string {
-        // TODO
-        // Can't just use the URL property... it's slightly different sometimes than what the C# code uses.
-        console.log("GET TEXT VALUE", value, configurationValues);
-        try {
-            const asset = JSON.parse(value || "{}") as Partial<FileAsset>;
-            const textValue = `${asset}`;
+    public override getTextValue(value: string, _configurationValues: Record<string, string>): string {
+        if (value) {
+            try {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                const asset = JSON.parse(value) as Partial<{Url: string}>;
 
-            return textValue === "," ? "" : textValue;
+                return asset?.Url ?? "";
+            }
+            catch {
+                return value ?? "";
+            }
         }
-        catch {
-            return value;
+        else {
+            return "";
         }
-        // return value ?? "";
+    }
+
+    public override getHtmlValue(value: string, configurationValues: Record<string, string>, isEscaped?: boolean): string {
+        const url = escapeHtml(this.getTextValue(value, configurationValues));
+        return isEscaped ? url : `<a href="${url}">${url}</a>`;
+    }
+
+    public override getCondensedHtmlValue(value: string, configurationValues: Record<string, string>, isEscaped?: boolean): string {
+        return this.getHtmlValue(value, configurationValues, isEscaped);
     }
 
     public override getEditComponent(): Component {
