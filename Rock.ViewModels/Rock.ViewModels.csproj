@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -160,6 +160,7 @@
     <Compile Include="Blocks\Finance\FinancialScheduledTransactionList\FinancialScheduledTransactionListOptionsBag.cs" />
     <Compile Include="Blocks\Reporting\TithingOverview\TithingOverviewToolTipBag.cs" />
     <Compile Include="Blocks\Tv\AppleTvPageList\AppleTvPageListOptionsBag.cs" />
+    <Compile Include="Blocks\Cms\PageList\PageListOptionsBag.cs" />
     <Compile Include="Blocks\Cms\PageShortLinkList\PageShortLinkListOptionsBag.cs" />
     <Compile Include="Blocks\Cms\BlockList\BlockListOptionsBag.cs" />
     <Compile Include="Blocks\Cms\LayoutList\LayoutListOptionsBag.cs" />
@@ -197,6 +198,7 @@
     <Compile Include="Blocks\CheckIn\Configuration\CheckInLabelDetail\CheckInLabelDetailOptionsBag.cs" />
     <Compile Include="Blocks\CheckIn\Configuration\CheckInLabelList\CheckInLabelListOptionsBag.cs" />
     <Compile Include="Blocks\Crm\PersonDetail\GivingConfiguration\GivingConfigurationBag.cs" />
+    <Compile Include="Blocks\Engagement\StreakList\StreakListOptionsBag.cs" />
     <Compile Include="Blocks\Finance\FinancialPledgeList\FinancialPledgeListBag.cs" />
     <Compile Include="Blocks\Finance\FinancialPledgeList\FinancialPledgeListOptionsBag.cs" />
     <Compile Include="Blocks\Group\Scheduling\GroupScheduler\GroupSchedulerGroupLocationScheduleNamesBag.cs" />
