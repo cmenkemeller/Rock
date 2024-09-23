@@ -1515,7 +1515,7 @@ namespace Rock.Rest.Controllers
         public int Id { get; set; }
 
         /// <summary>
-        /// Gets or sets the id key.
+        /// Gets or sets the id key of the person.
         /// </summary>
         /// <value>The id key</value>
         public string IdKey { get; set; }

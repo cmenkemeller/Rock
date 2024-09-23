@@ -192,11 +192,6 @@
             default: false
         },
 
-        selectedPersonIdKey: {
-            type: String as PropType<string>,
-            default: ""
-        },
-
         isClearable: {
             type: Boolean as PropType<boolean>,
             default: true
@@ -205,7 +200,7 @@
 
     const emit = defineEmits<{
         (e: "update:modelValue", value: ListItemBag | undefined): void;
-        (e: "update:selectedPersonIdKey", value: string): void;
+        (e: "update:selectedPersonChanged", person: ListItemBag | undefined, personIdKey: string | undefined): void;
         (e: "update:isSearchModeOpen", value: boolean): void;
     }>();
 
@@ -386,7 +381,7 @@
      */
     function onClear(): void {
         emit("update:modelValue", undefined);
-        emit("update:selectedPersonIdKey", "");
+        emit("update:selectedPersonChanged", undefined, undefined);
     }
 
     /**
@@ -430,7 +425,7 @@
 
         // Emit the new value and close the popup.
         emit("update:modelValue", internalValue.value);
-        emit("update:selectedPersonIdKey", person.idKey ?? "");
+        emit("update:selectedPersonChanged", internalValue.value, person.idKey ?? undefined);
         showPopup.value = false;
     }
 

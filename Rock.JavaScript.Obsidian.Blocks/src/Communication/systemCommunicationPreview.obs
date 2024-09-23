@@ -22,8 +22,7 @@
 
                 <!-- Person Picker -->
                 <PersonPicker v-model="targetPerson"
-                              v-model:selectedPersonIdKey="targetPersonIdKey"
-                              @update:modelValue="handlePersonUpdate"
+                              @update:selectedPersonChanged="handlePersonUpdate"
                               :isClearable="targetPerson?.value !== store.state.currentPerson?.primaryAliasGuid"
                               label="Target Person"
                               help="Person used to customize the email preview." />
@@ -96,12 +95,12 @@
                 {{ emailMessage }}
             </NotificationBox>
         </div>
+        <EmailBox v-model="testEmail" label="Email" rules="required" help="This will temporarily change your email address during the test, but it will be changed back after the test is complete." />
         <div v-if="emailSuccess">
-            <NotificationBox alertType="success" :dismissible="true">
+            <NotificationBox alertType="info">
                 {{ emailMessage }}
             </NotificationBox>
         </div>
-        <EmailBox v-model="testEmail" label="Email" rules="required" help="This will temporarily change your email address during the test, but it will be changed back after the test is complete." />
     </Modal>
 </template>
 
@@ -157,7 +156,7 @@
 </style>
 
 <script setup lang="ts">
-    import { computed, nextTick, ref, watch } from "vue";
+    import { computed, ref, watch } from "vue";
     import { onConfigurationValuesChanged, useConfigurationValues, useInvokeBlockAction, useReloadBlock } from "@Obsidian/Utility/block";
     import { SystemCommunicationPreviewInitializationBox } from "@Obsidian/ViewModels/Blocks/Communication/SystemCommunicationPreview/systemCommunicationPreviewInitializationBox";
     import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
@@ -224,19 +223,20 @@
     /**
      * Calls the updatePreview logic and sets the person picker back to the current person if a person was cleared.
      */
-    async function handlePersonUpdate(): Promise<void> {
-        nextTick(async () => {
-            if (!targetPerson.value) {
-                targetPerson.value = {
-                    text: store.state.currentPerson?.fullName,
-                    value: store.state.currentPerson?.primaryAliasGuid
-                };
+    async function handlePersonUpdate(personBag: ListItemBag | undefined, personIdKey: string | undefined): Promise<void> {
+        if (personBag && personIdKey) {
+            targetPerson.value = personBag;
+            targetPersonIdKey.value = personIdKey ?? "";
+        }
+        else {
+            targetPerson.value = {
+                text: store.state.currentPerson?.fullName,
+                value: store.state.currentPerson?.primaryAliasGuid
+            };
+            targetPersonIdKey.value = store.state.currentPerson?.idKey ?? "";
+        }
 
-                targetPersonIdKey.value = store.state.currentPerson?.idKey ?? "";
-            }
-
-            await updatePreview();
-        });
+        await updatePreview();
     }
 
     /**
@@ -298,7 +298,7 @@
 
             if (result.isSuccess) {
                 emailSuccess.value = true;
-                emailMessage.value = "Test email sent successfully.";
+                emailMessage.value = `Email submitted to ${testEmail.value}.`;
             }
             else {
                 emailError.value = true;
