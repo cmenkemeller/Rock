@@ -67,8 +67,8 @@ export type SystemCommunicationPreviewInitializationBox = {
     /** Get or set the Target Person bag */
     targetPersonBag?: ListItemBag | null;
 
-    /** Get or set the Target Person ID */
-    targetPersonId: number;
+    /** Get or set the Target Person ID Key */
+    targetPersonIdKey?: string | null;
 
     /** Get or set the title. */
     title?: string | null;

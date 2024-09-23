@@ -78,9 +78,9 @@ namespace Rock.ViewModels.Blocks.Communication.SystemCommunicationPreview
         public bool HasSendDate { get; set; }
 
         /// <summary>
-        /// Get or set the Target Person ID
+        /// Get or set the Target Person ID Key
         /// </summary>
-        public int TargetPersonId { get; set; }
+        public string TargetPersonIdKey { get; set; }
 
         /// <summary>
         /// Get or set the Target Person bag

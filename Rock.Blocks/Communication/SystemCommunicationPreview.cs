@@ -103,7 +103,7 @@ namespace Rock.Blocks.Communication
         {
             public const string SystemCommunicationId = "SystemCommunicationId";
             public const string PublicationDate = "PublicationDate";
-            public const string TargetPersonId = "TargetPersonId";
+            public const string TargetPersonIdKey = "TargetPersonIdKey";
         }
 
         #endregion Page Parameter Keys
@@ -173,17 +173,18 @@ namespace Rock.Blocks.Communication
                 var hasSendDate = systemCommunication.Body.Contains( "{{ SendDateTime }}" );
 
                 ListItemBag targetPersonBag;
-                var targetPersonId = RequestContext.GetPageParameter( "TargetPersonId" ).ToIntSafe();
-                var personAliasService = new PersonAliasService( rockContext );
+                var targetPersonIdKey = RequestContext.GetPageParameter( "TargetPersonIdKey" );
+                var personService = new PersonService( rockContext );
 
-                if ( targetPersonId > 0 )
+                if ( targetPersonIdKey.IsNotNullOrWhiteSpace() )
                 {
-                    targetPersonBag = personAliasService.Queryable().Where( x => x.PersonId == targetPersonId ).FirstOrDefault().ToListItemBag();
+                    var person = personService.Get( targetPersonIdKey );
+                    targetPersonBag = person.PrimaryAlias.ToListItemBag();
                 }
                 else
                 {
-                    targetPersonBag = personAliasService.Queryable().Where( x => x.PersonId == RequestContext.CurrentPerson.Id ).FirstOrDefault().ToListItemBag();
-                    targetPersonId = RequestContext.CurrentPerson.Id;
+                    targetPersonBag = RequestContext.CurrentPerson.PrimaryAlias.ToListItemBag();
+                    targetPersonIdKey = RequestContext.CurrentPerson.IdKey;
                 }
 
                 var dateOptions = GetDateOptions();
@@ -196,9 +197,9 @@ namespace Rock.Blocks.Communication
                     publicationDateValue = publicationDate.Value;
                 }
 
-                var targetPerson = new PersonService( rockContext ).Get( targetPersonId );
+                var targetPerson = new PersonService( rockContext ).Get( targetPersonIdKey );
                 mergeFields.AddOrReplace( MergeFieldKey.Person, targetPerson );
-                string bodyHtml = systemCommunication.Body.ResolveMergeFields( mergeFields );
+                string bodyHtml = systemCommunication.Body.ResolveMergeFields(mergeFields, null, EnabledLavaCommands );
                 string subjectHtml = systemCommunication.Subject.ResolveMergeFields( mergeFields );
 
                 var systemCommunicationPreviewInitializationBox = new SystemCommunicationPreviewInitializationBox
@@ -212,7 +213,7 @@ namespace Rock.Blocks.Communication
                     DateOptions = dateOptions,
                     HasSendDate = hasSendDate,
                     TargetPersonBag = targetPersonBag,
-                    TargetPersonId = targetPersonId,
+                    TargetPersonIdKey = targetPersonIdKey,
                 };
 
                 return systemCommunicationPreviewInitializationBox;
@@ -412,9 +413,9 @@ namespace Rock.Blocks.Communication
                 var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, null );
                 mergeFields.AddOrReplace( MergeFieldKey.SendDateTime, formattedPublicationDate );
 
-                if ( box.TargetPersonId > 0 )
+                if ( box.TargetPersonIdKey.IsNotNullOrWhiteSpace() )
                 {
-                    var person = new PersonService( rockContext ).Get( box.TargetPersonId );
+                    var person = new PersonService( rockContext ).Get( box.TargetPersonIdKey );
                     if ( person == null )
                     {
                         return ActionBadRequest( "Target person not found." );
@@ -429,8 +430,8 @@ namespace Rock.Blocks.Communication
                     mergeFields.AddOrReplace( MergeFieldKey.Person, RequestContext.CurrentPerson );
                 }
 
-                string bodyHtml = systemCommunication.Body.ResolveMergeFields( mergeFields );
-                string subjectHtml = systemCommunication.Subject.ResolveMergeFields( mergeFields );
+                string bodyHtml = systemCommunication.Body.ResolveMergeFields( mergeFields, null, EnabledLavaCommands );
+                string subjectHtml = systemCommunication.Subject.ResolveMergeFields( mergeFields, null, EnabledLavaCommands );
 
                 var systemCommunicationPreviewInitializationBox = new SystemCommunicationPreviewInitializationBox
                 {
@@ -475,9 +476,9 @@ namespace Rock.Blocks.Communication
 
                 // Fetch the target person
                 Person targetPerson;
-                if ( box.TargetPersonId > 0 )
+                if ( box.TargetPersonIdKey.IsNotNullOrWhiteSpace() )
                 {
-                    targetPerson = new PersonService( rockContext ).Get( box.TargetPersonId );
+                    targetPerson = new PersonService( rockContext ).Get( box.TargetPersonIdKey );
                     if ( targetPerson == null )
                     {
                         return ActionBadRequest( "Target person not found." );
