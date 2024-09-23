@@ -232,7 +232,7 @@
                     value: store.state.currentPerson?.primaryAliasGuid
                 };
 
-                targetPersonIdKey.value = store.state.currentPerson?.idKey || "";
+                targetPersonIdKey.value = store.state.currentPerson?.idKey ?? "";
             }
 
             await updatePreview();
@@ -246,7 +246,7 @@
         try {
             const box: SystemCommunicationPreviewInitializationBox = {
                 id: systemCommunicationId.value,
-                targetPersonIdKey: targetPersonIdKey.value || store.state.currentPerson?.idKey || "",
+                targetPersonIdKey: (targetPersonIdKey.value || store.state.currentPerson?.idKey) ?? "",
                 publicationDate: selectedMessageDate.value,
                 hasSendDate: hasSendDate.value
             };
@@ -289,7 +289,7 @@
             const box: SystemCommunicationPreviewInitializationBox = {
                 id: systemCommunicationId.value,
                 email: testEmail.value,
-                targetPersonIdKey: targetPersonIdKey.value || store.state.currentPerson?.idKey || "",
+                targetPersonIdKey: (targetPersonIdKey.value || store.state.currentPerson?.idKey) ?? "",
                 hasSendDate: hasSendDate.value,
                 publicationDate: selectedMessageDate.value
             };
