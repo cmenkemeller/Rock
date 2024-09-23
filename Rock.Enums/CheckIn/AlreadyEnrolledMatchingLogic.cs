@@ -14,36 +14,25 @@
 // limitations under the License.
 // </copyright>
 //
-namespace Rock.Enums.Lms
+
+namespace Rock.Enums.CheckIn
 {
     /// <summary>
-    /// Determines the method for calculating the available date.
+    /// Determines the matching logic used when the area attendance rule
+    /// is set to already enrolled.
     /// </summary>
-    public enum AvailableDateCalculationMethod
+    public enum AlreadyEnrolledMatchingLogic
     {
         /// <summary>
-        /// A specific date.
+        /// The person must be enrolled as an active member of the group.
         /// </summary>
-        Specific = 0,
+        MustBeEnrolled = 0,
 
         /// <summary>
-        /// An offset of the class start date.
+        /// The person must be enrolled as an active member of the group. In
+        /// addition, the group will be marked as preferred. If any preferred
+        /// group is available then all non-preferred groups are removed.
         /// </summary>
-        ClassStartOffset = 1,
-
-        /// <summary>
-        /// An offset of the class enrollment date.
-        /// </summary>
-        EnrollmentOffset = 2,
-
-        /// <summary>
-        /// Always available.
-        /// </summary>
-        AlwaysAvailable = 3,
-
-        /// <summary>
-        /// No calculation (becomes available after previous is completed).
-        /// </summary>
-        AfterPreviousCompleted = 4
+        PreferEnrolledGroups = 1
     }
 }
