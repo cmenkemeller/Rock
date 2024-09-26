@@ -1,38 +1,15 @@
 <!-- Copyright by the Spark Development Network; Licensed under the Rock Community License -->
 <template>
     <RockFormField :modelValue="internalValue" v-bind="fieldProps" name="custom-select-field">
-        <div v-if="!isMobile" :class="`custom-select-wrapper ${wrapperClass}`">
-            <div v-for="item in items" :key="(item[itemKey as keyof TItem] as string | number)" :class="`custom-select-item ${itemClasses(item)}`" @click="selectItem(item as typeof internalValue)">
-                <slot v-bind="{ item }">
-                    {{ item }}
-                </slot>
-            </div>
-        </div>
-        <div v-else class="custom-select-mobile-wrapper">
-            <div :class="`custom-select-wrapper ${wrapperClass}`">
-                <div :class="`custom-select-item ${itemClasses(internalValue as TItem)}`" @click="showOverlay = true">
-                    <slot v-bind="{ item: internalValue }">
-                        {{ internalValue }}
+        <div :class="`custom-select-wrapper ${wrapperClass}`">
+            <TransitionVerticalCollapse v-for="item in items" :key="(item[itemKey as keyof TItem] as string | number)" :class="`custom-select-item ${itemClasses(item)}`" @click="selectItem(item as typeof internalValue)">
+                <div v-if="!isMobile || showOverlay || item == internalValue">
+                    <slot v-bind="{ item }">
+                        {{ item }}
                     </slot>
                 </div>
-            </div>
-            <div class="custom-select-expand-icon">
-                <i class="fa fa-angle-up"></i><br>
-                <i class="fa fa-angle-down"></i>
-            </div>
+            </TransitionVerticalCollapse>
         </div>
-        <Dialog v-if="isMobile || true" v-model="showOverlay" enableOuterDismiss :dismissible="false">
-            <div class="custom-select-mobile-modal-wrapper">
-                <button @click="showOverlay = false" type="button" class="close" style="position: absolute; right: 7px; top: 0;">×</button>
-                <div :class="`custom-select-wrapper ${wrapperClass}`">
-                    <div v-for="item in items" :key="(item[itemKey as keyof TItem] as string | number)" :class="`custom-select-item ${itemClasses(item)}`" @click="selectItem(item as typeof internalValue)">
-                        <slot v-bind="{ item }">
-                            {{ item }}
-                        </slot>
-                    </div>
-                </div>
-            </div>
-        </Dialog>
     </RockFormField>
 </template>
 
@@ -65,8 +42,8 @@
     import { PropType, ref } from "vue";
     import { useScreenSize } from "@Obsidian/Utility/screenSize";
     import RockFormField from "@Obsidian/Controls/rockFormField.obs";
+    import TransitionVerticalCollapse from "@Obsidian/Controls/transitionVerticalCollapse.obs";
     import { standardRockFormFieldProps, useStandardRockFormFieldProps, useVModelPassthrough } from "@Obsidian/Utility/component";
-    import Dialog from "./dialog.obs";
 
     const props = defineProps({
         /** V-model of the currently selected item */
@@ -136,8 +113,13 @@
     }
 
     function selectItem(item: typeof internalValue.value): void {
-        internalValue.value = item;
-        showOverlay.value = false;
+        if (showOverlay.value || !isMobile.value) {
+            internalValue.value = item;
+            showOverlay.value = false;
+        }
+        else {
+            showOverlay.value = true;
+        }
     }
 
     // #endregion
