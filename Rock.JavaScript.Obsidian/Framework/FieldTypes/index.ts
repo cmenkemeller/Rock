@@ -33,7 +33,10 @@ import { AssessmentTypesFieldType } from "./assessmentTypesField.partial";
 registerFieldType(FieldTypeGuids.AssessmentType, new AssessmentTypesFieldType());
 
 import { AIProviderFieldType } from "./aiProviderField.partial";
-registerFieldType(FieldTypeGuids.AIProvider, new AIProviderFieldType());
+registerFieldType(FieldTypeGuids.AiProvider, new AIProviderFieldType());
+
+import { AssetFieldType } from "./assetField.partial";
+registerFieldType(FieldTypeGuids.Asset, new AssetFieldType());
 
 import { AssetFieldType } from "./assetField.partial";
 registerFieldType(FieldTypeGuids.Asset, new AssetFieldType());

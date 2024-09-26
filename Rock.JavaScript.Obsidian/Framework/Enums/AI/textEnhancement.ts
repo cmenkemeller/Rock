@@ -21,36 +21,26 @@
 // </copyright>
 //
 
-/** Determines the method for calculating the available date. */
-export const AvailableDateCalculationMethod = {
-    /** A specific date. */
-    Specific: 0,
+/** The type of text enhancement to be performed by AI automation (if any). */
+export const TextEnhancement = {
+    /** Do not make any changes in regards to text enhancement. */
+    NoChanges: 0,
 
-    /** An offset of the class start date. */
-    ClassStartOffset: 1,
+    /** Fix minor formatting and spelling mistakes. */
+    MinorFormattingAndSpelling: 1,
 
-    /** An offset of the class enrollment date. */
-    EnrollmentOffset: 2,
-
-    /** Always available. */
-    AlwaysAvailable: 3,
-
-    /** No calculation (becomes available after previous is completed). */
-    AfterPreviousCompleted: 4
+    /** Improve the readabililty of the text. */
+    EnhanceReadability: 2
 } as const;
 
-/** Determines the method for calculating the available date. */
-export const AvailableDateCalculationMethodDescription: Record<number, string> = {
-    0: "Specific",
+/** The type of text enhancement to be performed by AI automation (if any). */
+export const TextEnhancementDescription: Record<number, string> = {
+    0: "No Changes",
 
-    1: "Class Start Offset",
+    1: "Minor Formatting and Spelling",
 
-    2: "Enrollment Offset",
-
-    3: "Always Available",
-
-    4: "After Previous Completed"
+    2: "Enhance Readability"
 };
 
-/** Determines the method for calculating the available date. */
-export type AvailableDateCalculationMethod = typeof AvailableDateCalculationMethod[keyof typeof AvailableDateCalculationMethod];
+/** The type of text enhancement to be performed by AI automation (if any). */
+export type TextEnhancement = typeof TextEnhancement[keyof typeof TextEnhancement];
