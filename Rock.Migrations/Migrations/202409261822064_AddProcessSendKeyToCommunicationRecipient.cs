@@ -14,26 +14,30 @@
 // limitations under the License.
 // </copyright>
 //
-
-using System.Collections.Generic;
-
-using Rock.ViewModels.Utility;
-
-namespace Rock.ViewModels.Blocks.Lms.LearningProgramDetail
+namespace Rock.Migrations
 {
+    using System;
+    using System.Data.Entity.Migrations;
+    
     /// <summary>
-    /// 
+    ///
     /// </summary>
-    public class LearningProgramDetailOptionsBag
+    public partial class AddProcessSendKeyToCommunicationRecipient : Rock.Migrations.RockMigration
     {
         /// <summary>
-        /// Gets or sets the available grading systems.
+        /// Operations to be performed during the upgrade process.
         /// </summary>
-        public List<ListItemBag> GradingSystems { get; set; }
-
+        public override void Up()
+        {
+            AddColumn("dbo.CommunicationRecipient", "ProcessSendKey", c => c.String(maxLength: 300));
+        }
+        
         /// <summary>
-        /// Gets or sets the available system communications.
+        /// Operations to be performed during the downgrade process.
         /// </summary>
-        public List<ListItemBag> SystemCommunications { get; set; }
+        public override void Down()
+        {
+            DropColumn("dbo.CommunicationRecipient", "ProcessSendKey");
+        }
     }
 }

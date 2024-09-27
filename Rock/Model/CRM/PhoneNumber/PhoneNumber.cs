@@ -154,7 +154,7 @@ namespace Rock.Model
         /// Gets or sets a flag indicating whether the phone number has opted out of messages through the SMS provider.
         /// </summary>
         /// <value>
-        /// A <see cref="System.Boolean"/> value that is <c>true</c> if the PhoneNumber has opted out of messages; otherwise <c>false</c>.
+        /// A <see cref="System.Boolean"/> value that is <c>true</c> if the PhoneNumber has opted out of messaging; otherwise <c>false</c>.
         /// </value>
         [DataMember]
         public bool IsMessagingOptedOut { get; set; }
