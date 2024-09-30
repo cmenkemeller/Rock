@@ -310,6 +310,10 @@ namespace RockWeb.Blocks.Tv
         private void BindPages()
         {
             var applicationId = PageParameter( PageParameterKey.SiteId );
+            if( applicationId.IsNullOrWhiteSpace() || applicationId.AsIntegerOrNull() == 0 )
+            {
+                return;
+            }
 
             var pages = new PageService( new RockContext() )
                     .GetBySiteIdKey( applicationId )

@@ -101,6 +101,7 @@
     <Compile Include="Core\RestControllerList.cs" />
     <Compile Include="Cms\PersistedDatasetList.cs" />
     <Compile Include="Cms\SiteList.cs" />
+    <Compile Include="Cms\TvApplicationList.cs" />
     <Compile Include="Core\AuditList.cs" />
     <Compile Include="Communication\SystemCommunicationList.cs" />
     <Compile Include="Core\BinaryFileDetail.cs" />
