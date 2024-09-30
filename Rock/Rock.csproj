@@ -837,6 +837,7 @@
     <Compile Include="Blocks\BlockActionGridResponse.cs" />
     <Compile Include="Blocks\ConfigurationChangedReloadAttribute.cs" />
     <Compile Include="Blocks\CustomizedGridAttribute.cs" />
+    <Compile Include="Blocks\FileBlockActionResult.cs" />
     <Compile Include="Blocks\IHasCustomActions.cs" />
     <Compile Include="Blocks\InitialBlockHeightAttribute.cs" />
     <Compile Include="Blocks\IRockObsidianBlockType.cs" />
@@ -853,7 +854,9 @@
     <Compile Include="Blocks\Types\Mobile\Connection\ConnectionRequestDetail.cs" />
     <Compile Include="Blocks\Types\Mobile\Connection\ConnectionRequestList.cs" />
     <Compile Include="Blocks\Types\Mobile\Connection\ConnectionTypeList.cs" />
+    <Compile Include="Blocks\Types\Mobile\Core\MyNotes.cs" />
     <Compile Include="Blocks\Types\Mobile\Core\Notes.cs" />
+    <Compile Include="Blocks\Types\Mobile\Core\QuickNote.cs" />
     <Compile Include="Blocks\Types\Mobile\Core\Search.cs" />
     <Compile Include="Blocks\Types\Mobile\Core\SmartSearch.cs" />
     <Compile Include="Blocks\Types\Mobile\Crm\GroupMembers.cs" />
@@ -914,6 +917,8 @@
     <Compile Include="CheckIn\v2\FamilyRegistrationSaveResult.cs" />
     <Compile Include="CheckIn\v2\Filters\BirthMonthOpportunityFilter.cs" />
     <Compile Include="CheckIn\v2\Filters\LocationClosedOpportunityFilter.cs" />
+    <Compile Include="CheckIn\v2\Filters\LocationOverflowOpportunityFilter.cs" />
+    <Compile Include="CheckIn\v2\Filters\SpecialNeedsOpportunityFilter.cs" />
     <Compile Include="CheckIn\v2\IValidPropertiesBoxExtensions.cs" />
     <Compile Include="CheckIn\v2\Labels\AttendanceLabel.cs" />
     <Compile Include="CheckIn\v2\Labels\AttendanceLabelData.cs" />
@@ -1148,6 +1153,7 @@
     <Compile Include="Configuration\HostingSettings.cs" />
     <Compile Include="Configuration\IConnectionStringProvider.cs" />
     <Compile Include="Configuration\WebFormsConnectionStringProvider.cs" />
+    <Compile Include="Configuration\XmlHelper.cs" />
     <Compile Include="Constants\RegexPatterns.cs" />
     <Compile Include="Core\NotificationMessageTypeComponent.cs" />
     <Compile Include="Core\NotificationMessageTypeContainer.cs" />
@@ -1330,6 +1336,7 @@
     <Compile Include="Model\Core\AttributeQualifier\AttributeQualifier.SaveHook.cs" />
     <Compile Include="Model\Core\AttributeReferencedEntity\AttributeReferencedEntity.cs" />
     <Compile Include="Model\Core\AttributeValueReferencedEntity\AttributeValueReferencedEntity.cs" />
+    <Compile Include="Model\Core\Device\Device.SaveHook.cs" />
     <Compile Include="Model\Core\EntityIntent\EntityIntent.cs" />
     <Compile Include="Model\Core\EntityIntent\EntityIntent.Logic.cs" />
     <Compile Include="Model\Core\EntityIntent\EntityIntentService.cs" />
@@ -1344,6 +1351,7 @@
     <Compile Include="Model\Core\PersonPreference\PersonPreference.cs" />
     <Compile Include="Model\Core\PersonPreference\PersonPreference.SaveHook.cs" />
     <Compile Include="Model\Core\PersonPreference\PersonPreferenceService.cs" />
+    <Compile Include="Model\Core\ScheduleCategoryExclusion\ScheduleCategoryExclusion.SaveHook.cs" />
     <Compile Include="Model\Engagement\AchievementType\AchievementType.SaveHook.cs" />
     <Compile Include="Model\Event\AttendanceOccurrence\AttendanceOccurrence.SaveHook.cs" />
     <Compile Include="Model\Event\CheckInLabel\CheckInLabel.cs" />
@@ -1496,9 +1504,11 @@
     <Compile Include="RealTime\IContextInternal.cs" />
     <Compile Include="RealTime\ITopicExtensions.cs" />
     <Compile Include="RealTime\RealTimeException.cs" />
+    <Compile Include="RealTime\Topics\CheckInTopic.cs" />
     <Compile Include="RealTime\Topics\CloudPrintTopic.cs" />
     <Compile Include="RealTime\Topics\EntityUpdatedTopic.cs" />
     <Compile Include="RealTime\Topics\ConversationParticipantTopic.cs" />
+    <Compile Include="RealTime\Topics\ICheckIn.cs" />
     <Compile Include="RealTime\Topics\ICloudPrint.cs" />
     <Compile Include="RealTime\Topics\IEntityUpdated.cs" />
     <Compile Include="RealTime\Topics\IConversationParticipant.cs" />
