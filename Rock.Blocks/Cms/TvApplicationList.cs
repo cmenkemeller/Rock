@@ -33,7 +33,7 @@ using Rock.Web.Cache;
 namespace Rock.Blocks.Cms
 {
     /// <summary>
-    /// Displays a list of sites.
+    /// Displays a list of TV applications (sites).
     /// </summary>
 
     [DisplayName( "TV Application List" )]
@@ -59,12 +59,18 @@ namespace Rock.Blocks.Cms
     {
         #region Keys
 
+        /// <summary>
+        /// The attribute keys for the block settings.
+        /// </summary>
         private static class AttributeKey
         {
             public const string AppleTvDetailPage = "AppleTvDetailPage";
             public const string RokuDetailPage = "RokuDetailPage";
         }
 
+        /// <summary>
+        /// The keys for the navigation URLs.
+        /// </summary>
         private static class NavigationUrlKey
         {
             public const string AppleTvDetailPage = "AppleTvDetailPage";
@@ -150,6 +156,11 @@ namespace Rock.Blocks.Cms
                 .AddAttributeFields( GetGridAttributes() );
         }
 
+        /// <summary>
+        /// Gets the application settings for the site.
+        /// </summary>
+        /// <param name="site"></param>
+        /// <returns></returns>
         private ApplicationSettings GetApplicationSettings( Site site )
         {
             var applicationSettings = site.AdditionalSettings?.FromJsonOrNull<ApplicationSettings>();

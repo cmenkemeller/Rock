@@ -801,11 +801,6 @@ namespace Rock.Rest.v2.Controllers
             }
         }
 
-        private class AuthCodeCheckResponse2 : AuthCodeCheckResponse
-        {
-            public string RokuToken { get; set; }
-        }
-
         /// <summary>
         /// Checks the authenication session.
         /// </summary>
@@ -818,7 +813,7 @@ namespace Rock.Rest.v2.Controllers
         public HttpResponseMessage CheckAuthenticationSession( int siteId, string code )
         {
             var response = new HttpResponseMessage();
-            var authCheckResponse = new AuthCodeCheckResponse2();
+            var authCheckResponse = new AuthCodeCheckResponse();
 
             var deviceData = JsonConvert.DeserializeObject<DeviceData>( this.Request.GetHeader( "X-Rock-DeviceData" ) );
 

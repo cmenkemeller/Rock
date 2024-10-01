@@ -40,7 +40,7 @@ namespace Rock.Blocks.Cms
     [DisplayName( "Roku Application Detail" )]
     [Category( "CMS" )]
     [Description( "Displays the details of a Roku application." )]
-    [IconCssClass( "fa fa-question" )]
+    [IconCssClass( "fa fa-tv" )]
     [SupportedSiteTypes( Model.SiteType.Web )]
 
     #region Block Attributes
