@@ -227,11 +227,10 @@ namespace RockWeb.Blocks.Tv
             page.InternalName = tbPageName.Text;
             page.BrowserTitle = tbPageName.Text;
             page.PageTitle = tbPageName.Text;
-
-            var pageResponse = page.AdditionalSettings.IsNotNullOrWhiteSpace() ? JsonConvert.DeserializeObject<ApplePageResponse>( page.AdditionalSettings ) : new ApplePageResponse();
+            var pageResponse = page.GetAdditionalSettings<ApplePageResponse>();
             pageResponse.Content = ceScenegraph.Text;
 
-            page.AdditionalSettings = pageResponse.ToJson();
+            page.SetAdditionalSettings( pageResponse );
 
             page.Description = tbDescription.Text;
 
@@ -260,7 +259,7 @@ namespace RockWeb.Blocks.Tv
                 {
                     tbDescription.Text = page.Description;
 
-                    var pageResponse = page.AdditionalSettings.IsNotNullOrWhiteSpace() ? JsonConvert.DeserializeObject<ApplePageResponse>( page.AdditionalSettings ) : new ApplePageResponse();
+                    var pageResponse = page.GetAdditionalSettings<ApplePageResponse>();
 
                     ceScenegraph.Text = pageResponse.Content;
                     tbPageName.Text = page.InternalName;
