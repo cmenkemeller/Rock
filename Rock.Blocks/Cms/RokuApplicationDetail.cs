@@ -15,7 +15,6 @@
 // </copyright>
 //
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -35,7 +34,7 @@ using Rock.Web.Cache;
 namespace Rock.Blocks.Cms
 {
     /// <summary>
-    /// Displays the details of a particular site.
+    /// Displays the details of a Roku application.
     /// </summary>
 
     [DisplayName( "Roku Application Detail" )]
@@ -54,12 +53,18 @@ namespace Rock.Blocks.Cms
     {
         #region Keys
 
+        /// <summary>
+        /// The page parameter keys for this block.
+        /// </summary>
         private static class PageParameterKey
         {
             public const string SiteId = "SiteId";
             public const string ShowRokuComponents = "ShowRokuComponents";
         }
 
+        /// <summary>
+        /// The navigation URL keys for this block.
+        /// </summary>
         private static class NavigationUrlKey
         {
             public const string ParentPage = "ParentPage";
@@ -184,38 +189,6 @@ namespace Rock.Blocks.Cms
                 ShowRokuComponents = PageParameter( PageParameterKey.ShowRokuComponents ).AsBoolean(),
                 RokuComponents = siteSettings?.RockComponents
             };
-        }
-
-        private int? GetPageViewRetentionDuration( Site site )
-        {
-            int channelMediumWebsiteValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.INTERACTIONCHANNELTYPE_WEBSITE.AsGuid() ).Id;
-            var retentionDuration = new InteractionChannelService( new RockContext() ).Queryable()
-                    .Where( c => c.ChannelTypeMediumValueId == channelMediumWebsiteValueId && c.ChannelEntityId == site.Id )
-                    .Select( c => c.RetentionDuration )
-                    .FirstOrDefault();
-
-            return retentionDuration;
-        }
-
-        private void SetPageViewRetentionDuration( Site site, int? value )
-        {
-            // Create interaction channel for this site
-            var interactionChannelService = new InteractionChannelService( RockContext );
-            int channelMediumWebsiteValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.INTERACTIONCHANNELTYPE_WEBSITE.AsGuid() ).Id;
-            var interactionChannelForSite = interactionChannelService.Queryable()
-                .Where( a => a.ChannelTypeMediumValueId == channelMediumWebsiteValueId && a.ChannelEntityId == site.Id ).FirstOrDefault();
-
-            if ( interactionChannelForSite == null )
-            {
-                interactionChannelForSite = new InteractionChannel();
-                interactionChannelForSite.ChannelTypeMediumValueId = channelMediumWebsiteValueId;
-                interactionChannelForSite.ChannelEntityId = site.Id;
-                interactionChannelService.Add( interactionChannelForSite );
-            }
-
-            interactionChannelForSite.Name = site.Name;
-            interactionChannelForSite.RetentionDuration = value;
-            interactionChannelForSite.ComponentEntityTypeId = EntityTypeCache.Get<Rock.Model.Page>().Id;
         }
 
         /// <inheritdoc/>
@@ -406,6 +379,47 @@ namespace Rock.Blocks.Cms
             return apiKeyLogin?.ApiKey ?? string.Empty;
         }
 
+        /// <summary>
+        /// Retrieves the page view retention duration for a specified site.
+        /// </summary>
+        /// <param name="site">The site for which to retrieve the page view retention duration.</param>
+        /// <returns>The page view retention duration for the specified site, or null if not found.</returns>
+        private int? GetPageViewRetentionDuration( Site site )
+        {
+            int channelMediumWebsiteValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.INTERACTIONCHANNELTYPE_WEBSITE.AsGuid() ).Id;
+            var retentionDuration = new InteractionChannelService( new RockContext() ).Queryable()
+                    .Where( c => c.ChannelTypeMediumValueId == channelMediumWebsiteValueId && c.ChannelEntityId == site.Id )
+                    .Select( c => c.RetentionDuration )
+                    .FirstOrDefault();
+
+            return retentionDuration;
+        }
+
+        /// <summary>
+        /// Sets the retention duration for page views on a site.
+        /// </summary>
+        /// <param name="site">The site for which to set the retention duration.</param>
+        /// <param name="value">The retention duration value to set. Can be null.</param>
+        private void SetPageViewRetentionDuration( Site site, int? value )
+        {
+            // Create interaction channel for this site
+            var interactionChannelService = new InteractionChannelService( RockContext );
+            int channelMediumWebsiteValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.INTERACTIONCHANNELTYPE_WEBSITE.AsGuid() ).Id;
+            var interactionChannelForSite = interactionChannelService.Queryable()
+                .Where( a => a.ChannelTypeMediumValueId == channelMediumWebsiteValueId && a.ChannelEntityId == site.Id ).FirstOrDefault();
+
+            if ( interactionChannelForSite == null )
+            {
+                interactionChannelForSite = new InteractionChannel();
+                interactionChannelForSite.ChannelTypeMediumValueId = channelMediumWebsiteValueId;
+                interactionChannelForSite.ChannelEntityId = site.Id;
+                interactionChannelService.Add( interactionChannelForSite );
+            }
+
+            interactionChannelForSite.Name = site.Name;
+            interactionChannelForSite.RetentionDuration = value;
+            interactionChannelForSite.ComponentEntityTypeId = EntityTypeCache.Get<Rock.Model.Page>().Id;
+        }
         #endregion
 
         #region Block Actions
