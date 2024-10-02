@@ -11,7 +11,7 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
       # Step 1: Checkout the code from the repository
       - name: Checkout code
@@ -21,11 +21,10 @@ jobs:
       - name: Restore NuGet packages
         run: nuget restore Rock.sln
 
-    # Step 3: Build the solution using MSBuild from Visual Studio 2019
+      # Step 3: Build the solution using MSBuild from Visual Studio 2019
       - name: Build Rock RMS using MSBuild from Visual Studio 2019
         run: |
-          "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" RockRMS.sln /p:Configuration=Release
-
+          "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Rock.sln /p:Configuration=Release
 
       # Step 4: Upload the build artifacts for deployment
       - name: Upload Build Artifacts
