@@ -22,9 +22,6 @@ jobs:
         run: nuget restore Rock.sln
 
       # Step 4: Build the solution using MSBuild
-      - name: Build Rock RMS
-        run: msbuild Rock.sln /p:Configuration=Release
-
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
