@@ -1,4 +1,4 @@
-name: CI/CD for Rock RMS
+name: CI for Rock RMS
 
 on:
   push:
@@ -11,24 +11,22 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
-      # Step 1: Checkout the code from the repository
+      # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Set up .NET Framework and Visual Studio components
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '3.1.x'
+      # Step 2: Install Visual Studio Build Tools with ASP.NET workload
+      - name: Install Visual Studio Build Tools
+        run: |
+          choco install visualstudio2019buildtools --params "--add Microsoft.VisualStudio.Workload.NetWeb --includeRecommended --includeOptional"
 
-      # Step 3: Install NuGet packages for Rock RMS
-      - name: Install NuGet packages
+      # Step 3: Install NuGet packages
+      - name: Restore NuGet packages
         run: nuget restore Rock.sln
 
       # Step 4: Build the solution using MSBuild
       - name: Build Rock RMS
-        run: dotnet build Rock.sln
-
-  
+        run: |
+          "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Rock.sln /p:Configuration=Release
