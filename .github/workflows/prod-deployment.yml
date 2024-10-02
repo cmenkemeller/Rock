@@ -10,20 +10,30 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2019
     
     steps:
       # Step 1: Checkout the code from the repository
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
-      # Step 3: Install NuGet packages for Rock RMS
-      - name: Install NuGet packages
+      # Step 2: Install NuGet packages for Rock RMS
+      - name: Restore NuGet packages
         run: nuget restore Rock.sln
 
-      # Step 4: Build the solution using MSBuild
+     # Step 3: Build the solution using MSBuild
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
+      # Step 4: Build app for release
       - name: Build app for release
         run: msbuild Rock.sln -property:Configuration=Release
+
+      # Step 4: Upload the build artifacts for deployment
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: RockRMS-Build
+          path: |
+            ./RockWeb/bin
+            ./RockWeb/obj
