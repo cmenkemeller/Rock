@@ -29,6 +29,6 @@ jobs:
 
       # Step 4: Build the solution using MSBuild
       - name: Build Rock RMS
-        run: msbuild Rock.sln /p:Configuration=Release
+        run: dotnet build Rock.sln
 
   
