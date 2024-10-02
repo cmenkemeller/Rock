@@ -15,7 +15,7 @@ jobs:
     steps:
       # Step 1: Checkout the code from the repository
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Step 2: Install NuGet packages for Rock RMS
       - name: Restore NuGet packages
