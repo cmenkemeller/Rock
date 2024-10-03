@@ -3,10 +3,9 @@ name: CI/CD for Rock RMS
 on:
   push:
     branches:
-      - ci-cd
+
   pull_request:
     branches:
-      - ci-cd
 
 jobs:
   build:
@@ -16,27 +15,19 @@ jobs:
       # Step 1: Checkout the code from the repository
       - name: Checkout code
         uses: actions/checkout@v4
-      - uses: ilammy/msvc-dev-cmd@v1
-        with:
-          vsversion: 2019
-      
-      # Step 2: Install NuGet packages for Rock RMS
-      - name: Restore NuGet packages
+
+      # Step 3: Install NuGet packages for Rock RMS
+      - name: Install NuGet packages
         run: nuget restore Rock.sln
 
-       # Step 3: Build the solution using MSBuild
+      # Step 4: Build the solution using MSBuild
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-       # Step 4: Build app for release
+      # Step 5: Clean project
+      - name: Clean project
+        run: msbuild Rock.sln -t:Clean
+
+      # Step 6: Build the solution using MSBuild
       - name: Build app for release
         run: msbuild Rock.sln -property:Configuration=Release
-
-      # Step 5: Upload the build artifacts for deployment
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: RockRMS-Build
-          path: |
-            ./RockWeb/bin
-            ./RockWeb/obj
