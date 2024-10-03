@@ -44,12 +44,24 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      # Step 9: Build the solution using MSBuild
+      # Step 9: Copy Missing DLLs to RockWeb/bin
+      - name: Copy DLLs to RockWeb/bin
+        shell: pwsh
+        run: |
+          $sourceDir = "$(System.DefaultWorkingDirectory)\Rock\bin"
+          $destDir = "$(System.DefaultWorkingDirectory)\Rock\RockWeb\bin"
+          Get-ChildItem -Recurse -Filter *.dll $sourceDir | ForEach-Object {
+              $relativePath = $_.FullName.Substring($sourceDir.Length)
+              $targetPath = Join-Path $destDir $relativePath
+              Copy-Item $_.FullName -Destination $targetPath -Force
+          }
+
+      # Step 10: Build the solution using MSBuild
       - name: Build with MSBuild
         run: |
           msbuild Rock.sln -t:Clean,Build -p:Configuration=Release
 
-      # Step 10: Upload Build Artifacts (binary outputs)
+      # Step 11: Upload Build Artifacts (binary outputs)
       - name: Upload Build Artifacts
         if: always() # Ensure artifacts are uploaded even if the build fails
         uses: actions/upload-artifact@v4
