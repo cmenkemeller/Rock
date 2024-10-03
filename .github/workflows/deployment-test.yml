@@ -14,11 +14,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Setup NuGet (optional but included for backward compatibility)
-      - name: Setup NuGet
-        uses: nuget/setup-nuget@v1
+      # Step 2: Setup Node.js (Install npm and Node.js)
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  # specify a specific version (e.g., 14, 16, or 18)
 
-      # Step 3: Copy .NET Facades (preserved from the previous workflow)
+       # Step 4: Install Node.js dependencies (npm install)
+      - name: Install npm dependencies
+        run: npm install
+
+      # Step 5: Copy .NET Facades (preserved from the previous workflow)
       - name: Copy .NET Facades
         shell: pwsh # Use PowerShell as shell
         run: |
@@ -26,20 +32,20 @@ jobs:
           $destPath = Join-Path ([Environment]::GetFolderPath("ProgramFilesX86")) "Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2"
           Get-ChildItem $facadesPath | Copy-Item -Destination $destPath -Force
 
-      # Step 4: Restore NuGet Packages for the solution
+      # Step 6: Restore NuGet Packages for the solution
       - name: Restore NuGet Packages
         run: nuget restore Rock.sln
 
-      # Step 5: Setup MSBuild
+      # Step 7: Setup MSBuild
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      # Step 6: Build the solution using MSBuild
+      # Step 8: Build the solution using MSBuild
       - name: Build with MSBuild
         run: |
           msbuild Rock.sln -t:Clean,Build -p:Configuration=Release
 
-      # Step 7: Upload Build Artifacts (binary outputs)
+      # Step 9: Upload Build Artifacts (binary outputs)
       - name: Upload Build Artifacts
         if: always() # Ensure artifacts are uploaded even if the build fails
         uses: actions/upload-artifact@v3
