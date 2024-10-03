@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD for Rock RMS
 
 on:
   push:
@@ -7,63 +7,60 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2022 # Target the latest stable Windows runner explicitly
-
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        configuration: [Release]
+        platform: [Any CPU]
     steps:
-      # Step 1: Checkout the code from the repository
+      # Step 1: Checkout the code
       - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Step 2: Setup Node.js (Install npm and Node.js)
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/checkout@v3
         with:
-          node-version: 'latest'  # specify a specific version (e.g., 14, 16, or 18)
+          fetch-depth: 1 # equivalent to clone_depth: 1
 
-       # Step 4: Install Node.js dependencies (npm install)
-      - name: Install npm dependencies
-        run: npm install
-     
-      # Step:5 Install TypeScript globally
-      - name: Install TypeScript globally
-        run: npm install -g typescript
+      # Step 2: Set up SSH Key (similar to the AppVeyor script install step)
+      # - name: Set up SSH Key
+      #   shell: pwsh
+      #   run: |
+      #     $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
+      #     $fileContent += $env:priv_key.Replace(' ', "`n")
+      #     $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
+      #     Set-Content $HOME\.ssh\id_rsa $fileContent
 
-      # Step 6: Copy .NET Facades (preserved from the previous workflow)
-      - name: Copy .NET Facades
-        shell: pwsh # Use PowerShell as shell
-        run: |
-          $facadesPath = Join-Path ([Environment]::GetFolderPath("ProgramFilesX86")) "Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades"
-          $destPath = Join-Path ([Environment]::GetFolderPath("ProgramFilesX86")) "Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2"
-          Get-ChildItem $facadesPath | Copy-Item -Destination $destPath -Force
-
-      # Step 7: Restore NuGet Packages for the solution
-      - name: Restore NuGet Packages
+      # Step 3: Restore NuGet Packages
+      - name: Restore NuGet packages
         run: nuget restore Rock.sln
 
-      # Step 8: Setup MSBuild
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+      # # Step 4: Modify web.config (before_build step in AppVeyor)
+      # - name: Modify web.config
+      #   shell: pwsh
+      #   run: |
+      #    (Get-Content "$Env:GITHUB_WORKSPACE\RockWeb\web.config").Replace('<compilation debug="true"', '<compilation debug="false"') |
+      #     Set-Content "$Env:GITHUB_WORKSPACE\RockWeb\web.config"
 
-      # Step 9: Copy Missing DLLs to RockWeb/bin
-      - name: Copy DLLs to RockWeb/bin
-        shell: pwsh
+      # Step 5: Build the Solution
+      - name: Build solution using MSBuild
         run: |
-          $sourceDir = "${{ github.workspace }}\Rock\bin"
-          $destDir = "${{ github.workspace }}\Rock\RockWeb\bin"
-          Get-ChildItem -Recurse -Filter *.dll $sourceDir | ForEach-Object {
-              $relativePath = $_.FullName.Substring($sourceDir.Length)
-              $targetPath = Join-Path $destDir $relativePath
-              Copy-Item $_.FullName -Destination $targetPath -Force
-          }
-          
-      # Step 10: Build the solution using MSBuild
-      - name: Build with MSBuild
-        run: |
-          msbuild Rock.sln -t:Clean,Build -p:Configuration=Release
+          "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv" "$Env:GITHUB_WORKSPACE\rock.sln" /build Release
 
-      # Step 11: Upload Build Artifacts (binary outputs)
-      - name: Upload Build Artifacts
-        if: always() # Ensure artifacts are uploaded even if the build fails
+      # Step 6: Run Tests
+      # - name: Run Tests
+      #   run: |
+      #    vstest.console.exe Rock.Tests.dll
+
+      # Step 7: Cache Node_modules or NuGet packages (optional, if needed)
+      # Uncomment if needed for caching NuGet packages or Node_modules
+      # - name: Cache NuGet or Node_modules
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: |
+      #       **/node_modules
+      #       **/packages
+      #     key: ${{ runner.os }}-build-cache
+
+      # Step 8: Upload Artifacts (for IIS deployment or further inspection)
+      - name: Upload RockWeb Artifact
         uses: actions/upload-artifact@v4
         with:
           name: BuildOutput
