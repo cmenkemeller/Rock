@@ -48,14 +48,14 @@ jobs:
       - name: Copy DLLs to RockWeb/bin
         shell: pwsh
         run: |
-          $sourceDir = "$(System.DefaultWorkingDirectory)\Rock\bin"
-          $destDir = "$(System.DefaultWorkingDirectory)\Rock\RockWeb\bin"
+          $sourceDir = "${{ github.workspace }}\Rock\bin"
+          $destDir = "${{ github.workspace }}\Rock\RockWeb\bin"
           Get-ChildItem -Recurse -Filter *.dll $sourceDir | ForEach-Object {
               $relativePath = $_.FullName.Substring($sourceDir.Length)
               $targetPath = Join-Path $destDir $relativePath
               Copy-Item $_.FullName -Destination $targetPath -Force
           }
-
+          
       # Step 10: Build the solution using MSBuild
       - name: Build with MSBuild
         run: |
