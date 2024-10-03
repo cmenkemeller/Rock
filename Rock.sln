@@ -79,8 +79,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.DownhillCss", "Rock.Do
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.MyWell", "Rock.MyWell\Rock.MyWell.csproj", "{13711BED-69DD-4182-9BB5-B3C9A4DE32DF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Tests.Shared", "Rock.Tests.Shared\Rock.Tests.Shared.csproj", "{D8DE32C9-25DA-4897-A750-7DD8755B3D45}"
-EndProject
+
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.SendGrid", "Rock.SendGrid\Rock.SendGrid.csproj", "{205F439A-2CCC-42C1-B1AB-09E1B629D88C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Oidc", "Rock.Oidc\Rock.Oidc.csproj", "{8CCB8E2A-073C-48CB-B31A-621EC5430A42}"
@@ -122,8 +121,7 @@ Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "Rock.JavaScript", "Rock.Jav
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Tests.Performance", "Rock.Tests.Performance\Rock.Tests.Performance.csproj", "{B0DF7CC9-5300-48E7-B173-8CEE492DB2D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.AI.OpenAI", "Rock.AI.OpenAI\Rock.AI.OpenAI.csproj", "{BAB8BF5E-6457-4668-ADF1-B917100BA7CD}"
-EndProject
+
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
