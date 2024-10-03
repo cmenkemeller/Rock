@@ -39,10 +39,12 @@ jobs:
       #    (Get-Content "$Env:GITHUB_WORKSPACE\RockWeb\web.config").Replace('<compilation debug="true"', '<compilation debug="false"') |
       #     Set-Content "$Env:GITHUB_WORKSPACE\RockWeb\web.config"
 
-      # Step 5: Build the Solution
-      - name: Build solution using MSBuild
+      # Step 5: Build the Solution using devenv
+      - name: Build solution using Visual Studio
+        shell: pwsh
         run: |
-          "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv" "$Env:GITHUB_WORKSPACE\rock.sln" /build Release
+          $solutionPath = "$Env:GITHUB_WORKSPACE\rock.sln"
+          & "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" $solutionPath /build Release
 
       # Step 6: Run Tests
       # - name: Run Tests
