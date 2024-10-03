@@ -16,9 +16,9 @@ jobs:
 
       # Step 2: Setup Node.js (Install npm and Node.js)
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'  # specify a specific version (e.g., 14, 16, or 18)
+          node-version: 'latest'  # specify a specific version (e.g., 14, 16, or 18)
 
        # Step 4: Install Node.js dependencies (npm install)
       - name: Install npm dependencies
@@ -48,7 +48,7 @@ jobs:
       # Step 9: Upload Build Artifacts (binary outputs)
       - name: Upload Build Artifacts
         if: always() # Ensure artifacts are uploaded even if the build fails
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: BuildOutput
           path: |
