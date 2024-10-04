@@ -47,7 +47,7 @@ jobs:
         shell: pwsh
         run: |
           # Define the target framework of the project (e.g., net472)
-          $targetFrameworks = @("net472", "net471", "net47", "net46", "net45", "net40", "netstandard2.0", "netstandard1.3", "lib")
+            $targetFrameworks = @("lib", "netstandard1.3", "netstandard2.0", "net40", "net45", "net46", "net47", "net471", "net472")
 
           # Loop through each target framework to find and copy DLLs
           foreach ($targetFramework in $targetFrameworks) {
@@ -59,7 +59,6 @@ jobs:
                       Copy-Item -Path $dll.FullName -Destination "RockWeb/Bin" -Force
                   }
                   Write-Host "DLLs copied for target framework: $targetFramework"
-                  break
               } else {
                   Write-Host "No DLLs found for $targetFramework, trying next option..."
               }
