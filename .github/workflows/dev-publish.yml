@@ -16,7 +16,7 @@ jobs:
 
       - name: List IDE directory
         run: |
-          dir "C:\Program Files (x86)\Microsoft Visual Studio\2022\Common7\IDE"
+          dir "C:\Program Files (x86)\Microsoft Visual Studio\2022"
 
       # Step 1: Checkout the code
       - name: Checkout code
