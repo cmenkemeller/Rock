@@ -64,9 +64,9 @@ jobs:
       #     key: ${{ runner.os }}-build-cache
 
       # Step: List the files in RockWeb/Bin
-    - name: List files in RockWeb/Bin
-      run: |
-        dir RockWeb\Bin
+      - name: List files in RockWeb/Bin
+        run: |
+          dir RockWeb\Bin
 
       # Step 7: Print Directory Structur
       - name: XDTesting Print Directory Structure
