@@ -46,17 +46,11 @@ jobs:
       - name: Find and Copy DDay.iCal.dll to RockWeb/Bin
         shell: pwsh
         run: |
-          # Search for the DDay.iCal package folder in the "packages" directory
-          $ddayPath = Get-ChildItem -Path "packages" -Recurse -Filter "DDay.iCal*.dll" | Select-Object -First 1
+          # Find all .dll files in the packages folder
+          find packages -name "*.dll" -exec cp {} RockWeb/Bin \;
 
-          # If DDay.iCal.dll is found, copy it to RockWeb/Bin
-          if ($ddayPath) {
-              Write-Host "Found DDay.iCal.dll at: $($ddayPath.FullName)"
-              Copy-Item -Path $ddayPath.FullName -Destination "RockWeb/Bin/DDay.iCal.dll" -Force
-          } else {
-              Write-Host "DDay.iCal.dll not found"
-              exit 1
-          }
+          echo "All DLLs copied to RockWeb/Bin"
+
       # Step 5: Build the solution using MSBuild
       - name: Build with MSBuild
         run: |
