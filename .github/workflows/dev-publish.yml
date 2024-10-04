@@ -44,28 +44,28 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Find and Copy Correct DLLs with Fallback from Packages to RockWeb/Bin
-      shell: pwsh
-      run: |
-        # Define the target framework of the project (e.g., net472)
-        $targetFrameworks = @("net472", "net471", "net47", "net46", "net45", "net40", "netstandard2.0", "netstandard1.3", "lib")
+        shell: pwsh
+        run: |
+          # Define the target framework of the project (e.g., net472)
+          $targetFrameworks = @("net472", "net471", "net47", "net46", "net45", "net40", "netstandard2.0", "netstandard1.3", "lib")
 
-        # Loop through each target framework to find and copy DLLs
-        foreach ($targetFramework in $targetFrameworks) {
-            $dlls = Get-ChildItem -Path "packages" -Recurse | Where-Object { $_.FullName -like "*\$targetFramework\*.dll" }
+          # Loop through each target framework to find and copy DLLs
+          foreach ($targetFramework in $targetFrameworks) {
+              $dlls = Get-ChildItem -Path "packages" -Recurse | Where-Object { $_.FullName -like "*\$targetFramework\*.dll" }
 
-            if ($dlls) {
-                foreach ($dll in $dlls) {
-                    Write-Host "Copying: $($dll.FullName)"
-                    Copy-Item -Path $dll.FullName -Destination "RockWeb/Bin" -Force
-                }
-                Write-Host "DLLs copied for target framework: $targetFramework"
-                break
-            } else {
-                Write-Host "No DLLs found for $targetFramework, trying next option..."
-            }
-        }
-        
-        Write-Host "Fallback complete. All necessary DLLs copied to RockWeb/Bin."
+              if ($dlls) {
+                  foreach ($dll in $dlls) {
+                      Write-Host "Copying: $($dll.FullName)"
+                      Copy-Item -Path $dll.FullName -Destination "RockWeb/Bin" -Force
+                  }
+                  Write-Host "DLLs copied for target framework: $targetFramework"
+                  break
+              } else {
+                  Write-Host "No DLLs found for $targetFramework, trying next option..."
+              }
+          }
+          
+          Write-Host "Fallback complete. All necessary DLLs copied to RockWeb/Bin."
 
       # Step 5: Build the solution using MSBuild
       - name: Build with MSBuild
