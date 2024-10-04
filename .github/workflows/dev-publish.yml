@@ -15,7 +15,7 @@ jobs:
     steps:
       # Step 1: Checkout the code
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1 # equivalent to clone_depth: 1
 
@@ -39,13 +39,11 @@ jobs:
       #    (Get-Content "$Env:GITHUB_WORKSPACE\RockWeb\web.config").Replace('<compilation debug="true"', '<compilation debug="false"') |
       #     Set-Content "$Env:GITHUB_WORKSPACE\RockWeb\web.config"
 
-      # Step 5: Build the Solution using devenv
-      - name: Build solution using Visual Studio
-        shell: pwsh
+      # Step 5: Build the solution using MSBuild
+      - name: Build with MSBuild
         run: |
-          $solutionPath = "$Env:GITHUB_WORKSPACE\rock.sln"
-          & "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" $solutionPath /build Release
-
+          msbuild Rock.sln -t:Clean,Build -p:Configuration=Release
+      
       # Step 6: Run Tests
       # - name: Run Tests
       #   run: |
