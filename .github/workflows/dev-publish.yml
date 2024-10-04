@@ -43,13 +43,19 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Find and Copy DDay.iCal.dll to RockWeb/Bin
+      - name: Find and Copy .dll files to RockWeb/Bin
         shell: pwsh
         run: |
           # Find all .dll files in the packages folder
-          find packages -name "*.dll" -exec cp {} RockWeb/Bin \;
+          $dlls = Get-ChildItem -Path "Rock/packages" -Recurse -Filter "*.dll"
 
-          echo "All DLLs copied to RockWeb/Bin"
+          # Copy each DLL to the RockWeb/Bin directory
+          foreach ($dll in $dlls) {
+            Write-Host "Copying: $($dll.FullName)"
+            Copy-Item -Path $dll.FullName -Destination "RockWeb/Bin" -Force
+          }
+
+          Write-Host "All DLLs copied to RockWeb/Bin"
 
       # Step 5: Build the solution using MSBuild
       - name: Build with MSBuild
