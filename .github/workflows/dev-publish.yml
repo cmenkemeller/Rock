@@ -9,7 +9,6 @@ jobs:
   build:
     runs-on: windows-2022
     strategy:
-      fail-fast: false
       matrix:
         configuration: [Release]
         platform: [Any CPU]
@@ -51,7 +50,7 @@ jobs:
       # Step 5: Build the solution using MSBuild
       - name: Build with MSBuild
         run: |
-          msbuild Rock.sln -t:Clean,Build -p:Configuration=Release
+          msbuild Rock.sln Build -p:Configuration=Release
 
       # Step 6: Run Tests
       # - name: Run Tests
@@ -70,11 +69,13 @@ jobs:
 
       # Step: List the files in RockWeb/Bin
       - name: List files in RockWeb/Bin
+        if: always()
         run: |
           dir RockWeb\Bin
 
       # Step 7: Print Directory Structur
       - name: XDTesting Print Directory Structure
+        if: always()
         uses: FiorelaCiroku/XDTesting-Print-Directory-Structure@v1.0.2
 
       # Step 8: Upload Artifacts (for IIS deployment or further inspection)
