@@ -75,20 +75,20 @@ jobs:
               exit 1
           }
 
-        - name: Find and Copy EntityFramework.dll to RockWeb/Bin
-          shell: pwsh
-          run: |
-           # Search for the EntityFramework package folder in the "packages" directory
-           $entityFrameworkPath = Get-ChildItem -Path "RockWeb/Bin" -Recurse -Filter "EntityFramework.dll" | Where-Object { $_.FullName -match "lib\\net45" } | Select-Object -First 1
+      - name: Find and Copy EntityFramework.dll to RockWeb/Bin
+        shell: pwsh
+        run: |
+          # Search for the EntityFramework package folder in the "packages" directory
+          $entityFrameworkPath = Get-ChildItem -Path "RockWeb/Bin" -Recurse -Filter "EntityFramework.dll" | Where-Object { $_.FullName -match "lib\\net45" } | Select-Object -First 1
 
-           # If EntityFramework.dll is found, copy it to RockWeb/Bin
-           if ($entityFrameworkPath) {
-              Write-Host "Found EntityFramework.dll at: $($entityFrameworkPath.FullName)"
-              Copy-Item -Path $entityFrameworkPath.FullName -Destination "RockWeb/Bin/EntityFramework.dll" -Force
-           } else {
-              Write-Host "EntityFramework.dll not found"
-              exit 1
-           }
+          # If EntityFramework.dll is found, copy it to RockWeb/Bin
+          if ($entityFrameworkPath) {
+            Write-Host "Found EntityFramework.dll at: $($entityFrameworkPath.FullName)"
+            Copy-Item -Path $entityFrameworkPath.FullName -Destination "RockWeb/Bin/EntityFramework.dll" -Force
+          } else {
+            Write-Host "EntityFramework.dll not found"
+            exit 1
+          }
       # Step: List the files in RockWeb/Bin
       - name: List files in RockWeb/Bin
         if: always()
