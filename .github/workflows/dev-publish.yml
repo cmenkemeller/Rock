@@ -34,9 +34,6 @@ jobs:
       - name: Restore NuGet packages
         run: nuget restore Rock.sln
 
-      - name: List files in the Rock directory
-        run: dir D:\a\packages
-      
       # # Step 4: Modify web.config (before_build step in AppVeyor)
       # - name: Modify web.config
       #   shell: pwsh
@@ -66,7 +63,7 @@ jobs:
         shell: pwsh
         run: |
           # Search for the EntityFramework package folder in the "packages" directory
-          $restSharpPath = Get-ChildItem -Path "packages" -Recurse -Filter "EntityFramework.dll" | Where-Object { $_.FullName -match "lib\\net46" } | Select-Object -First 1
+          $restSharpPath = Get-ChildItem -Path "packages" -Recurse -Filter "EntityFramework*.dll" | Where-Object { $_.FullName -match "lib\\net47" } | Select-Object -First 1
 
           # If EntityFramework is found, copy it to RockWeb/Bin
           if ($ddayPath) {
@@ -136,5 +133,6 @@ jobs:
         with:
           name: BuildOutput
           path: |
+            ./packages
             ./RockWeb/bin
             ./RockWeb/Bin
