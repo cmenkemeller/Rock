@@ -9,6 +9,7 @@ jobs:
   build:
     runs-on: windows-2022
     strategy:
+      fail-fast: false
       matrix:
         configuration: [Release]
         platform: [Any CPU]
@@ -42,6 +43,11 @@ jobs:
       # Step 4: Setup MSBuild
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
+
+      - name: Copy DDay.iCal.dll to the expected directory
+        run: |
+          mkdir -p Rock/RockWeb/Bin
+          copy Rock/packages/DDay.iCal.1.0.0/lib/net45/DDay.iCal.dll Rock/RockWeb/Bin/DDay.iCal.dll
 
       # Step 5: Build the solution using MSBuild
       - name: Build with MSBuild
