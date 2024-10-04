@@ -39,6 +39,10 @@ jobs:
       #    (Get-Content "$Env:GITHUB_WORKSPACE\RockWeb\web.config").Replace('<compilation debug="true"', '<compilation debug="false"') |
       #     Set-Content "$Env:GITHUB_WORKSPACE\RockWeb\web.config"
 
+    # Step 4: Setup MSBuild
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
       # Step 5: Build the solution using MSBuild
       - name: Build with MSBuild
         run: |
