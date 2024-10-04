@@ -62,7 +62,7 @@ jobs:
         shell: pwsh
         run: |
           # Search for the RestSharp package folder in the "packages" directory
-          $restSharpPath = Get-ChildItem -Path "RockWeb/Bin" -Recurse -Filter "RestSharp.dll" | Where-Object { $_.FullName -match "lib\\net472" } | Select-Object -First 1
+          $restSharpPath = Get-ChildItem -Path "RockWeb/Bin" -Recurse -Filter "RestSharp.dll" | Where-Object { $_.FullName -match "lib\\net471" } | Select-Object -First 1
 
           # If RestSharp.dll is found, copy it to RockWeb/Bin
           if ($restSharpPath) {
