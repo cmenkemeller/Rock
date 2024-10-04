@@ -104,22 +104,11 @@ jobs:
             Write-Host "HtmlAgilityPack.dll not found"
             exit 1
           }
-      # Step: List the files in RockWeb/Bin
-      - name: List files in RockWeb/Bin
-        if: always()
-        run: |
-          dir RockWeb\Bin
-      
-      # Step: List the files in RockWeb/Bin
-      - name: List files in RockWeb/Bin
-        if: always()
-        run: |
-          dir RockWeb\Bin\RestSharp.112.1.0\lib
-
+  
       # Step 5: Build the solution using MSBuild
       - name: Build with MSBuild
         run: |
-          msbuild Rock.sln /p:Configuration=Release
+          msbuild Rock.sln -t:rebuild -verbosity:diag -property:Configuration=Release
 
       # Step 6: Run Tests
       # - name: Run Tests
@@ -136,12 +125,7 @@ jobs:
       #       **/packages
       #     key: ${{ runner.os }}-build-cache
 
-      # Step: List the files in RockWeb/Bin
-      - name: List files in RockWeb/Bin
-        if: always()
-        run: |
-          dir RockWeb\Bin
-
+  
       # Step 8: Upload Artifacts (for IIS deployment or further inspection)
       - name: Upload RockWeb Artifact
         if: always()
