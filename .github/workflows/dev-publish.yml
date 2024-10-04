@@ -33,7 +33,7 @@ jobs:
       - name: Restore NuGet packages
         run: |
           nuget restore
-          & "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\devenv.com" "$Env:GITHUB_WORKSPACE\\Rock.sln" /build Release
+          & "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\devenv" "$Env:GITHUB_WORKSPACE\\Rock.sln" /build Release
 
       # # Step 4: Modify web.config (before_build step in AppVeyor)
       # - name: Modify web.config
