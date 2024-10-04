@@ -63,7 +63,7 @@ jobs:
         shell: pwsh
         run: |
           # Search for the EntityFramework package folder in the "packages" directory
-          $restSharpPath = Get-ChildItem -Path "packages" -Recurse -Filter "EntityFramework*.dll" | Where-Object { $_.FullName -match "lib\\net47" } | Select-Object -First 1
+          $restSharpPath = Get-ChildItem -Path "packages" -Recurse -Filter "EntityFramework*.dll" | Where-Object { $_.FullName -match "lib\\net45" } | Select-Object -First 1
 
           # If EntityFramework is found, copy it to RockWeb/Bin
           if ($ddayPath) {
