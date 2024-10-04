@@ -129,10 +129,10 @@ jobs:
 
       # Step 8: Upload Artifacts (for IIS deployment or further inspection)
       - name: Upload RockWeb Artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: BuildOutput
-          if: always()
           path: |
             ./RockWeb/bin
             ./RockWeb/Bin
