@@ -47,7 +47,7 @@ jobs:
         shell: pwsh
         run: |
           # Find all .dll files in the packages folder
-          $dlls = Get-ChildItem -Path "Rock/packages" -Recurse -Filter "*.dll"
+          $dlls = Get-ChildItem -Path "packages" -Recurse -Filter "*.dll"
 
           # Copy each DLL to the RockWeb/Bin directory
           foreach ($dll in $dlls) {
