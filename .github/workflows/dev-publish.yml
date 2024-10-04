@@ -9,7 +9,6 @@ jobs:
   build:
     runs-on: windows-2022
     strategy:
-      fail-fast: true
       matrix:
         configuration: [Release]
         platform: [Any CPU]
