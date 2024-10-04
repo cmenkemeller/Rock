@@ -13,6 +13,12 @@ jobs:
         configuration: [Release]
         platform: [Any CPU]
     steps:
+
+      steps:
+      - name: List IDE directory
+        run: |
+          dir "C:\Program Files (x86)\Microsoft Visual Studio\2022\Common7\IDE"
+
       # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,7 +39,7 @@ jobs:
       - name: Restore NuGet packages
         run: |
           nuget restore
-          & "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\devenv" "$Env:GITHUB_WORKSPACE\\Rock.sln" /build Release
+          & "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\Common7\\IDE\\devenv.com" "$Env:GITHUB_WORKSPACE\\Rock.sln" /build Release
 
       # # Step 4: Modify web.config (before_build step in AppVeyor)
       # - name: Modify web.config
