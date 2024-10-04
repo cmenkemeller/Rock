@@ -43,28 +43,40 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Find and Copy Correct DLLs with Fallback from Packages to RockWeb/Bin
+      - name: Find and Copy DDay.iCal.dll to RockWeb/Bin
         shell: pwsh
         run: |
-          # Define the target framework of the project (e.g., net472)
-            $targetFrameworks = @("lib", "netstandard1.3", "netstandard2.0", "net40", "net45", "net46", "net47", "net471", "net472")
+          # Search for the DDay.iCal package folder in the "packages" directory
+          $ddayPath = Get-ChildItem -Path "packages" -Recurse -Filter "DDay.iCal*.dll" | Select-Object -First 1
 
-          # Loop through each target framework to find and copy DLLs
-          foreach ($targetFramework in $targetFrameworks) {
-              $dlls = Get-ChildItem -Path "packages" -Recurse | Where-Object { $_.FullName -like "*\$targetFramework\*.dll" }
-
-              if ($dlls) {
-                  foreach ($dll in $dlls) {
-                      Write-Host "Copying: $($dll.FullName)"
-                      Copy-Item -Path $dll.FullName -Destination "RockWeb/Bin" -Force
-                  }
-                  Write-Host "DLLs copied for target framework: $targetFramework"
-              } else {
-                  Write-Host "No DLLs found for $targetFramework, trying next option..."
-              }
+          # If DDay.iCal.dll is found, copy it to RockWeb/Bin
+          if ($ddayPath) {
+              Write-Host "Found DDay.iCal.dll at: $($ddayPath.FullName)"
+              Copy-Item -Path $ddayPath.FullName -Destination "RockWeb/Bin/DDay.iCal.dll" -Force
+          } else {
+              Write-Host "DDay.iCal.dll not found"
+              exit 1
           }
-          
-          Write-Host "Fallback complete. All necessary DLLs copied to RockWeb/Bin."
+
+      - name: Find and Copy RestSharp.dll to RockWeb/Bin
+        shell: pwsh
+        run: |
+          # Search for the RestSharp package folder in the "packages" directory
+          $restSharpPath = Get-ChildItem -Path "packages" -Recurse -Filter "RestSharp.dll" | Where-Object { $_.FullName -match "lib\\net452" } | Select-Object -First 1
+
+          # If RestSharp.dll is found, copy it to RockWeb/Bin
+          if ($restSharpPath) {
+              Write-Host "Found RestSharp.dll at: $($restSharpPath.FullName)"
+              Copy-Item -Path $restSharpPath.FullName -Destination "RockWeb/Bin/RestSharp.dll" -Force
+          } else {
+              Write-Host "RestSharp.dll not found"
+              exit 1
+          }
+      # Step: List the files in RockWeb/Bin
+      - name: List files in RockWeb/Bin
+        if: always()
+        run: |
+          dir RockWeb\Bin
 
       # Step 5: Build the solution using MSBuild
       - name: Build with MSBuild
