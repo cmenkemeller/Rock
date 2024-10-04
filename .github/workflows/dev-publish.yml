@@ -28,6 +28,9 @@ jobs:
       #     $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
       #     Set-Content $HOME\.ssh\id_rsa $fileContent
 
+      - name: List files in the Rock directory
+        run: dir D:\a\Rock\Rock
+      
       # Step 3: Restore NuGet Packages
       - name: Restore NuGet packages
         run: nuget restore Rock.sln
@@ -55,6 +58,20 @@ jobs:
               Copy-Item -Path $ddayPath.FullName -Destination "RockWeb/Bin/DDay.iCal.dll" -Force
           } else {
               Write-Host "DDay.iCal.dll not found"
+              exit 1
+          }
+      - name: Find and Copy EntityFramework.dll to RockWeb/Bin
+        shell: pwsh
+        run: |
+          # Search for the EntityFramework package folder in the "packages" directory
+          $restSharpPath = Get-ChildItem -Path "packages" -Recurse -Filter "EntityFramework.dll" | Where-Object { $_.FullName -match "lib\\net45" } | Select-Object -First 1
+
+          # If EntityFramework is found, copy it to RockWeb/Bin
+          if ($ddayPath) {
+              Write-Host "Found EntityFramework at: $($ddayPath.FullName)"
+              Copy-Item -Path $ddayPath.FullName -Destination "RockWeb/Bin/EntityFramework.dll" -Force
+          } else {
+              Write-Host "EntityFramework not found"
               exit 1
           }
 
@@ -115,6 +132,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: BuildOutput
+          if: always()
           path: |
             ./RockWeb/bin
             ./RockWeb/Bin
