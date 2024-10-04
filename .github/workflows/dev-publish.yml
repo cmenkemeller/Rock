@@ -30,7 +30,7 @@ jobs:
 
       # Step 3: Restore NuGet Packages
       - name: Restore NuGet packages
-        run: nuget restore Rock/Rock.sln
+        run: nuget restore Rock.sln
 
       # # Step 4: Modify web.config (before_build step in AppVeyor)
       # - name: Modify web.config
@@ -46,7 +46,7 @@ jobs:
       # Step 5: Build the solution using MSBuild
       - name: Build with MSBuild
         run: |
-          msbuild Rock/Rock.sln -t:Clean,Build -p:Configuration=Release
+          msbuild Rock.sln -t:Clean,Build -p:Configuration=Release
 
       # Step 6: Run Tests
       # - name: Run Tests
