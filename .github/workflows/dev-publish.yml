@@ -35,7 +35,7 @@ jobs:
         run: nuget restore Rock.sln
 
       - name: List files in the Rock directory
-        run: dir D:\a\Rock\packages
+        run: dir D:\a\packages
       
       # # Step 4: Modify web.config (before_build step in AppVeyor)
       # - name: Modify web.config
