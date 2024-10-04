@@ -9,6 +9,7 @@ jobs:
   build:
     runs-on: windows-2022
     strategy:
+      fail-fast: true
       matrix:
         configuration: [Release]
         platform: [Any CPU]
@@ -39,7 +40,7 @@ jobs:
       #    (Get-Content "$Env:GITHUB_WORKSPACE\RockWeb\web.config").Replace('<compilation debug="true"', '<compilation debug="false"') |
       #     Set-Content "$Env:GITHUB_WORKSPACE\RockWeb\web.config"
 
-    # Step 4: Setup MSBuild
+      # Step 4: Setup MSBuild
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
@@ -47,7 +48,7 @@ jobs:
       - name: Build with MSBuild
         run: |
           msbuild Rock.sln -t:Clean,Build -p:Configuration=Release
-      
+
       # Step 6: Run Tests
       # - name: Run Tests
       #   run: |
@@ -63,6 +64,15 @@ jobs:
       #       **/packages
       #     key: ${{ runner.os }}-build-cache
 
+      # Step: List the files in RockWeb/Bin
+    - name: List files in RockWeb/Bin
+      run: |
+        dir RockWeb\Bin
+
+      # Step 7: Print Directory Structur
+      - name: XDTesting Print Directory Structure
+        uses: FiorelaCiroku/XDTesting-Print-Directory-Structure@v1.0.2
+
       # Step 8: Upload Artifacts (for IIS deployment or further inspection)
       - name: Upload RockWeb Artifact
         uses: actions/upload-artifact@v4
@@ -70,4 +80,4 @@ jobs:
           name: BuildOutput
           path: |
             ./RockWeb/bin
-            ./RockWeb/obj
+            ./RockWeb/Bin
