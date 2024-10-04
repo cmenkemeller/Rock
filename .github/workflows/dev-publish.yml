@@ -43,35 +43,35 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Find and Copy DDay.iCal.dll to RockWeb/Bin
-        shell: pwsh
-        run: |
-          # Search for the DDay.iCal package folder in the "packages" directory
-          $ddayPath = Get-ChildItem -Path "packages" -Recurse -Filter "DDay.iCal*.dll" | Select-Object -First 1
+      # - name: Find and Copy DDay.iCal.dll to RockWeb/Bin
+      #   shell: pwsh
+      #   run: |
+      #     # Search for the DDay.iCal package folder in the "packages" directory
+      #     $ddayPath = Get-ChildItem -Path "packages" -Recurse -Filter "DDay.iCal*.dll" | Select-Object -First 1
 
-          # If DDay.iCal.dll is found, copy it to RockWeb/Bin
-          if ($ddayPath) {
-              Write-Host "Found DDay.iCal.dll at: $($ddayPath.FullName)"
-              Copy-Item -Path $ddayPath.FullName -Destination "RockWeb/Bin/DDay.iCal.dll" -Force
-          } else {
-              Write-Host "DDay.iCal.dll not found"
-              exit 1
-          }
+      #     # If DDay.iCal.dll is found, copy it to RockWeb/Bin
+      #     if ($ddayPath) {
+      #         Write-Host "Found DDay.iCal.dll at: $($ddayPath.FullName)"
+      #         Copy-Item -Path $ddayPath.FullName -Destination "RockWeb/Bin/DDay.iCal.dll" -Force
+      #     } else {
+      #         Write-Host "DDay.iCal.dll not found"
+      #         exit 1
+      #     }
 
-      - name: Find and Copy RestSharp.dll to RockWeb/Bin
-        shell: pwsh
-        run: |
-          # Search for the RestSharp package folder in the "packages" directory
-          $restSharpPath = Get-ChildItem -Path "packages" -Recurse -Filter "RestSharp.dll" | Where-Object { $_.FullName -match "lib\\net452" } | Select-Object -First 1
+      # - name: Find and Copy RestSharp.dll to RockWeb/Bin
+      #   shell: pwsh
+      #   run: |
+      #     # Search for the RestSharp package folder in the "packages" directory
+      #     $restSharpPath = Get-ChildItem -Path "packages" -Recurse -Filter "RestSharp.dll" | Where-Object { $_.FullName -match "lib\\net452" } | Select-Object -First 1
 
-          # If RestSharp.dll is found, copy it to RockWeb/Bin
-          if ($restSharpPath) {
-              Write-Host "Found RestSharp.dll at: $($restSharpPath.FullName)"
-              Copy-Item -Path $restSharpPath.FullName -Destination "RockWeb/Bin/RestSharp.dll" -Force
-          } else {
-              Write-Host "RestSharp.dll not found"
-              exit 1
-          }
+      #     # If RestSharp.dll is found, copy it to RockWeb/Bin
+      #     if ($restSharpPath) {
+      #         Write-Host "Found RestSharp.dll at: $($restSharpPath.FullName)"
+      #         Copy-Item -Path $restSharpPath.FullName -Destination "RockWeb/Bin/RestSharp.dll" -Force
+      #     } else {
+      #         Write-Host "RestSharp.dll not found"
+      #         exit 1
+      #     }
       # Step: List the files in RockWeb/Bin
       - name: List files in RockWeb/Bin
         if: always()
