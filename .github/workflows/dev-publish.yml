@@ -47,7 +47,7 @@ jobs:
       - name: Copy DDay.iCal.dll to the expected directory
         run: |
           mkdir -p Rock/RockWeb/Bin
-          copy Rock/packages/DDay.iCal.1.0.0/lib/net45/DDay.iCal.dll Rock/RockWeb/Bin/DDay.iCal.dll
+          copy Rock/packages/ Rock/RockWeb/Bin/
 
       # Step 5: Build the solution using MSBuild
       - name: Build with MSBuild
