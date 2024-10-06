@@ -34,9 +34,6 @@ jobs:
         shell: cmd
         run: |
           nuget restore Rock.sln
-          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe"
-          "D:\a\Rock\Rock\Rock.sln" /build Release
-
            
       - name: Build
         shell: cmd
