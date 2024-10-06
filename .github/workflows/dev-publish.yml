@@ -29,15 +29,15 @@ jobs:
       #     $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
       #     Set-Content $HOME\.ssh\id_rsa $fileContent
       
-      - name: Modify Visual Studio 2022
+      - name: NuGet Restore
         timeout-minutes: 5
         shell: cmd
         run: |
           nuget restore Rock.sln
            
-      - name: Build
+      - name: Build with MSBuild
         shell: cmd
-        timeout-minutes: 10
+        timeout-minutes: 20
         run: |
           "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv"
           "D:\a\Rock\Rock\Rock.sln" /build Release
