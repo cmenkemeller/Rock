@@ -31,7 +31,7 @@ jobs:
 
       - name: Restore NuGet packages
         run: nuget restore
-        working-directory: D:\a
+        working-directory: D:\a\Rock
 
       
       - name: Modify Visual Studio 2022
