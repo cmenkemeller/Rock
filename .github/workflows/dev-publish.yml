@@ -29,21 +29,15 @@ jobs:
       #     $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
       #     Set-Content $HOME\.ssh\id_rsa $fileContent
 
-
       - name: List IDE directory
         run: |
-          dir "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
-
-
-      - name: List IDE directory
-        run: |
-          dir "C:\Program Files (x86)\Microsoft Visual Studio\Shared\"
+          dir "C:\Program Files (x86)\Microsoft Visual Studio\Shared\Common\"
 
 
 
       - name: List IDE directory
         run: |
-          dir "C:\Program Files (x86)\Microsoft Visual Studio 14.0\"
+          dir "C:\Program Files (x86)\Microsoft Visual Studio 14.0\SDK\"
 
       - name: Restore NuGet packages
         run: nuget restore Rock.sln
