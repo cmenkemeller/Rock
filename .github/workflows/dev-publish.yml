@@ -30,7 +30,7 @@ jobs:
       #     Set-Content $HOME\.ssh\id_rsa $fileContent
 
       - name: Restore NuGet packages
-        run: nuget restore
+        run: nuget restore Rock.sln
         working-directory: D:\a\Rock
 
       
