@@ -32,7 +32,18 @@ jobs:
 
       - name: List IDE directory
         run: |
-          dir "C:\Program Files (x86)\Microsoft Visual Studio\"
+          dir "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+
+
+      - name: List IDE directory
+        run: |
+          dir "C:\Program Files (x86)\Microsoft Visual Studio\Shared\"
+
+
+
+      - name: List IDE directory
+        run: |
+          dir "C:\Program Files (x86)\Microsoft Visual Studio 14.0\"
 
       - name: Restore NuGet packages
         run: nuget restore Rock.sln
