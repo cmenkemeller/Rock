@@ -37,7 +37,7 @@ jobs:
       - name: Modify Visual Studio 2022
         shell: pwsh
         run: |
-          Start-Process -FilePath "C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe"
+          Start-Process -FilePath "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe"
 
       - name: Build Release
         shell: pwsh
