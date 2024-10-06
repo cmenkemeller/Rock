@@ -32,7 +32,7 @@ jobs:
 
       - name: List IDE directory
         run: |
-          dir "C:\Program Files (x86)\"
+          dir "C:\Program Files (x86)\Microsoft Visual Studio\"
 
       - name: Restore NuGet packages
         run: nuget restore Rock.sln
