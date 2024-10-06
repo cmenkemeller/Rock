@@ -31,7 +31,11 @@ jobs:
 
       - name: List IDE directory
         run: |
-          dir "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\"
+          dir "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\"
+
+      - name: List IDE directory
+        run: |
+          dir "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\"
 
       - name: Restore NuGet packages
         run: nuget restore Rock.sln
