@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2022
+    runs-on: windows-2019
     strategy:
       matrix:
         configuration: [Release]
@@ -31,13 +31,7 @@ jobs:
 
       - name: List IDE directory
         run: |
-          dir "C:\Program Files (x86)\Microsoft Visual Studio\Shared\Common\"
-
-
-
-      - name: List IDE directory
-        run: |
-          dir "C:\Program Files (x86)\Microsoft Visual Studio 14.0\SDK\"
+          dir "C:\Program Files (x86)\Microsoft Visual Studio\"
 
       - name: Restore NuGet packages
         run: nuget restore Rock.sln
