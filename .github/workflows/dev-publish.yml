@@ -39,7 +39,7 @@ jobs:
         shell: cmd
         timeout-minutes: 20
         run: |
-          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv"
+          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild"
           "D:\a\Rock\Rock\Rock.sln" /build Release
 
      
