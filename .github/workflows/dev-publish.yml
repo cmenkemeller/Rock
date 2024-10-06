@@ -30,9 +30,18 @@ jobs:
       #     Set-Content $HOME\.ssh\id_rsa $fileContent
       
       - name: Modify Visual Studio 2022
+        timeout-minutes: 3
         shell: cmd
         run: |
           nuget restore Rock.sln
+          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe"
+          "D:\a\Rock\Rock\Rock.sln" /build Release
+
+           
+      - name: Build
+        shell: cmd
+        timeout-minutes: 10
+        run: |
           "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.com"
           "D:\a\Rock\Rock\Rock.sln" /build Release
 
