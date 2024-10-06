@@ -29,6 +29,11 @@ jobs:
       #     $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
       #     Set-Content $HOME\.ssh\id_rsa $fileContent
 
+
+      - name: List IDE directory
+        run: |
+          dir "D:\a\Rock"
+
       - name: Restore NuGet packages
         run: nuget restore Rock.sln
         working-directory: D:\a\Rock
