@@ -29,14 +29,6 @@ jobs:
       #     $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
       #     Set-Content $HOME\.ssh\id_rsa $fileContent
 
-      - name: List IDE directory
-        run: |
-          dir "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.com"
-
-      - name: List IDE directory
-        run: |
-          dir "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\"
-
       - name: Restore NuGet packages
         run: nuget restore Rock.sln
         working-directory: D:\a\Rock\Rock
@@ -44,9 +36,9 @@ jobs:
       
       - name: Modify Visual Studio 2022
         shell: pwsh
-        working-directory: C:\
         run: |
-          Start-Process -FilePath "Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.com"
+          Start-Process -FilePath "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.com"
+          "D:\a\Rock\Rock\Rock.sln" /build "Release"
 
       - name: Build Release
         shell: pwsh
