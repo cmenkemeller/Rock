@@ -30,7 +30,7 @@ jobs:
       #     Set-Content $HOME\.ssh\id_rsa $fileContent
       
       - name: Modify Visual Studio 2022
-        timeout-minutes: 3
+        timeout-minutes: 5
         shell: cmd
         run: |
           nuget restore Rock.sln
