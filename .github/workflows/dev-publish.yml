@@ -28,23 +28,15 @@ jobs:
       #     $fileContent += $env:priv_key.Replace(' ', "`n")
       #     $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
       #     Set-Content $HOME\.ssh\id_rsa $fileContent
-
-      - name: Restore NuGet packages
-        run: nuget restore Rock.sln
-        working-directory: D:\a\Rock\Rock
-
       
       - name: Modify Visual Studio 2022
-        shell: pwsh
+        shell: cmd
         run: |
-          Start-Process -FilePath "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.com"
-          "D:\a\Rock\Rock\Rock.sln" /build "Release"
+          nuget restore Rock.sln
+          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.com"
+          "D:\a\Rock\Rock\Rock.sln" /build Release
 
-      - name: Build Release
-        shell: pwsh
-        run: |
-          msbuild Rock.sln /p:Configuration=Release
-      
+     
       # # Step 4: Modify web.config (before_build step in AppVeyor)
       # - name: Modify web.config
       #   shell: pwsh
