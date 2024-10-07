@@ -8,10 +8,10 @@ on:
 jobs:
   build:
     runs-on: windows-2019
-    strategy:
-      matrix:
-        configuration: [Release]
-        platform: [Any CPU]
+    defaults:
+      run:
+        shell: cmd
+
     steps:
 
       # Step 1: Checkout the code
@@ -29,11 +29,22 @@ jobs:
       #     $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
       #     Set-Content $HOME\.ssh\id_rsa $fileContent
       
-      - name: NuGet Restore
-        timeout-minutes: 5
-        shell: cmd
+       # Set git configuration for line endings
+      - name: Set Git Autocrlf
+        run: git config --global core.autocrlf true
+
+      # Move Plugins folder
+      - name: Move Plugins Folder
         run: |
-          nuget restore Rock.sln
+          echo "Moving Plugins Folder"
+          move %GITHUB_WORKSPACE%\RockWeb\Plugins C:\
+
+      # Restore NuGet packages
+      - name: NuGet Restore
+        run: |
+          echo "Starting Nuget Restore"
+          nuget restore -verbosity normal -NonInteractive -Recursive "%GITHUB_WORKSPACE%\Rock.sln"
+          echo "Nuget Packages Restored"
            
       - name: Build with MSBuild
         shell: cmd
@@ -42,7 +53,12 @@ jobs:
           "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild"
           "D:\a\Rock\Rock\Rock.sln" /build Release
 
-     
+     # Move Plugins folder back after the build
+      - name: Move Plugins Folder Back
+        run: |
+          echo "Moving Plugins Folder Back"
+          move C:\Plugins %GITHUB_WORKSPACE%\RockWeb
+
       # # Step 4: Modify web.config (before_build step in AppVeyor)
       # - name: Modify web.config
       #   shell: pwsh
@@ -141,4 +157,4 @@ jobs:
         with:
           name: BuildOutput
           path: |
-            ./RockWeb/bin
+            ./RockWeb
