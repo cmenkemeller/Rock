@@ -48,7 +48,7 @@ jobs:
       
       - name: Show project directory
         run: |
-          dir %GITHUB_WORKSPACE%\RockWeb\
+          dir %GITHUB_WORKSPACE%\RockWeb\Bin\
 
       - name: Build with MSBuild
         shell: cmd
@@ -60,7 +60,7 @@ jobs:
       - name: Show project directory
         if: always()
         run: |
-          dir %GITHUB_WORKSPACE%\RockWeb\
+          dir %GITHUB_WORKSPACE%\RockWeb\Bin\
  
      # Move Plugins folder back after the build
       - name: Move Plugins Folder Back
