@@ -50,8 +50,8 @@
     <Reference Include="BouncyCastle.Cryptography, Version=2.0.0.0, Culture=neutral, PublicKeyToken=072edcf4a5328938, processorArchitecture=MSIL">
       <HintPath>..\packages\BouncyCastle.Cryptography.2.2.1\lib\net461\BouncyCastle.Cryptography.dll</HintPath>
     </Reference>
-     <Reference Include="DDay.iCal, Version=1.0.2.575, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DDay.iCal.1.0.2.575\lib\DDay.iCal.dll</HintPath>
+    <Reference Include="DDay.iCal">
+      <HintPath>..\RockWeb\Bin\DDay.iCal.dll</HintPath>
     </Reference>
     <Reference Include="Docker.DotNet, Version=3.125.0.0, Culture=neutral, PublicKeyToken=e628c633e2cf4146, processorArchitecture=MSIL">
       <HintPath>..\packages\Docker.DotNet.3.125.15\lib\netstandard2.0\Docker.DotNet.dll</HintPath>
@@ -59,11 +59,11 @@
     <Reference Include="Docker.DotNet.X509, Version=3.125.0.0, Culture=neutral, PublicKeyToken=e628c633e2cf4146, processorArchitecture=MSIL">
       <HintPath>..\packages\Docker.DotNet.X509.3.125.15\lib\netstandard2.0\Docker.DotNet.X509.dll</HintPath>
     </Reference>
-    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
+    <Reference Include="EntityFramework">
+      <HintPath>..\RockWeb\Bin\EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\RockWeb\Bin\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="Ical.Net, Version=1.0.0.0, Culture=neutral, PublicKeyToken=65c0446cd019ea53, processorArchitecture=MSIL">
       <HintPath>..\packages\Ical.Net.4.2.0\lib\netstandard2.0\Ical.Net.dll</HintPath>
