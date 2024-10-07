@@ -48,7 +48,7 @@ jobs:
       
       - name: Show project directory
         run: |
-          dir %GITHUB_WORKSPACE%\RockWeb\Bin\
+          dir %GITHUB_WORKSPACE%\packages\
 
       - name: Build with MSBuild
         shell: cmd
