@@ -45,7 +45,15 @@ jobs:
           echo "Starting Nuget Restore"
           nuget restore -verbosity normal -NonInteractive -Recursive "%GITHUB_WORKSPACE%\Rock.sln"
           echo "Nuget Packages Restored"
-           
+      
+      - name: Show project directory
+        run: |
+          dir %GITHUB_WORKSPACE%
+
+      - name: Show a directory
+        run: |
+          dir %GITHUB_WORKSPACE%\a
+
       - name: Build with MSBuild
         shell: cmd
         timeout-minutes: 20
