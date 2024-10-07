@@ -12,7 +12,7 @@ pull_requests:
 # branches to build
 branches:
   only:
-  - appveyor
+  - appveryor
 
 # Do not build on tags (GitHub only)
 skip_tags: true
