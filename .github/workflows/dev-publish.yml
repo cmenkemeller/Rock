@@ -50,9 +50,9 @@ jobs:
         run: |
           dir %GITHUB_WORKSPACE%
 
-      - name: Show a directory
+      - name: Show D directory
         run: |
-          dir %GITHUB_WORKSPACE%\a
+          dir D:\
 
       - name: Build with MSBuild
         shell: cmd
@@ -60,7 +60,18 @@ jobs:
         run: |
           "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild"
           "D:\a\Rock\Rock\Rock.sln" /build Release
+      
+      - name: Show project directory
+        if: always()
+        run: |
+          dir %GITHUB_WORKSPACE%
 
+      - name: Show D directory
+        if: always()
+        run: |
+          dir D:\
+
+ 
      # Move Plugins folder back after the build
       - name: Move Plugins Folder Back
         run: |
