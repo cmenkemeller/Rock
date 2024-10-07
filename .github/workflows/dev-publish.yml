@@ -37,7 +37,7 @@ jobs:
       - name: Move Plugins Folder
         run: |
           echo "Moving Plugins Folder"
-          move %GITHUB_WORKSPACE%\RockWeb\Plugins C:\
+          move %GITHUB_WORKSPACE%\RockWeb\Plugins D:\a\
 
       # Restore NuGet packages
       - name: NuGet Restore
@@ -57,7 +57,7 @@ jobs:
       - name: Move Plugins Folder Back
         run: |
           echo "Moving Plugins Folder Back"
-          move C:\Plugins %GITHUB_WORKSPACE%\RockWeb
+          move D:\a\Plugins %GITHUB_WORKSPACE%\RockWeb
 
       # # Step 4: Modify web.config (before_build step in AppVeyor)
       # - name: Modify web.config
