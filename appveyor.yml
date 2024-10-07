@@ -25,4 +25,3 @@ test: off
 artifacts:
 - path: /RockWeb
   name: WebSitePkg
-deploy: off
